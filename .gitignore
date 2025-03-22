@@ -38,3 +38,4 @@ etapa*
 *.pdf
 tests/
 specs/
+.vscode/
