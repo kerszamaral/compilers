@@ -33,15 +33,15 @@ lex.yy.cpp: scanner.l $(DEP_FILES)
 
 .PHONY: docker
 docker: docker-build
-	docker run --volume "$(current_dir)":/project -it $(PROJECT)
+	docker run --volume "$(current_dir)":/project --rm -it $(PROJECT) 
 
 .PHONY: docker-run
 docker-run: docker-build
-	docker run --volume "$(current_dir)":/project -it $(PROJECT) "make run"
+	docker run --volume "$(current_dir)":/project --rm -it $(PROJECT) "make run"
 
 .PHONY: docker-connect
 docker-connect: docker-build
-	docker run --volume "$(current_dir)":/project -it $(PROJECT) bash 
+	docker run --volume "$(current_dir)":/project --rm -it $(PROJECT) bash 
 
 .PHONY: docker-build
 docker-build: .docker-build
