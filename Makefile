@@ -6,6 +6,7 @@ CXXFLAGS = -Wall -Wextra -pedantic $(STD)
 RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
 current_dir = /${shell PWD}
+DEP_FILES = scanner.h scanner.cpp tokens.h main.cpp
 
 LEX = flex
 
@@ -21,13 +22,13 @@ target: $(PROJECT)
 run: $(PROJECT)
 	./$(PROJECT)
 
-$(PROJECT): lex.yy.o main.o
-	$(CXX) lex.yy.o main.o -o $(PROJECT)
+$(PROJECT): lex.yy.o
+	$(CXX) lex.yy.o -o $(PROJECT)
 
 %.o: %.cpp 
 	$(CXX) $(CXXFLAGS) $< -c
 
-lex.yy.cpp: scanner.l scanner.h scanner.cpp tokens.h
+lex.yy.cpp: scanner.l $(DEP_FILES)
 	$(LEX) -o lex.yy.cpp scanner.l 
 
 .PHONY: docker
@@ -55,4 +56,8 @@ versions:
 
 .PHONY: clean
 clean:
-	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build
+	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz
+
+.PHONY: tgz
+tgz: clean
+	tar cvzf $(PROJECT).tgz --exclude .git *
