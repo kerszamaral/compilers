@@ -35,3 +35,4 @@
 .docker-build
 *.yy*
 etapa*
+*.pdf
