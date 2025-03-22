@@ -60,4 +60,4 @@ clean:
 
 .PHONY: tgz
 tgz: clean
-	tar cvzf $(PROJECT).tgz --exclude=.git --exclude='*.pdf' *
+	tar cvzf $(PROJECT).tgz --exclude=.git --exclude='*.pdf' * .gitignore
