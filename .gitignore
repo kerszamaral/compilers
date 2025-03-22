@@ -36,3 +36,5 @@
 *.yy*
 etapa*
 *.pdf
+tests/
+specs/

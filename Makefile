@@ -1,19 +1,30 @@
+# Makefile made by Ian Kersz Amaral - 00338368
+
 PROJECT = etapa1
+DEFAULT_VERSION = debug
 
 CXX = g++
 STD = -std=c++11
-CXXFLAGS = -Wall -Wextra -pedantic $(STD)
+CXXFLAGS = -Wall -Wextra -pedantic -Wconversion $(STD)
 RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
 current_dir = /${shell PWD}
-DEP_FILES = scanner.h scanner.cpp tokens.h main.cpp
+DEP_FILES = tokens.h
 
 LEX = flex
 
 BISON = bison
 
 .PHONY: all
-all: target
+all: $(DEFAULT_VERSION)
+
+.PHONY: release
+release: CXXFLAGS += $(RELEASE_FLAGS)
+release: target
+
+.PHONY: debug
+debug: CXXFLAGS += $(DEBUG_FLAGS)
+debug: target
 
 .PHONY: target
 target: $(PROJECT)
@@ -22,10 +33,11 @@ target: $(PROJECT)
 run: $(PROJECT)
 	./$(PROJECT)
 
-$(PROJECT): lex.yy.o
-	$(CXX) lex.yy.o -o $(PROJECT)
+OBJS = lex.yy.o main.o scanner.o
+$(PROJECT): $(OBJS)
+	$(CXX) $(OBJS) -o $(PROJECT)
 
-%.o: %.cpp 
+%.o: %.cpp %.h
 	$(CXX) $(CXXFLAGS) $< -c
 
 lex.yy.cpp: scanner.l $(DEP_FILES)

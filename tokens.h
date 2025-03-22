@@ -1,4 +1,3 @@
-#pragma once
 /*
  * Compiladores - etapa1 - tokens.h - semestre 2025/1 - M Johann
  *
