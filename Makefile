@@ -8,7 +8,7 @@ STD = -std=c++11
 CXXFLAGS = -Wall -Wextra -pedantic -Wconversion $(STD)
 RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
-current_dir = /${shell PWD}
+current_dir = /${shell pwd}
 DEP_FILES = tokens.h
 
 LEX = flex
@@ -71,5 +71,6 @@ clean:
 	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz
 
 .PHONY: tgz
-tgz: clean
-	tar cvzf $(PROJECT).tgz --exclude=.git --exclude='*.pdf' * .gitignore
+tgz:
+	touch $(PROJECT).tgz
+	tar cvzf $(PROJECT).tgz --exclude=$(PROJECT).tgz --exclude-vcs-ignores --exclude=.git .

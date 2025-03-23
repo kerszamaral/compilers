@@ -36,6 +36,8 @@
 *.yy*
 etapa*
 *.pdf
-tests/
-specs/
-.vscode/
+
+# Folders
+tests
+specs
+.vscode
