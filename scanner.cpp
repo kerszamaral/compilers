@@ -19,7 +19,14 @@ extern "C" int yywrap(void)
 
 void initMe(void)
 {
-    symbolTable = std::map<std::string, TokenType>();
+    symbolTable = SymbolTable();
+}
+
+void add_token(int token, char *lexeme, int line)
+{
+    Lexeme lex = Lexeme(lexeme);
+    SymbolTableEntry entry = SymbolTableEntry(token, line);
+    symbolTable.emplace(lex, entry); // If the key already exists, emplace does nothing
 }
 
 int isRunning(void)

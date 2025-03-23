@@ -15,7 +15,13 @@ bool running = true;
 int getLineNumber(void);
 
 typedef int TokenType;
+typedef unsigned int LineNumber;
+typedef std::tuple<TokenType, LineNumber> SymbolTableEntry;
+typedef std::string Lexeme;
+typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
 
-std::map<std::string, TokenType> symbolTable;
+SymbolTable symbolTable;
 
 std::string tokenName(TokenType token);
+
+void add_token(int token, char *lexeme, int line);

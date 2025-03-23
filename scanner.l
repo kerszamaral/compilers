@@ -5,6 +5,8 @@
 
 extern bool inComment;
 
+extern void add_token(int token, char *lexeme, int line);
+
 %}
 
 /* Activates Automatic Line Counting */
