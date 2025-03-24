@@ -1,4 +1,5 @@
-# Makefile made by Ian Kersz Amaral - 00338368
+# Makefile made by Ian Kersz
+# This file may be distributed as it doesnt impact the work done.
 
 PROJECT = etapa1
 DEFAULT_VERSION = debug
