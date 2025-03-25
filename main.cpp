@@ -11,6 +11,7 @@ int isRunning(void);
 void initMe(void);
 int getLineNumber(void);
 std::string tokenName(int token);
+void printSymbolTable(void);
 
 int main(int argc, char **argv)
 {
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "(%s, %s) %s", yytext, tokenName(token).c_str(), token == ';' ? "\n" : "");
     }
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
+    printSymbolTable();
     fclose(yyin);
     return 0;
 }

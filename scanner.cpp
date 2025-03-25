@@ -1,18 +1,34 @@
 #include "scanner.h"
 
-// scanner.cpp file made by Ian Kersz Amaral
+// scanner.cpp file made by Ian Kersz Amaral - 2025/1
 
 bool inComment = false;
 
-extern int getLineNumber(void);
+bool running = true;
+
+SymbolTable symbolTable;
+
+void stopRunning(void)
+{
+    running = false;
+}
+
+int isRunning(void)
+{
+    return running;
+}
+
+void setInComment(bool value)
+{
+    inComment = value;
+}
 
 extern "C" int yywrap(void)
 {
-    running = false;
+    stopRunning();
     if (inComment)
     {
         fprintf(stderr, "\n!!Unclosed comment!!\n");
-        return 1;
     }
     return 1;
 }
@@ -22,16 +38,21 @@ void initMe(void)
     symbolTable = SymbolTable();
 }
 
-void add_token(int token, char *lexeme, int line)
+SymbolTableEntry &add_token(const TokenType token_type, const Lexeme &lexeme)
 {
-    Lexeme lex = Lexeme(lexeme);
-    SymbolTableEntry entry = SymbolTableEntry(token, line);
-    symbolTable.emplace(lex, entry); // If the key already exists, emplace does nothing
+    // If the key already exists, emplace does nothing, and returns an iterator to the existing element
+    return symbolTable.emplace(lexeme, SymbolTableEntry(token_type, lexeme)).first->second; // We dereference the iterator to get the value as a reference
 }
 
-int isRunning(void)
+void printSymbolTable(void)
 {
-    return running;
+    for (auto &entry : symbolTable)
+    {
+        fprintf(stderr, "Lexeme: %s\n", entry.first.c_str());
+        fprintf(stderr, "Token: %s\n", tokenName(std::get<0>(entry.second)).c_str());
+        fprintf(stderr, "Lexeme: %s\n", std::get<1>(entry.second).c_str());
+        fprintf(stderr, "\n");
+    }
 }
 
 std::string tokenName(TokenType token)

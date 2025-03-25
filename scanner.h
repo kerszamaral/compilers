@@ -1,27 +1,31 @@
 #pragma once
-// scanner.h file made by Ian Kersz Amaral
+// scanner.h file made by Ian Kersz Amaral - 2025/1
 
-#include <stdbool.h>
+#include <cstdbool>
 #include <string>
+#include <tuple>
 #include <map>
-
 
 #include "tokens.h"
 
 #define printf(...) fprintf(stderr, __VA_ARGS__)
 
-bool running = true;
+void initMe(void);
+
+void stopRunning(void);
+
+void setInComment(bool value);
 
 int getLineNumber(void);
 
 typedef int TokenType;
 typedef unsigned int LineNumber;
-typedef std::tuple<TokenType, LineNumber> SymbolTableEntry;
 typedef std::string Lexeme;
+typedef std::tuple<TokenType, Lexeme> SymbolTableEntry;
 typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
-
-SymbolTable symbolTable;
 
 std::string tokenName(TokenType token);
 
-void add_token(int token, char *lexeme, int line);
+SymbolTableEntry &add_token(const TokenType token_type, const Lexeme &lexeme);
+
+void printSymbolTable(void);

@@ -1,11 +1,9 @@
 %{
-// scanner.l file made by Ian Kersz Amaral - 00338368
+// scanner.l file made by Ian Kersz - 2025/1
 
 #include "tokens.h"
 
-extern bool inComment;
-
-extern void add_token(int token, char *lexeme, int line);
+#include "scanner.h"
 
 %}
 
@@ -45,19 +43,19 @@ string \"([^\n\r"])*\"
 "!="                    { return OPERATOR_DIF; }
 {special_chars}         { return yytext[0]; }
 
-{identif}               { return TK_IDENTIFIER; }
+{identif}               { add_token(TK_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
-{real}                  { return LIT_REAL; }
-{integer}               { return LIT_INT; }
-{char}                  { return LIT_CHAR; }
-{string}                { return LIT_STRING; }
+{real}                  { add_token(LIT_REAL, yytext); return LIT_REAL; }
+{integer}               { add_token(LIT_INT, yytext); return LIT_INT; }
+{char}                  { add_token(LIT_CHAR, yytext); return LIT_CHAR; }
+{string}                { add_token(LIT_STRING, yytext); return LIT_STRING; }
 
-"\/--"                  { inComment = true; BEGIN(COMMENT); }
+"\/--"                  { setInComment(true); BEGIN(COMMENT); }
 {single_line_comment}   { }
 
 .                       { return TOKEN_ERROR; }
 
-<COMMENT>"--/"          { inComment = false; BEGIN(INITIAL); }
+<COMMENT>"--/"          { setInComment(false); BEGIN(INITIAL); }
 <COMMENT>.|\n           { }
 
 
