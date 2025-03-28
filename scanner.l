@@ -46,12 +46,12 @@ string \"([^\n\r"]|(\\\"))*\"
 "!="                    { return OPERATOR_DIF; }
 {special_chars}         { return yytext[0]; }
 
-{identif}               { add_token(TK_IDENTIFIER, yytext); return TK_IDENTIFIER; }
+{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext); return TK_IDENTIFIER; }
 
-{real}                  { add_token(LIT_REAL, yytext); return LIT_REAL; }
-{integer}               { add_token(LIT_INT, yytext); return LIT_INT; }
-{char}                  { add_token(LIT_CHAR, yytext); return LIT_CHAR; }
-{string}                { add_token(LIT_STRING, yytext); return LIT_STRING; }
+{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext); return LIT_REAL; }
+{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext); return LIT_INT; }
+{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext); return LIT_CHAR; }
+{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext); return LIT_STRING; }
 
 "\/--"                  { setInComment(true); BEGIN(COMMENT); }
 {single_line_comment}   { }
