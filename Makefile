@@ -1,7 +1,7 @@
 # Makefile made by Ian Kersz
 # This file may be distributed as it doesnt impact the work done.
 
-PROJECT = etapa1
+PROJECT = etapa2
 DEFAULT_VERSION = debug
 
 CXX = g++
@@ -38,7 +38,7 @@ OBJS = lex.yy.o main.o scanner.o
 $(PROJECT): $(OBJS)
 	$(CXX) $(OBJS) -o $(PROJECT)
 
-%.o: %.cpp %.h
+%.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $< -c
 
 lex.yy.cpp: scanner.l $(DEP_FILES)
