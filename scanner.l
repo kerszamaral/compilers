@@ -21,7 +21,7 @@ identif {alpha}({alpha}|{digit})*
 real {digit}+\/{digit}+
 integer {digit}+
 char '.?'
-string \"([^\n\r"])*\"
+string \"([^\n\r"]|(\\\"))*\"
 
 %%
 
