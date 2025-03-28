@@ -1,12 +1,15 @@
 %{
 
 #include <cstdio>
+#include <cstdlib>
 
 extern int yylex();
 
+extern int getLineNumber(void);
+
 void yyerror(const char *s);
 
-extern int getLineNumber(void);
+#define EXIT_SYNTAX_ERROR 3
 
 %}
 
@@ -33,12 +36,23 @@ extern int getLineNumber(void);
 
 %%
 
-program:
+program: ldef
+    ;
+
+ldef: def ldef
+    | %empty
+    ;
+
+def: KW_INT TK_IDENTIFIER '=' LIT_INT ';'
+    | KW_REAL TK_IDENTIFIER '=' LIT_REAL ';'
+    | KW_BYTE TK_IDENTIFIER '=' LIT_CHAR ';'
+    | KW_PRINT LIT_STRING ';'
+    | KW_RETURN LIT_INT ';'
     ;
 
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Syntax Error at %d: %s\n", getLineNumber(), s);
-    
+    fprintf(stderr, "Syntax Error at line %d: %s\n", getLineNumber(), s);
+    std::exit(EXIT_SYNTAX_ERROR);
 }
