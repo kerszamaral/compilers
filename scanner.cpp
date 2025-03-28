@@ -1,12 +1,15 @@
 #include "scanner.h"
 
 #include <algorithm>
+#include <vector>
 
 // scanner.cpp file made by Ian Kersz Amaral - 2025/1
 
 bool inComment = false;
 
 bool running = true;
+
+std::vector<int> encounteredError;
 
 SymbolTable symbolTable;
 
@@ -25,9 +28,27 @@ void setInComment(bool value)
     inComment = value;
 }
 
+void setError(void)
+{
+    encounteredError.push_back(getLineNumber());
+}
+
 extern "C" int yywrap(void)
 {
     stopRunning();
+    if (encounteredError.size() > 0)
+    {
+        fprintf(stderr, "\n!!Errors in the input file found in lines: ");
+        for (const auto &line : encounteredError)
+        {
+            fprintf(stderr, "%d", line);
+            if (line != encounteredError.back())
+            {
+                fprintf(stderr, ", ");
+            }
+        }
+        fprintf(stderr, "!!\n");
+    }
     if (inComment)
     {
         fprintf(stderr, "\n!!Unclosed comment!!\n");
@@ -38,6 +59,7 @@ extern "C" int yywrap(void)
 void initMe(void)
 {
     symbolTable = SymbolTable();
+    encounteredError.clear();
 }
 
 SymbolTableEntry &register_symbol(const SymbolType symbol_type, Lexeme lexeme)

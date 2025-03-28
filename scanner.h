@@ -18,6 +18,8 @@ void stopRunning(void);
 
 void setInComment(bool value);
 
+void setError(void);
+
 int getLineNumber(void);
 
 enum SymbolType : uint8_t

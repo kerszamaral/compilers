@@ -56,7 +56,7 @@ string \"([^\n\r"]|(\\\"))*\"
 "\/--"                  { setInComment(true); BEGIN(COMMENT); }
 {single_line_comment}   { }
 
-.                       { return TOKEN_ERROR; }
+.                       { setError(); return TOKEN_ERROR; }
 
 <COMMENT>"--/"          { setInComment(false); BEGIN(INITIAL); }
 <COMMENT>.|\n           { }
