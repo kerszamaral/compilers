@@ -39,6 +39,10 @@
 *.yy*
 etapa*
 *.pdf
+*.tab*
+*.gv
+*.html
+*.xml
 
 # Folders
 tests
