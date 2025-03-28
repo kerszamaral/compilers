@@ -61,7 +61,7 @@ docker-build: .docker-build
 
 .docker-build: Dockerfile
 	touch .docker-build
-	docker build -t $(PROJECT) .
+	docker build -t $(PROJECT) . || rm .docker-build
 
 .PHONY: versions
 versions:
@@ -74,4 +74,4 @@ clean:
 .PHONY: tgz
 tgz:
 	touch $(PROJECT).tgz
-	tar cvzf $(PROJECT).tgz --exclude=$(PROJECT).tgz --exclude-vcs-ignores --exclude=.git .
+	tar cvzf $(PROJECT).tgz --exclude=$(PROJECT).tgz --exclude-vcs-ignores --exclude=.git . || rm $(PROJECT).tgz
