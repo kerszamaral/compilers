@@ -6,7 +6,7 @@
 #include <tuple>
 #include <map>
 
-#include "tokens.h"
+#include "parser.tab.hpp"
 
 // #define REMOVE_LEADING_ZEROS
 
@@ -32,7 +32,7 @@ enum SymbolType : uint8_t
     SYMBOL_STRING
 };
 
-typedef int TokenType;
+typedef yytoken_kind_t TokenType;
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
 typedef std::tuple<SymbolType, Lexeme> SymbolTableEntry;

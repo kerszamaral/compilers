@@ -1,9 +1,7 @@
 %{
 // scanner.l file made by Ian Kersz - 2025/1
 
-#include "tokens.h"
-
-#include "scanner.h"
+#include "scanner.hpp"
 
 %}
 
