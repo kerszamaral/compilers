@@ -25,24 +25,32 @@ release: target
 
 .PHONY: debug
 debug: CXXFLAGS += $(DEBUG_FLAGS)
+debug: BISONFLAGS = -g --html
 debug: target
 
 .PHONY: target
 target: $(PROJECT)
 
-.PHONY:
+.PHONY: run
 run: $(PROJECT)
 	./$(PROJECT)
 
-OBJS = lex.yy.o main.o scanner.o
+OBJS = lex.yy.o main.o scanner.o parser.tab.o
 $(PROJECT): $(OBJS)
 	$(CXX) $(OBJS) -o $(PROJECT)
 
 %.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $< -c
 
-lex.yy.cpp: scanner.l $(DEP_FILES)
+lex.yy.cpp: scanner.l parser.tab.hpp
 	$(LEX) -o lex.yy.cpp scanner.l 
+
+.PHONY: visualize
+visualize: BISONFLAGS = -g --html
+visualize: parser.tab.cpp parser.tab.hpp
+
+parser.tab.cpp parser.tab.hpp: parser.ypp
+	$(BISON) -d $(BISONFLAGS) parser.ypp
 
 .PHONY: docker
 docker: docker-build
@@ -69,7 +77,7 @@ versions:
 
 .PHONY: clean
 clean:
-	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz
+	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv
 
 .PHONY: tgz
 tgz:

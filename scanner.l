@@ -28,33 +28,33 @@ string \"([^\n\r"]|(\\\"))*\"
 
 {white_space}           { }
 
-"byte"                  { return KW_BYTE; }
-"int"                   { return KW_INT; }
-"real"                  { return KW_REAL; }
-"if"                    { return KW_IF; }
-"else"                  { return KW_ELSE; }
-"do"                    { return KW_DO; }
-"while"                 { return KW_WHILE; }
-"read"                  { return KW_READ; }
-"print"                 { return KW_PRINT; }
-"return"                { return KW_RETURN; }
-"<="                    { return OPERATOR_LE; }
-">="                    { return OPERATOR_GE; }
-"=="                    { return OPERATOR_EQ; }
-"!="                    { return OPERATOR_DIF; }
+"byte"                  { return TokenType::KW_BYTE; }
+"int"                   { return TokenType::KW_INT; }
+"real"                  { return TokenType::KW_REAL; }
+"if"                    { return TokenType::KW_IF; }
+"else"                  { return TokenType::KW_ELSE; }
+"do"                    { return TokenType::KW_DO; }
+"while"                 { return TokenType::KW_WHILE; }
+"read"                  { return TokenType::KW_READ; }
+"print"                 { return TokenType::KW_PRINT; }
+"return"                { return TokenType::KW_RETURN; }
+"<="                    { return TokenType::OPERATOR_LE; }
+">="                    { return TokenType::OPERATOR_GE; }
+"=="                    { return TokenType::OPERATOR_EQ; }
+"!="                    { return TokenType::OPERATOR_DIF; }
 {special_chars}         { return yytext[0]; }
 
-{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext); return TK_IDENTIFIER; }
+{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext); return TokenType::TK_IDENTIFIER; }
 
-{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext); return LIT_REAL; }
-{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext); return LIT_INT; }
-{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext); return LIT_CHAR; }
-{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext); return LIT_STRING; }
+{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext); return TokenType::LIT_REAL; }
+{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext); return TokenType::LIT_INT; }
+{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext); return TokenType::LIT_CHAR; }
+{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext); return TokenType::LIT_STRING; }
 
 "\/--"                  { setInComment(true); BEGIN(COMMENT); }
 {single_line_comment}   { }
 
-.                       { setError(); return TOKEN_ERROR; }
+.                       { setError(); return TokenType::TOKEN_ERROR; }
 
 <COMMENT>"--/"          { setInComment(false); BEGIN(INITIAL); }
 <COMMENT>.|\n           { }
