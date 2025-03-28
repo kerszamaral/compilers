@@ -12,16 +12,6 @@
 
 #define printf(...) fprintf(stderr, __VA_ARGS__)
 
-void initMe(void);
-
-void stopRunning(void);
-
-void setInComment(bool value);
-
-void setError(void);
-
-int getLineNumber(void);
-
 enum SymbolType : uint8_t
 {
     SYMBOL_INVALID,
@@ -37,6 +27,14 @@ typedef unsigned int LineNumber;
 typedef std::string Lexeme;
 typedef std::tuple<SymbolType, Lexeme> SymbolTableEntry;
 typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
+
+void initMe(void);
+
+void stopRunning(void);
+
+void setError(void);
+
+LineNumber getLineNumber(void);
 
 std::string symbolName(SymbolType symbol);
 
