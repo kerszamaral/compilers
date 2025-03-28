@@ -8,6 +8,8 @@
 
 #include "tokens.h"
 
+// #define REMOVE_LEADING_ZEROS
+
 #define printf(...) fprintf(stderr, __VA_ARGS__)
 
 void initMe(void);
