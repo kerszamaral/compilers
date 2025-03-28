@@ -3,15 +3,12 @@
 #include <stdlib.h>
 #include <string>
 
-// lex.yy.h
-int yylex();
-extern char *yytext;
+int yyparse();
+extern int yylex_destroy(void);
 extern FILE *yyin;
 
-int isRunning(void);
 void initMe(void);
 int getLineNumber(void);
-std::string tokenName(int token);
 void printSymbolTable(void);
 
 int main(int argc, char **argv)
@@ -30,16 +27,11 @@ int main(int argc, char **argv)
     
     initMe();
 
-    while (isRunning())
-    {
-        int token = yylex();
+    int ret = yyparse();
 
-        if (!isRunning())
-            break;
-        fprintf(stderr, "(%s, %s) %s", yytext, tokenName(token).c_str(), token == ';' ? "\n" : "");
-    }
     fclose(yyin);
-    
+    yylex_destroy();
+
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
     
     fprintf(stderr, "Symbol Table:\n");
