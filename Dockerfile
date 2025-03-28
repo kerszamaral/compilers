@@ -1,7 +1,7 @@
 # Dockerfile made by Ian Kersz
 # This file may be distributed as it doesnt impact the work done.
 FROM ubuntu:22.04 AS builder
-RUN apt update && apt-get install --no-install-recommends -y make flex bison clang-14
+RUN apt update && apt-get install --no-install-recommends -y make flex bison clang-14 xsltproc
 RUN rm -rf /var/lib/apt/lists/*
 VOLUME /project
 WORKDIR /project
