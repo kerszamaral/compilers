@@ -16,7 +16,7 @@
 %x COMMENT
 
 digit [0-9]
-alpha [A-z_]
+alpha [A-Za-z_]
 white_space [ \t\n\r]
 special_chars [-,;:\(\)\{\}\[\]+*\/%\<\>&\|~!=]
 single_line_comment \/\/[^\n\r]+
