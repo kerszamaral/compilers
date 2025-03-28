@@ -17,15 +17,18 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        printf("call: ./etapa1 input.txt \n");
+        printf("No input file provided, use: %s <input file>\n", argv[0]);
         exit(1);
     }
+    
     if (0 == (yyin = fopen(argv[1], "r")))
     {
         printf("Cannot open file %s... \n", argv[1]);
         exit(1);
     }
+    
     initMe();
+
     while (isRunning())
     {
         int token = yylex();
@@ -34,9 +37,12 @@ int main(int argc, char **argv)
             break;
         fprintf(stderr, "(%s, %s) %s", yytext, tokenName(token).c_str(), token == ';' ? "\n" : "");
     }
+    fclose(yyin);
+    
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
+    
     fprintf(stderr, "Symbol Table:\n");
     printSymbolTable();
-    fclose(yyin);
+    
     return 0;
 }
