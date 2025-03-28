@@ -35,6 +35,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "(%s, %s) %s", yytext, tokenName(token).c_str(), token == ';' ? "\n" : "");
     }
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
+    fprintf(stderr, "Symbol Table:\n");
     printSymbolTable();
     fclose(yyin);
     return 0;
