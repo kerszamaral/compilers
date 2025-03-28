@@ -42,7 +42,7 @@ string \"([^\n\r"]|(\\\"))*\"
 ">="                    { return TokenType::OPERATOR_GE; }
 "=="                    { return TokenType::OPERATOR_EQ; }
 "!="                    { return TokenType::OPERATOR_DIF; }
-{special_chars}         { return yytext[0]; }
+{special_chars}         { return static_cast<int>(yytext[0]); }
 
 {identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext); return TokenType::TK_IDENTIFIER; }
 
@@ -51,18 +51,19 @@ string \"([^\n\r"]|(\\\"))*\"
 {char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext); return TokenType::LIT_CHAR; }
 {string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext); return TokenType::LIT_STRING; }
 
-"\/--"                  { setInComment(true); BEGIN(COMMENT); }
+"\/--"                  { BEGIN(COMMENT); }
 {single_line_comment}   { }
 
 .                       { setError(); return TokenType::TOKEN_ERROR; }
 
-<COMMENT>"--/"          { setInComment(false); BEGIN(INITIAL); }
-<COMMENT>.|\n           { }
+<COMMENT>"--/"          { BEGIN(INITIAL); }
+<COMMENT><<EOF>>        { BEGIN(INITIAL); return TokenType::TOKEN_ERROR;};
+<COMMENT>.|\n              { }
 
 
 %%
 
-int getLineNumber(void)
+LineNumber getLineNumber(void)
 {
-    return yylineno;
+    return static_cast<LineNumber>(yylineno);
 }

@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <string>
 
-int yyparse();
+extern int yyparse();
 extern int yylex_destroy(void);
 extern FILE *yyin;
 
-void initMe(void);
-int getLineNumber(void);
-void printSymbolTable(void);
+extern void initMe(void);
+extern int getLineNumber(void);
+extern void printSymbolTable(void);
 
 int main(int argc, char **argv)
 {
@@ -27,12 +27,11 @@ int main(int argc, char **argv)
     
     initMe();
 
-    int ret = yyparse();
+    yyparse();
+    fprintf(stderr, "\nLines: %d\n", getLineNumber());
 
     fclose(yyin);
     yylex_destroy();
-
-    fprintf(stderr, "\nLines: %d\n", getLineNumber());
     
     fprintf(stderr, "Symbol Table:\n");
     printSymbolTable();

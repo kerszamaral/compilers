@@ -5,11 +5,10 @@
 
 // scanner.cpp file made by Ian Kersz Amaral - 2025/1
 
-bool inComment = false;
 
 bool running = true;
 
-std::vector<int> encounteredError;
+std::vector<LineNumber> encounteredError;
 
 SymbolTable symbolTable;
 
@@ -21,11 +20,6 @@ void stopRunning(void)
 int isRunning(void)
 {
     return running;
-}
-
-void setInComment(bool value)
-{
-    inComment = value;
 }
 
 void setError(void)
@@ -49,10 +43,7 @@ extern "C" int yywrap(void)
         }
         fprintf(stderr, "!!\n");
     }
-    if (inComment)
-    {
-        fprintf(stderr, "\n!!Unclosed comment!!\n");
-    }
+
     return 1;
 }
 
@@ -165,28 +156,6 @@ std::string tokenName(TokenType token)
         return "LIT_STRING";
     case TOKEN_ERROR:
         return "TOKEN_ERROR";
-    case '-':
-    case ',':
-    case ';':
-    case ':':
-    case '(':
-    case ')':
-    case '{':
-    case '}':
-    case '[':
-    case ']':
-    case '+':
-    case '*':
-    case '/':
-    case '%':
-    case '<':
-    case '>':
-    case '&':
-    case '|':
-    case '~':
-    case '=':
-    case '!':
-        return std::string(1, static_cast<char>(token));
     default:
         return "UNKNOWN";
     }
