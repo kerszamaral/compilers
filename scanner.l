@@ -10,6 +10,9 @@
 /* Activates Automatic Line Counting */
 %option yylineno
 
+/* Removes the unused functions, reducing warnings */
+%option noinput nounput
+
 %x COMMENT
 
 digit [0-9]
