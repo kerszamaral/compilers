@@ -1,7 +1,9 @@
 // main.cpp file made by Ian Kersz Amaral - 2025/1
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
+#include <vector>
+#include <iostream>
 
 extern int yyparse();
 extern int yylex_destroy(void);
@@ -11,23 +13,30 @@ extern void initMe(void);
 extern int getLineNumber(void);
 extern void printSymbolTable(void);
 
+
+#define WRONG_ARGS_ERROR 1
+#define NO_FILE_ERROR 2
+
 int main(int argc, char **argv)
 {
-    if (argc < 2)
+    std::vector<std::string> args(argv + 1, argv + argc);
+    if (args.size() != 1)
     {
         printf("No input file provided, use: %s <input file>\n", argv[0]);
-        exit(1);
+        std::exit(WRONG_ARGS_ERROR);
     }
-    
-    if (0 == (yyin = fopen(argv[1], "r")))
+
+    auto infile = fopen(args[0].c_str(), "r");
+    if (!infile)
     {
-        printf("Cannot open file %s... \n", argv[1]);
-        exit(1);
+        printf("Cannot open file %s... \n", args[0].c_str());
+        std::exit(NO_FILE_ERROR);
     }
+    yyin = infile;
     
     initMe();
 
-    yyparse();
+    auto result = yyparse();
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
 
     fclose(yyin);
@@ -36,5 +45,5 @@ int main(int argc, char **argv)
     fprintf(stderr, "Symbol Table:\n");
     printSymbolTable();
     
-    return 0;
+    return result;
 }
