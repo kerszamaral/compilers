@@ -86,9 +86,8 @@ param_decl: var_type TK_IDENTIFIER
 fun_body: cmd_block
     ;
 
-cmd_block: '{' cmd_block '}'
-    | cmd_list
-    | %empty
+cmd_block: '{' cmd_list '}'
+    | '{' '}'
     ;
 
 cmd_list: cmd cmd_list
@@ -103,12 +102,14 @@ cmd: atrib
     | empty_cmd
     ;
 
-atrib:
-    TK_IDENTIFIER '=' expr ';'
+atrib: TK_IDENTIFIER '=' expr ';'
     | TK_IDENTIFIER '[' expr ']' '=' expr ';'
     ;
 
-expr: expr operators expr
+expr: init_val
+    | TK_IDENTIFIER
+    | TK_IDENTIFIER '[' expr ']'
+    | expr operators expr
     | fun_call
     | '(' expr ')'
     ;

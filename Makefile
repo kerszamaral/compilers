@@ -46,7 +46,7 @@ lex.yy.cpp: scanner.l parser.tab.hpp
 	$(LEX) -o lex.yy.cpp scanner.l 
 
 .PHONY: visualize
-visualize: BISONFLAGS = -g --html
+visualize: BISONFLAGS = -g --html -v
 visualize: parser.tab.cpp parser.tab.hpp
 
 parser.tab.cpp parser.tab.hpp: parser.ypp

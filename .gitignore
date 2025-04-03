@@ -43,6 +43,7 @@ etapa*
 *.gv
 *.html
 *.xml
+*.output
 
 # Folders
 tests
