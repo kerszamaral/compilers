@@ -116,12 +116,9 @@ atrib: TK_IDENTIFIER '=' expr ';'
     | TK_IDENTIFIER '[' expr ']' '=' expr ';'
     ;
 
-expr: 
-    fun_call
-    | '(' expr ')'
-    | init_val
+expr: init_val
+    | TK_IDENTIFIER
     | TK_IDENTIFIER '[' expr ']'
-    | TK_IDENTIFIER // Causesa conflict with fun_call
     | expr '+' expr
     | expr '-' expr
     | expr '*' expr
@@ -138,6 +135,8 @@ expr:
     | expr '|' expr
     | '!' expr
     | '~' expr
+    | fun_call
+    | '(' expr ')'
     ;
 
 fun_call: TK_IDENTIFIER '(' arg_list ')'
@@ -153,8 +152,11 @@ flux_ctrl: if_cmd
     | do_while_cmd
     ;
 
-if_cmd: KW_IF '(' expr ')' cmd // Causes conflict with itself
-    | KW_IF '(' expr ')' cmd KW_ELSE cmd
+if_cmd: KW_IF '(' expr ')' cmd else_cmd // Causes conflict with itself
+    ;
+
+else_cmd: KW_ELSE cmd
+    | %empty
     ;
 
 while_cmd: KW_WHILE expr KW_DO cmd
@@ -169,6 +171,12 @@ read_cmd: KW_READ TK_IDENTIFIER ';'
 print_cmd: KW_PRINT print_list
     ;
 
+// Causes conflict with expressiong, as we can have the following
+// Function call: print  "AA"    test(1*2)   "BB"     ;
+// Parsing:       PRINT  STRING  FUNC_CALL   STRING  ';'
+// Expression:    print  "AA"    test  (1*2) "BB"     ;
+// Parsing:       PRINT  STRING  EXPR  EXPR  STRING  ';'
+// And they are both the same according to the grammar
 print_list: expr print_list
     | LIT_STRING print_list 
     | expr ';'
