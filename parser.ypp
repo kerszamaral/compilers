@@ -87,11 +87,10 @@ fun_body: cmd_block
     ;
 
 cmd_block: '{' cmd_list '}'
-    | '{' '}'
     ;
 
 cmd_list: cmd cmd_list
-    | cmd
+    | %empty
     ;
 
 cmd: atrib
@@ -100,6 +99,7 @@ cmd: atrib
     | print_cmd
     | return_cmd
     | empty_cmd
+    | cmd_block
     ;
 
 atrib: TK_IDENTIFIER '=' expr ';'
@@ -172,7 +172,7 @@ flux_ctrl: if_cmd
 if_cmd: KW_IF '(' expr ')' cmd_block else_cmd
     ;
 
-else_cmd: KW_ELSE cmd_block
+else_cmd: KW_ELSE cmd
     | %empty
     ;
 
@@ -190,7 +190,8 @@ print_cmd: KW_PRINT print_list
 
 print_list: expr print_list
     | LIT_STRING print_list 
-    | ';'
+    | expr ';'
+    | LIT_STRING ';'
     ;
 
 return_cmd: KW_RETURN expr ';'
