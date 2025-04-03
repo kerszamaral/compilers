@@ -72,7 +72,7 @@ vec_init: init_val
     | init_val ',' vec_init
     ;
 
-fun_decl: var_type TK_IDENTIFIER '(' param_list ')' '{' fun_body '}'
+fun_decl: var_type TK_IDENTIFIER '(' param_list ')' fun_body
     ;
 
 param_list: param_decl ',' param_list
@@ -106,36 +106,62 @@ atrib: TK_IDENTIFIER '=' expr ';'
     | TK_IDENTIFIER '[' expr ']' '=' expr ';'
     ;
 
-expr: init_val
-    | TK_IDENTIFIER
-    | TK_IDENTIFIER '[' expr ']'
-    | expr operators expr
+expr: or
     | fun_call
     | '(' expr ')'
     ;
 
-operators: '+'
-    | '-'
-    | '*'
-    | '/'
-    | '<'
-    | '>'
-    | '='
-    | '&'
-    | '|'
-    | '~'
-    | OPERATOR_LE
-    | OPERATOR_GE
-    | OPERATOR_EQ
-    | OPERATOR_DIF
+or: and
+    | or '|' and
+    ;
+
+and: eq
+    | and '&' eq
+    ;
+
+eq: ineq
+    | eq OPERATOR_DIF ineq
+    | eq OPERATOR_EQ ineq
+    | eq '=' ineq // Should not exist
+    ;
+
+ineq:
+    add_sub
+    | ineq OPERATOR_LE add_sub
+    | ineq OPERATOR_GE add_sub
+    | ineq '<' add_sub
+    | ineq '>' add_sub
+    ;
+
+add_sub: mul_div
+    | add_sub '+' mul_div
+    | add_sub '-' mul_div
+    ;
+
+mul_div: unary
+    | mul_div '*' unary
+    | mul_div '/' unary
+    | mul_div '%' unary
+    ;
+
+unary: term
+    | '+' term
+    | '-' term
+    | '!' term
+    | '~' term
+    ; 
+
+term: init_val
+    | TK_IDENTIFIER
+    | TK_IDENTIFIER '[' expr ']'
     ;
 
 fun_call: TK_IDENTIFIER '(' arg_list ')'
+    | TK_IDENTIFIER '(' ')'
     ;
 
 arg_list: expr ',' arg_list
     | expr
-    | %empty
     ;
 
 flux_ctrl: if_cmd
@@ -159,13 +185,12 @@ do_while_cmd: KW_DO cmd_block KW_WHILE expr ';'
 read_cmd: KW_READ TK_IDENTIFIER ';'
     ;
 
-print_cmd: KW_PRINT print_list ';'
+print_cmd: KW_PRINT print_list
     ;
 
-print_list: LIT_STRING print_list
-    | expr print_list
-    | LIT_STRING ';'
-    | expr ';'
+print_list: expr print_list
+    | LIT_STRING print_list 
+    | ';'
     ;
 
 return_cmd: KW_RETURN expr ';'
