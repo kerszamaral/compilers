@@ -36,18 +36,141 @@ void yyerror(const char *s);
 
 %%
 
-program: ldef
+program: ldecl
     ;
 
-ldef: def ldef
+ldecl: decl ldecl
     | %empty
     ;
 
-def: KW_INT TK_IDENTIFIER '=' LIT_INT ';'
-    | KW_REAL TK_IDENTIFIER '=' LIT_REAL ';'
-    | KW_BYTE TK_IDENTIFIER '=' LIT_CHAR ';'
-    | KW_PRINT LIT_STRING ';'
-    | KW_RETURN LIT_INT ';'
+decl: fun_decl
+    | var_decl
+    | vec_decl
+    ;
+
+var_decl: var_type TK_IDENTIFIER '='  init_val ';'
+    ;
+
+var_type: KW_INT
+    | KW_REAL
+    | KW_BYTE
+    ;
+
+init_val: LIT_INT
+    | LIT_REAL
+    | LIT_CHAR
+    ;
+
+vec_decl: vec_def ';'
+    | vec_def '=' vec_init ';'
+    ;
+
+vec_def: var_type TK_IDENTIFIER '[' LIT_INT ']'
+    ;
+
+vec_init: init_val
+    | init_val ',' vec_init
+    ;
+
+fun_decl: var_type TK_IDENTIFIER '(' param_list ')' '{' fun_body '}'
+    ;
+
+param_list: param_decl ',' param_list
+    | param_decl
+    | %empty
+    ;
+
+param_decl: var_type TK_IDENTIFIER
+    ;
+
+fun_body: cmd_block
+    ;
+
+cmd_block: '{' cmd_block '}'
+    | cmd_list
+    | %empty
+    ;
+
+cmd_list: cmd cmd_list
+    | cmd
+    ;
+
+cmd: atrib
+    | flux_ctrl
+    | read_cmd
+    | print_cmd
+    | return_cmd
+    | empty_cmd
+    ;
+
+atrib:
+    TK_IDENTIFIER '=' expr ';'
+    | TK_IDENTIFIER '[' expr ']' '=' expr ';'
+    ;
+
+expr: expr operators expr
+    | fun_call
+    | '(' expr ')'
+    ;
+
+operators: '+'
+    | '-'
+    | '*'
+    | '/'
+    | '<'
+    | '>'
+    | '='
+    | '&'
+    | '|'
+    | '~'
+    | OPERATOR_LE
+    | OPERATOR_GE
+    | OPERATOR_EQ
+    | OPERATOR_DIF
+    ;
+
+fun_call: TK_IDENTIFIER '(' arg_list ')'
+    ;
+
+arg_list: expr ',' arg_list
+    | expr
+    | %empty
+    ;
+
+flux_ctrl: if_cmd
+    | while_cmd
+    | do_while_cmd
+    ;
+
+if_cmd: KW_IF '(' expr ')' cmd_block else_cmd
+    ;
+
+else_cmd: KW_ELSE cmd_block
+    | %empty
+    ;
+
+while_cmd: KW_WHILE expr KW_DO cmd_block
+    ;
+
+do_while_cmd: KW_DO cmd_block KW_WHILE expr ';'
+    ;
+
+read_cmd: KW_READ TK_IDENTIFIER ';'
+    ;
+
+print_cmd: KW_PRINT print_list ';'
+    ;
+
+print_list: LIT_STRING print_list
+    | expr print_list
+    | LIT_STRING ';'
+    | expr ';'
+    ;
+
+return_cmd: KW_RETURN expr ';'
+    ;
+
+empty_cmd: ';'
     ;
 
 %%
