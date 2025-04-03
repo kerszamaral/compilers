@@ -57,7 +57,7 @@ int main ()
     print "A era=15\n";
     };
     
-  if (x=100) then
+  if (x=100)
     {
     print "Nao tem como isso...\n";
     }
