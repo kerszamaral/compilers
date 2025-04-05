@@ -42,7 +42,9 @@ void yyerror(const char *s);
 %left '<' '>' OPERATOR_LE OPERATOR_GE
 %left OPERATOR_EQ OPERATOR_DIF '='
 
-// %left KW_ELSE
+// Resolves the conflict between the if and else statements
+%precedence then
+%precedence KW_ELSE
 
 %%
 
@@ -152,11 +154,8 @@ flux_ctrl: if_cmd
     | do_while_cmd
     ;
 
-if_cmd: KW_IF '(' expr ')' cmd else_cmd // Causes conflict with itself
-    ;
-
-else_cmd: KW_ELSE cmd
-    | %empty
+if_cmd: KW_IF '(' expr ')' cmd %prec then
+    | KW_IF '(' expr ')' cmd KW_ELSE cmd 
     ;
 
 while_cmd: KW_WHILE expr KW_DO cmd
