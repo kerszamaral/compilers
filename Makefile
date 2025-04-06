@@ -25,7 +25,7 @@ release: target
 
 .PHONY: debug
 debug: CXXFLAGS += $(DEBUG_FLAGS)
-debug: BISONFLAGS = -g --html
+debug: BISONFLAGS =
 debug: target
 
 .PHONY: target
@@ -77,7 +77,7 @@ versions:
 
 .PHONY: clean
 clean:
-	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv
+	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv parser.output
 
 .PHONY: tgz
 tgz:
