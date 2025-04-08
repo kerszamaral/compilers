@@ -2,6 +2,7 @@
 // scanner.h file made by Ian Kersz Amaral - 2025/1
 
 #include <cstdbool>
+#include <cstdint>
 #include <string>
 #include <tuple>
 #include <map>
