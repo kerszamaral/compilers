@@ -17,7 +17,7 @@ digit [0-9]
 alpha [A-Za-z_]
 white_space [ \t\n\r]
 special_chars [-,;:\(\)\{\}\[\]+*\/%\<\>&\|~=]
-single_line_comment \/\/[^\n\r]+
+single_line_comment \/\/[^\n\r]*
 identif {alpha}({alpha}|{digit})*
 real {digit}+\/{digit}+
 integer {digit}+
