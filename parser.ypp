@@ -48,64 +48,84 @@ void yyerror(const char *s);
 
 %%
 
-program: ldecl
+program
+    : ldecl
     ;
 
-ldecl: decl ldecl
+ldecl
+    : decl ldecl
     | %empty
     ;
 
-decl: fun_decl
+decl
+    : fun_decl
     | var_decl
     | vec_decl
     ;
 
-var_decl: var_type TK_IDENTIFIER '='  init_val ';'
+var_decl
+    : var_type TK_IDENTIFIER '='  init_val ';'
     ;
 
-var_type: KW_INT
+var_type
+    : KW_INT
     | KW_REAL
     | KW_BYTE
     ;
 
-init_val: LIT_INT
+init_val
+    : LIT_INT
     | LIT_REAL
     | LIT_CHAR
     ;
 
-vec_decl: vec_def ';'
+vec_decl
+    : vec_def ';'
     | vec_def '=' vec_init ';'
     ;
 
-vec_def: var_type TK_IDENTIFIER '[' LIT_INT ']'
+vec_def
+    : var_type TK_IDENTIFIER '[' LIT_INT ']'
     ;
 
-vec_init: init_val
+vec_init
+    : init_val
     | init_val ',' vec_init
     ;
 
-fun_decl: var_type TK_IDENTIFIER '(' param_list ')' fun_body
+fun_decl
+    : var_type TK_IDENTIFIER '(' params ')' fun_body
     ;
 
-param_list: param_decl ',' param_list
+params
+    : param_list
+    | %empty
+    ;
+
+param_list
+    : param_decl ',' param_list
     | param_decl
+    ;
+
+param_decl
+    : var_type TK_IDENTIFIER
+    ;
+
+fun_body
+    : cmd_block
+    ;
+
+cmd_block
+    : '{' cmd_list '}'
+    ;
+
+cmd_list
+    : cmd cmd_list
     | %empty
     ;
 
-param_decl: var_type TK_IDENTIFIER
-    ;
-
-fun_body: cmd_block
-    ;
-
-cmd_block: '{' cmd_list '}'
-    ;
-
-cmd_list: cmd cmd_list
-    | %empty
-    ;
-
-cmd: atrib
+cmd
+    : atrib
     | flux_ctrl
     | read_cmd
     | print_cmd
@@ -114,11 +134,13 @@ cmd: atrib
     | cmd_block
     ;
 
-atrib: TK_IDENTIFIER '=' expr ';'
+atrib
+    : TK_IDENTIFIER '=' expr ';'
     | TK_IDENTIFIER '[' expr ']' '=' expr ';'
     ;
 
-expr: init_val
+expr
+    : init_val
     | TK_IDENTIFIER
     | TK_IDENTIFIER '[' expr ']'
     | expr '+' expr
@@ -140,33 +162,45 @@ expr: init_val
     | '(' expr ')'
     ;
 
-fun_call: TK_IDENTIFIER '(' arg_list ')'
+fun_call
+    : TK_IDENTIFIER '(' args ')'
     ;
 
-arg_list: expr ',' arg_list
-    | expr
+args
+    : arg_list
     | %empty
     ;
 
-flux_ctrl: if_cmd
+arg_list
+    : expr ',' arg_list
+    | expr
+    ;
+
+flux_ctrl
+    : if_cmd
     | while_cmd
     | do_while_cmd
     ;
 
-if_cmd: KW_IF '(' expr ')' cmd %prec then
+if_cmd
+    : KW_IF '(' expr ')' cmd %prec then
     | KW_IF '(' expr ')' cmd KW_ELSE cmd 
     ;
 
-while_cmd: KW_WHILE expr KW_DO cmd
+while_cmd
+    : KW_WHILE expr KW_DO cmd
     ;
 
-do_while_cmd: KW_DO cmd KW_WHILE expr ';'
+do_while_cmd
+    : KW_DO cmd KW_WHILE expr ';'
     ;
 
-read_cmd: KW_READ TK_IDENTIFIER ';'
+read_cmd
+    : KW_READ TK_IDENTIFIER ';'
     ;
 
-print_cmd: KW_PRINT print_list
+print_cmd
+    : KW_PRINT print_list
     ;
 
 // Causes conflict with expressiong, as we can have the following
@@ -175,16 +209,19 @@ print_cmd: KW_PRINT print_list
 // Expression:    print  "AA"    test  (1*2) "BB"     ;
 // Parsing:       PRINT  STRING  EXPR  EXPR  STRING  ';'
 // And they are both the same according to the grammar
-print_list: expr print_list
+print_list
+    : expr print_list
     | LIT_STRING print_list 
     | expr ';'
     | LIT_STRING ';'
     ;
 
-return_cmd: KW_RETURN expr ';'
+return_cmd
+    : KW_RETURN expr ';'
     ;
 
-empty_cmd: ';'
+empty_cmd
+    : ';'
     ;
 
 %%
