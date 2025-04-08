@@ -35,7 +35,7 @@ void yyerror(const char *s);
 %token TOKEN_ERROR
 
 
-%left '!' '~'
+%left '~'
 %left '&' '|'
 %left '+' '-'
 %left '*' '/' '%'
@@ -135,7 +135,6 @@ expr: init_val
     | expr OPERATOR_DIF expr
     | expr '&' expr
     | expr '|' expr
-    | '!' expr
     | '~' expr
     | fun_call
     | '(' expr ')'
