@@ -51,13 +51,13 @@ int main ()
 
   print "Dobrando algumas vezes y fica " y "\n";
 
-  if (a=51) 
+  if (a==51) 
     {
     a = a + 1;
     print "A era=15\n";
     };
     
-  if (x=100)
+  if (x==100)
     {
     print "Nao tem como isso...\n";
     }

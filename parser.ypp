@@ -41,7 +41,7 @@ void yyerror(const char *s);
 %left '+' '-'
 %left '*' '/' '%'
 %left '<' '>' OPERATOR_LE OPERATOR_GE
-%left OPERATOR_EQ OPERATOR_DIF '='
+%left OPERATOR_EQ OPERATOR_DIF
 
 // Resolves the conflict between the if and else statements
 %precedence then
@@ -153,7 +153,6 @@ expr
     | expr '>' expr
     | expr OPERATOR_LE expr
     | expr OPERATOR_GE expr
-    | expr '=' expr
     | expr OPERATOR_EQ expr
     | expr OPERATOR_DIF expr
     | expr '&' expr
