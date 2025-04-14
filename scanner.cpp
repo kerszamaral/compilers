@@ -53,7 +53,7 @@ void initMe(void)
     encounteredError.clear();
 }
 
-SymbolTableEntry &register_symbol(const SymbolType symbol_type, Lexeme lexeme)
+SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number)
 {   
     // If we encounter numbers, we need to reverse them and remove the leading zeros
     if (symbol_type == SymbolType::SYMBOL_INT) {
@@ -80,16 +80,19 @@ SymbolTableEntry &register_symbol(const SymbolType symbol_type, Lexeme lexeme)
 #endif
     }
     // If the key already exists, emplace does nothing, and returns an iterator to the existing element
-    return symbolTable.emplace(lexeme, SymbolTableEntry(symbol_type, lexeme)).first->second; // We dereference the iterator to get the value as a reference
+
+
+    return symbolTable.emplace(lexeme, new Symbol(symbol_type, lexeme, line_number)).first->second; // We dereference the iterator to get the value as a reference
 }
 
 void printSymbolTable(void)
 {
     for (auto &entry : symbolTable)
     {
-        const auto symbol = std::get<0>(entry.second);
-        const auto lexeme = std::get<1>(entry.second);
-        fprintf(stderr, "Symbol[%s, %s]\n", symbolName(symbol).c_str(), lexeme.c_str());
+        const auto symbol_type = std::get<0>(*entry.second);
+        const auto lexeme = std::get<1>(*entry.second);
+        const auto line_number = std::get<2>(*entry.second);
+        fprintf(stderr, "Symbol[%s, %s, %u]\n", symbolName(symbol_type).c_str(), lexeme.c_str(), line_number);
     }
 }
 

@@ -1,7 +1,7 @@
 # Makefile made by Ian Kersz
 # This file may be distributed as it doesnt impact the work done.
 
-PROJECT = etapa2
+PROJECT = etapa3
 DEFAULT_VERSION = debug
 
 CXX = g++

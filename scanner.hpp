@@ -6,6 +6,7 @@
 #include <string>
 #include <tuple>
 #include <map>
+#include <memory>
 
 #include "parser.tab.hpp"
 
@@ -26,7 +27,8 @@ enum SymbolType : uint8_t
 typedef yytoken_kind_t TokenType;
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
-typedef std::tuple<SymbolType, Lexeme> SymbolTableEntry;
+typedef std::tuple<SymbolType, Lexeme, LineNumber> Symbol;
+typedef std::shared_ptr<Symbol> SymbolTableEntry;
 typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
 
 void initMe(void);
@@ -41,6 +43,6 @@ std::string symbolName(SymbolType symbol);
 
 std::string tokenName(TokenType token);
 
-SymbolTableEntry &register_symbol(const SymbolType symbol_type, Lexeme lexeme);
+SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 
 void printSymbolTable(void);
