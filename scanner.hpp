@@ -21,7 +21,8 @@ enum SymbolType : uint8_t
     SYMBOL_REAL,
     SYMBOL_INT,
     SYMBOL_CHAR,
-    SYMBOL_STRING
+    SYMBOL_STRING,
+    SYMBOL_OTHER
 };
 
 typedef yytoken_kind_t TokenType;

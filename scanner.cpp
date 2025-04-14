@@ -110,6 +110,8 @@ std::string symbolName(SymbolType symbol) {
             return "SYMBOL_CHAR";
         case SymbolType::SYMBOL_STRING:
             return "SYMBOL_STRING";
+        case SymbolType::SYMBOL_OTHER:
+            return "SYMBOL_OTHER";
         default:
             return "UNKNOWN";
     }
