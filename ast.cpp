@@ -13,7 +13,7 @@ std::string NodeTypeString(const NodeType type)
     }
 }
 
-void Node::add_child(std::shared_ptr<Node> child)
+void Node::add_child(NodePtr child)
 {
     if (child == nullptr)
     {
@@ -29,11 +29,11 @@ std::string Node::to_string() const
         using T = std::decay_t<decltype(value)>;
         if constexpr (std::is_same_v<T, NodeType>)
         {
-            return "NodeType: " + NodeTypeString(value);
+            return "AST NodeType: " + NodeTypeString(value);
         }
         else if constexpr (std::is_same_v<T, SymbolTableEntry>)
         {
-            return "SymbolTableEntry: " + SymbolEntryString(value);
+            return "AST SymbolTableEntry: " + SymbolEntryString(value);
         }
     }, this->value);
 }
@@ -51,12 +51,12 @@ std::string Node::tree_string(size_t level)
     return ss.str();
 }
 
-NodePtr make_node(NodeType type, std::vector<NodePtr> children)
+NodePtr make_node(NodeType type, NodeList children)
 {
     return std::make_shared<Node>(type, children);
 }
 
-NodePtr make_node(SymbolTableEntry symbol, std::vector<NodePtr> children)
+NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {
     return std::make_shared<Node>(symbol, children);
 }
