@@ -21,6 +21,8 @@
 
     using symbol = std::shared_ptr<Symbol>;
     using node = std::shared_ptr<Node>;
+
+extern node g_ParseTree;
 }
 
 %code {
@@ -103,7 +105,7 @@
 %%
 
 program
-    : decl_list                                         { $$ = $1; }
+    : decl_list                                         { $$ = $1; g_ParseTree = $$; }
     ;
 
 decl_list

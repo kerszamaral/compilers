@@ -13,6 +13,7 @@ extern void initMe(void);
 extern LineNumber getLineNumber(void);
 extern void printSymbolTable(void);
 
+node g_ParseTree = nullptr;
 
 #define WRONG_ARGS_ERROR 1
 #define NO_FILE_ERROR 2
@@ -37,6 +38,10 @@ int main(int argc, char **argv)
     initMe();
 
     auto result = yy::parser().parse();
+    if (g_ParseTree != nullptr)
+    {
+        print_tree(g_ParseTree);
+    }
     std::cerr << "Lines: " << getLineNumber() << std::endl;
 
     fclose(yyin);
