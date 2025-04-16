@@ -51,12 +51,12 @@ string \"([^\n\r"]|(\\\"))*\"
 "!="                    { return yy::parser::make_OPERATOR_DIF(); }
 {special_chars}         { return yy::parser::symbol_type(yytext[0]); }
 
-{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber()); return yy::parser::make_TK_IDENTIFIER(); }
+{identif}               { return yy::parser::make_TK_IDENTIFIER(register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber())); }
 
-{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext, getLineNumber()); return yy::parser::make_LIT_REAL();  }
-{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext, getLineNumber()); return yy::parser::make_LIT_INT(); }
-{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext, getLineNumber()); return yy::parser::make_LIT_CHAR();}
-{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext, getLineNumber()); return yy::parser::make_LIT_STRING(); }
+{real}                  { return yy::parser::make_LIT_REAL(register_symbol(SymbolType::SYMBOL_REAL, yytext, getLineNumber()));  }
+{integer}               { return yy::parser::make_LIT_INT(register_symbol(SymbolType::SYMBOL_INT, yytext, getLineNumber())); }
+{char}                  { return yy::parser::make_LIT_CHAR(register_symbol(SymbolType::SYMBOL_CHAR, yytext, getLineNumber()));}
+{string}                { return yy::parser::make_LIT_STRING(register_symbol(SymbolType::SYMBOL_STRING, yytext, getLineNumber())); }
 
 "\/--"                  { BEGIN(COMMENT); }
 {single_line_comment}   { }
