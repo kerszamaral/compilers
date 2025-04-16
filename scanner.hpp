@@ -8,8 +8,6 @@
 #include <map>
 #include <memory>
 
-#include "parser.tab.hpp"
-
 #define REMOVE_LEADING_ZEROS
 
 #define printf(...) fprintf(stderr, __VA_ARGS__)
@@ -25,7 +23,6 @@ enum SymbolType : uint8_t
     SYMBOL_OTHER
 };
 
-typedef yytoken_kind_t TokenType;
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
 
@@ -50,8 +47,6 @@ void setError(void);
 LineNumber getLineNumber(void);
 
 std::string symbolName(SymbolType symbol);
-
-std::string tokenName(TokenType token);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 
