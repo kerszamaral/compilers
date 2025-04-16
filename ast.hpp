@@ -47,4 +47,4 @@ NodePtr make_node(NodeType type, NodeList children = {});
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
 
-NodePtr make_node(SymbolTableEntry symbol, std::vector<NodePtr> children = {});
+void print_tree(NodePtr);

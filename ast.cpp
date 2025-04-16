@@ -2,6 +2,7 @@
 
 // ast.hpp file made by Ian Kersz Amaral - 2025/1
 
+#include <iostream>
 #include <sstream>
 
 std::string NodeTypeString(const NodeType type)
@@ -59,4 +60,15 @@ NodePtr make_node(NodeType type, NodeList children)
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {
     return std::make_shared<Node>(symbol, children);
+}
+
+void print_tree(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        std::cerr << "Node is null" << std::endl;
+        return;
+    }
+
+    std::cerr << node->tree_string() << std::endl;
 }
