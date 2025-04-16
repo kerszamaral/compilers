@@ -90,14 +90,28 @@ std::string Node::tree_string(size_t level)
     return ss.str();
 }
 
+NodeList remove_null_nodes(const NodeList &children)
+{
+    NodeList result;
+    for (const auto &child : children)
+    {
+        if (child != nullptr)
+        {
+            result.push_back(child);
+        }
+    }
+    return result;
+}
+
 NodePtr make_node(NodeType type, NodeList children)
 {
-    return std::make_shared<Node>(type, children);
+
+    return std::make_shared<Node>(type, remove_null_nodes(children));
 }
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {
-    return std::make_shared<Node>(symbol, children);
+    return std::make_shared<Node>(symbol, remove_null_nodes(children));
 }
 
 void print_tree(NodePtr node)
