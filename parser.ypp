@@ -56,11 +56,37 @@
 %token '-' ',' ';' ':' '(' ')' '{' '}' '[' ']' '+' '*' '/' '%' '<' '>' '&' '|' '~' '='
 
 
+%type<node> program
+%type<node> decl_list
+%type<node> decl
+%type<node> var_decl
+%type<node> var_type
+%type<node> vec_decl
+%type<node> vec_def
+%type<node> vec_init
+%type<node> fun_decl
+%type<node> params
+%type<node> param_list
+%type<node> param_decl
 %type<node> init_val
+%type<node> fun_body
+%type<node> cmd_block
+%type<node> cmd_list
+%type<node> cmd
+%type<node> atrib
 %type<node> expr
 %type<node> fun_call
 %type<node> args
 %type<node> arg_list
+%type<node> flux_ctrl
+%type<node> if_cmd
+%type<node> while_cmd
+%type<node> do_while_cmd
+%type<node> read_cmd
+%type<node> print_cmd
+%type<node> print_list
+%type<node> return_cmd
+%type<node> empty_cmd
 
 
 %left '~'
@@ -77,120 +103,120 @@
 %%
 
 program
-    : ldecl
+    : decl_list                                         { $$ = $1; }
     ;
 
-ldecl
-    : decl ldecl
-    | %empty
+decl_list
+    : decl decl_list                                    { $2->add_child($1); $$ = $2; }
+    | %empty                                            { $$ = make_node(NODE_PROGRAM); }
     ;
 
 decl
-    : fun_decl
-    | var_decl
-    | vec_decl
+    : fun_decl                                          { $$ = $1; }
+    | var_decl                                          { $$ = $1; }
+    | vec_decl                                          { $$ = $1; }
     ;
 
 var_decl
-    : var_type TK_IDENTIFIER '='  init_val ';' {}
+    : var_type TK_IDENTIFIER '='  init_val ';'          { $$ = make_node(NODE_VAR_DECL, {make_node($2), make_node($2), $4}); }
     ;
 
 var_type
-    : KW_INT
-    | KW_REAL
-    | KW_BYTE
+    : KW_INT                                            { $$ = nullptr; }
+    | KW_REAL                                           { $$ = nullptr; }
+    | KW_BYTE                                           { $$ = nullptr; }
     ;
 
 init_val
-    : LIT_INT   { $$ = make_node($1); }
-    | LIT_REAL  { $$ = make_node($1); }
-    | LIT_CHAR  { $$ = make_node($1); }
+    : LIT_INT                                           { $$ = make_node($1); }
+    | LIT_REAL                                          { $$ = make_node($1); }
+    | LIT_CHAR                                          { $$ = make_node($1); }
     ;
 
 vec_decl
-    : vec_def ';'
-    | vec_def '=' vec_init ';'
+    : vec_def ';'                                       { $$ = make_node(NODE_VEC_DECL, {$1}); }
+    | vec_def '=' vec_init ';'                          { $$ = make_node(NODE_VEC_DECL, {$1, $3}); }
     ;
 
 vec_def
-    : var_type TK_IDENTIFIER '[' LIT_INT ']'
+    : var_type TK_IDENTIFIER '[' LIT_INT ']'            { $$ = make_node(NODE_VEC_DEF, {$1, make_node($2), make_node($4)}); }
     ;
 
 vec_init
-    : init_val {}
-    | init_val ',' vec_init {}
+    : init_val                                          { $$ = make_node(NODE_VEC_INIT, {$1}); }                              
+    | init_val ',' vec_init                             { $3->add_child($1); $$ = $3; }
     ;
 
 fun_decl
-    : var_type TK_IDENTIFIER '(' params ')' fun_body
+    : var_type TK_IDENTIFIER '(' params ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), $4, $6}); }
     ;
 
 params
-    : param_list
-    | %empty
+    : param_list                                        { $$ = $1; }
+    | %empty                                            { $$ = nullptr; }
     ;
 
 param_list
-    : param_decl ',' param_list
-    | param_decl
+    : param_decl ',' param_list                         { $3->add_child($1); $$ = $3; }
+    | param_decl                                        { $$ = make_node(NODE_PARAM_LIST, {$1}); }
     ;
 
 param_decl
-    : var_type TK_IDENTIFIER
+    : var_type TK_IDENTIFIER                            { $$ = make_node(NODE_PARAM_DECL, {$1, make_node($2)}); }
     ;
 
 fun_body
-    : cmd_block
+    : cmd_block                                         { $$ = $1; }
     ;
 
 cmd_block
-    : '{' cmd_list '}'
+    : '{' cmd_list '}'                                  { $$ = make_node(NODE_CMD_BLOCK, {$2}); }
     ;
 
 cmd_list
-    : cmd cmd_list
-    | %empty
+    : cmd cmd_list                                      { $2->add_child($1); $$ = $2; }
+    | %empty                                            { $$ = make_node(NODE_CMD_LIST); }
     ;
 
 cmd
-    : atrib
-    | flux_ctrl
-    | read_cmd
-    | print_cmd
-    | return_cmd
-    | empty_cmd
-    | cmd_block
+    : atrib                                             { $$ = $1; }
+    | flux_ctrl                                         { $$ = $1; }
+    | read_cmd                                          { $$ = $1; }
+    | print_cmd                                         { $$ = $1; }
+    | return_cmd                                        { $$ = $1; }
+    | empty_cmd                                         { $$ = $1; }
+    | cmd_block                                         { $$ = $1; }
     ;
 
 atrib
-    : TK_IDENTIFIER '=' expr ';'
-    | TK_IDENTIFIER '[' expr ']' '=' expr ';'
+    : TK_IDENTIFIER '=' expr ';'                        { $$ = make_node(NODE_ATRIB, {make_node($1), $3}); }
+    | TK_IDENTIFIER '[' expr ']' '=' expr ';'           { $$ = make_node(NODE_ATRIB, {make_node($1, {$3}), $6}); }
     ;
 
 expr
-    : init_val                      { $$ = $1; }
-    | TK_IDENTIFIER                 { $$ = make_node($1); }
-    | TK_IDENTIFIER '[' expr ']'    { $$ = make_node($1, {$3}); }
-    | expr '+' expr                 { $$ = make_node(NODE_ADD, {$1, $3}); }
-    | expr '-' expr                 { $$ = make_node(NODE_SUB, {$1, $3}); }
-    | expr '*' expr                 { $$ = make_node(NODE_MUL, {$1, $3}); }
-    | expr '/' expr                 { $$ = make_node(NODE_DIV, {$1, $3}); }
-    | expr '%' expr                 { $$ = make_node(NODE_MOD, {$1, $3}); }
-    | expr '<' expr                 { $$ = make_node(NODE_LT, {$1, $3}); }
-    | expr '>' expr                 { $$ = make_node(NODE_GT, {$1, $3}); }
-    | expr OPERATOR_LE expr         { $$ = make_node(NODE_LE, {$1, $3}); }
-    | expr OPERATOR_GE expr         { $$ = make_node(NODE_GE, {$1, $3}); }
-    | expr OPERATOR_EQ expr         { $$ = make_node(NODE_EQ, {$1, $3}); }
-    | expr OPERATOR_DIF expr        { $$ = make_node(NODE_DIF, {$1, $3}); }
-    | expr '&' expr                 { $$ = make_node(NODE_AND, {$1, $3}); }
-    | expr '|' expr                 { $$ = make_node(NODE_OR, {$1, $3}); }
-    | '~' expr                      { $$ = make_node(NODE_NOT, {$2}); }
-    | fun_call                      { $$ = $1; }
-    | '(' expr ')'                  { $$ = make_node(NODE_PARENTHESIS, {$2}); }
+    : init_val                                          { $$ = $1; }
+    | TK_IDENTIFIER                                     { $$ = make_node($1); }
+    | TK_IDENTIFIER '[' expr ']'                        { $$ = make_node($1, {$3}); }
+    | expr '+' expr                                     { $$ = make_node(NODE_ADD, {$1, $3}); }
+    | expr '-' expr                                     { $$ = make_node(NODE_SUB, {$1, $3}); }
+    | expr '*' expr                                     { $$ = make_node(NODE_MUL, {$1, $3}); }
+    | expr '/' expr                                     { $$ = make_node(NODE_DIV, {$1, $3}); }
+    | expr '%' expr                                     { $$ = make_node(NODE_MOD, {$1, $3}); }
+    | expr '<' expr                                     { $$ = make_node(NODE_LT, {$1, $3}); }
+    | expr '>' expr                                     { $$ = make_node(NODE_GT, {$1, $3}); }
+    | expr OPERATOR_LE expr                             { $$ = make_node(NODE_LE, {$1, $3}); }
+    | expr OPERATOR_GE expr                             { $$ = make_node(NODE_GE, {$1, $3}); }
+    | expr OPERATOR_EQ expr                             { $$ = make_node(NODE_EQ, {$1, $3}); }
+    | expr OPERATOR_DIF expr                            { $$ = make_node(NODE_DIF, {$1, $3}); }
+    | expr '&' expr                                     { $$ = make_node(NODE_AND, {$1, $3}); }
+    | expr '|' expr                                     { $$ = make_node(NODE_OR, {$1, $3}); }
+    | '~' expr                                          { $$ = make_node(NODE_NOT, {$2}); }
+    | fun_call                                          { $$ = $1; }
+    | '(' expr ')'                                      { $$ = make_node(NODE_PARENTHESIS, {$2}); }
     ;
 
 fun_call
-    : TK_IDENTIFIER '(' args ')' { $$ = make_node(NODE_FUNC_CALL, {make_node($1), $3}); }
+    : TK_IDENTIFIER '(' args ')'                        { $$ = make_node(NODE_FUN_CALL, {make_node($1), $3}); }
     ;
 
 args
@@ -199,35 +225,35 @@ args
     ;
 
 arg_list
-    : expr ',' arg_list { $$ = make_node(NODE_ARG_LIST, {$1, $3}); }
-    | expr              { $$ = make_node(NODE_ARG_LIST, {$1}); }
+    : expr ',' arg_list                                 { $3->add_child($1); $$ = $3; }
+    | expr                                              { $$ = make_node(NODE_ARG_LIST, {$1}); }
     ;
 
 flux_ctrl
-    : if_cmd
-    | while_cmd
-    | do_while_cmd
+    : if_cmd                                            { $$ = $1; }
+    | while_cmd                                         { $$ = $1; }
+    | do_while_cmd                                      { $$ = $1; }
     ;
 
 if_cmd
-    : KW_IF '(' expr ')' cmd %prec then     { print_tree(make_node(NODE_IF, {$3})); }
-    | KW_IF '(' expr ')' cmd KW_ELSE cmd    { print_tree(make_node(NODE_IF, {$3})); }
+    : KW_IF '(' expr ')' cmd %prec then                 { $$ = make_node(NODE_IF, {$3, $5}); }
+    | KW_IF '(' expr ')' cmd KW_ELSE cmd                { $$ = make_node(NODE_IF, {$3, $5, $7}); }
     ;
 
 while_cmd
-    : KW_WHILE expr KW_DO cmd
+    : KW_WHILE expr KW_DO cmd                           { $$ = make_node(NODE_WHILE, {$2, $4}); }
     ;
 
 do_while_cmd
-    : KW_DO cmd KW_WHILE expr ';'
+    : KW_DO cmd KW_WHILE expr ';'                       { $$ = make_node(NODE_DO_WHILE, {$2, $4}); }
     ;
 
 read_cmd
-    : KW_READ TK_IDENTIFIER ';'
+    : KW_READ TK_IDENTIFIER ';'                         { $$ = make_node(NODE_READ, {make_node($2)}); }
     ;
 
 print_cmd
-    : KW_PRINT print_list
+    : KW_PRINT print_list                               { $$ = $2; }
     ;
 
 // Causes conflict with expressiong, as we can have the following
@@ -237,18 +263,18 @@ print_cmd
 // Parsing:       PRINT  STRING  EXPR  EXPR  STRING  ';'
 // And they are both the same according to the grammar
 print_list
-    : expr print_list
-    | LIT_STRING print_list { }
-    | expr ';'
-    | LIT_STRING ';' { }
+    : expr print_list                                   { $2->add_child($1); $$ = $2; }
+    | LIT_STRING print_list                             { $2->add_child(make_node($1)); $$ = $2; }
+    | expr ';'                                          { $$ = make_node(NODE_PRINT, {$1}); }
+    | LIT_STRING ';'                                    { $$ = make_node(NODE_PRINT, {make_node($1)}); }
     ;
 
 return_cmd
-    : KW_RETURN expr ';'
+    : KW_RETURN expr ';'                                { $$ = make_node(NODE_RETURN, {$2}); }
     ;
 
 empty_cmd
-    : ';'
+    : ';'                                               { $$ = nullptr; }
     ;
 
 %%
