@@ -5,12 +5,12 @@
 #include <vector>
 #include <iostream>
 
-extern int yyparse();
+#include "parser.tab.hpp"
 extern int yylex_destroy(void);
 extern FILE *yyin;
 
 extern void initMe(void);
-extern int getLineNumber(void);
+extern LineNumber getLineNumber(void);
 extern void printSymbolTable(void);
 
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     
     initMe();
 
-    auto result = yyparse();
+    auto result = yy::parser().parse();
     fprintf(stderr, "\nLines: %d\n", getLineNumber());
 
     fclose(yyin);

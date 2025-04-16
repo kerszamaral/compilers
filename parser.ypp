@@ -1,18 +1,36 @@
 %{
 // parser.ypp file made by Ian Kersz - 2025/1
-
-#include <cstdio>
-#include <cstdlib>
-
-extern int yylex();
-
-extern int getLineNumber(void);
-
-void yyerror(const char *s);
-
 #define EXIT_SYNTAX_ERROR 3
-
 %}
+
+// C++ parser
+%language "c++"
+
+// Use variant for value type, compatible with shared_ptr
+%define api.value.type variant
+// Use constructor for token type
+%define api.token.constructor
+
+%require "3.8" // Minimum version, disables generation of stack.hh file
+
+%code requires {
+    // C++ code required for the parser to work
+    #include <memory>
+    #include "scanner.hpp"
+    #include "ast.hpp"
+
+    using symbol = std::shared_ptr<Symbol>;
+    using node = std::shared_ptr<Node>;
+}
+
+%code {
+    // Declaration of the yylex function from lexer, correctly typed
+    yy::parser::symbol_type yylex();
+}
+
+// Removes the warning about exactly one conflict still existing
+%expect 1
+
 
 %token KW_BYTE
 %token KW_INT
@@ -34,6 +52,8 @@ void yyerror(const char *s);
 %token LIT_REAL
 %token LIT_STRING
 %token TOKEN_ERROR
+
+%token '-' ',' ';' ':' '(' ')' '{' '}' '[' ']' '+' '*' '/' '%' '<' '>' '&' '|' '~' '='
 
 
 %left '~'
@@ -226,7 +246,7 @@ empty_cmd
 
 %%
 
-void yyerror(const char *s) {
-    fprintf(stderr, "Syntax Error at line %d: %s\n", getLineNumber(), s);
+void yy::parser::error(const std::string& msg) {
+    std::cerr << "Syntax Error at line " << getLineNumber() << ": " << msg << std::endl;
     std::exit(EXIT_SYNTAX_ERROR);
 }

@@ -2,6 +2,13 @@
 // scanner.l file made by Ian Kersz - 2025/1
 
 #include "scanner.hpp"
+#include "ast.hpp"
+
+#include "parser.tab.hpp"
+
+typedef yy::parser::token_type TokenType;
+
+#define YY_DECL yy::parser::symbol_type yylex()
 
 %}
 
@@ -28,36 +35,36 @@ string \"([^\n\r"]|(\\\"))*\"
 
 {white_space}           { }
 
-"byte"                  { return TokenType::KW_BYTE; }
-"int"                   { return TokenType::KW_INT; }
-"real"                  { return TokenType::KW_REAL; }
-"if"                    { return TokenType::KW_IF; }
-"else"                  { return TokenType::KW_ELSE; }
-"do"                    { return TokenType::KW_DO; }
-"while"                 { return TokenType::KW_WHILE; }
-"read"                  { return TokenType::KW_READ; }
-"print"                 { return TokenType::KW_PRINT; }
-"return"                { return TokenType::KW_RETURN; }
-"<="                    { return TokenType::OPERATOR_LE; }
-">="                    { return TokenType::OPERATOR_GE; }
-"=="                    { return TokenType::OPERATOR_EQ; }
-"!="                    { return TokenType::OPERATOR_DIF; }
-{special_chars}         { return static_cast<int>(yytext[0]); }
+"byte"                  { return yy::parser::make_KW_BYTE(); }
+"int"                   { return yy::parser::make_KW_INT(); }
+"real"                  { return yy::parser::make_KW_REAL(); }
+"if"                    { return yy::parser::make_KW_IF(); }
+"else"                  { return yy::parser::make_KW_ELSE(); }
+"do"                    { return yy::parser::make_KW_DO(); }
+"while"                 { return yy::parser::make_KW_WHILE(); }
+"read"                  { return yy::parser::make_KW_READ(); }
+"print"                 { return yy::parser::make_KW_PRINT(); }
+"return"                { return yy::parser::make_KW_RETURN(); }
+"<="                    { return yy::parser::make_OPERATOR_LE(); }
+">="                    { return yy::parser::make_OPERATOR_GE(); }
+"=="                    { return yy::parser::make_OPERATOR_EQ(); }
+"!="                    { return yy::parser::make_OPERATOR_DIF(); }
+{special_chars}         { return yy::parser::symbol_type(yytext[0]); }
 
-{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber()); return TokenType::TK_IDENTIFIER; }
+{identif}               { register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber()); return yy::parser::make_TK_IDENTIFIER(); }
 
-{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext, getLineNumber()); return TokenType::LIT_REAL; }
-{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext, getLineNumber()); return TokenType::LIT_INT; }
-{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext, getLineNumber()); return TokenType::LIT_CHAR; }
-{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext, getLineNumber()); return TokenType::LIT_STRING; }
+{real}                  { register_symbol(SymbolType::SYMBOL_REAL, yytext, getLineNumber()); return yy::parser::make_LIT_REAL();  }
+{integer}               { register_symbol(SymbolType::SYMBOL_INT, yytext, getLineNumber()); return yy::parser::make_LIT_INT(); }
+{char}                  { register_symbol(SymbolType::SYMBOL_CHAR, yytext, getLineNumber()); return yy::parser::make_LIT_CHAR();}
+{string}                { register_symbol(SymbolType::SYMBOL_STRING, yytext, getLineNumber()); return yy::parser::make_LIT_STRING(); }
 
 "\/--"                  { BEGIN(COMMENT); }
 {single_line_comment}   { }
 
-.                       { setError(); return TokenType::TOKEN_ERROR; }
+.                       { setError(); return yy::parser::make_TOKEN_ERROR(); }
 
 <COMMENT>"--/"          { BEGIN(INITIAL); }
-<COMMENT><<EOF>>        { BEGIN(INITIAL); return TokenType::TOKEN_ERROR;};
+<COMMENT><<EOF>>        { BEGIN(INITIAL); return yy::parser::make_TOKEN_ERROR();};
 <COMMENT>.|\n              { }
 
 
