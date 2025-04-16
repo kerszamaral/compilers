@@ -9,8 +9,46 @@ std::string NodeTypeString(const NodeType type)
 {
     switch (type)
     {
+        case NODE_UNKNOWN:
+            return "NODE_UNKNOWN";
+        case NODE_ADD:
+            return "NODE_ADD";
+        case NODE_SUB:
+            return "NODE_SUB";
+        case NODE_MUL:
+            return "NODE_MUL";
+        case NODE_DIV:
+            return "NODE_DIV";
+        case NODE_MOD:
+            return "NODE_MOD";
+        case NODE_LT:
+            return "NODE_LT";
+        case NODE_GT:
+            return "NODE_GT";
+        case NODE_LE:
+            return "NODE_LE";
+        case NODE_GE:
+            return "NODE_GE";
+        case NODE_EQ:
+            return "NODE_EQ";
+        case NODE_DIF:
+            return "NODE_DIF";
+        case NODE_AND:
+            return "NODE_AND";
+        case NODE_OR:
+            return "NODE_OR";
+        case NODE_NOT:
+            return "NODE_NOT";
+        case NODE_PARENTHESIS:
+            return "NODE_PARENTHESIS";
+        case NODE_IF:
+            return "NODE_IF";
+        case NODE_ARG_LIST:
+            return "NODE_ARG_LIST";
+        case NODE_FUNC_CALL:
+            return "NODE_FUNC_CALL";
         default:
-            return "UNKNOWN_NODE_TYPE";
+            return "NODE_UNKNOWN";
     }
 }
 

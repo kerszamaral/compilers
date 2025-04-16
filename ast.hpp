@@ -10,7 +10,25 @@
 
 enum NodeType
 {
-    NODE_UNKNOWN
+    NODE_UNKNOWN,
+    NODE_ADD,
+    NODE_SUB,
+    NODE_MUL,
+    NODE_DIV,
+    NODE_MOD,
+    NODE_LT,
+    NODE_GT,
+    NODE_LE,
+    NODE_GE,
+    NODE_EQ,
+    NODE_DIF,
+    NODE_AND,
+    NODE_OR,
+    NODE_NOT,
+    NODE_PARENTHESIS,
+    NODE_IF,
+    NODE_ARG_LIST,
+    NODE_FUNC_CALL,
 };
 
 std::string NodeTypeString(const NodeType type);
