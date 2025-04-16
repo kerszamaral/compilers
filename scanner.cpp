@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 // scanner.cpp file made by Ian Kersz Amaral - 2025/1
 
@@ -32,16 +33,16 @@ extern "C" int yywrap(void)
     stopRunning();
     if (encounteredError.size() > 0)
     {
-        fprintf(stderr, "\n!!Errors in the input file found in lines: ");
+        std::cerr << "\n!!Errors in the input file found in lines: ";
         for (const auto &line : encounteredError)
         {
-            fprintf(stderr, "%d", line);
+            std::cerr << line;
             if (line != encounteredError.back())
             {
-                fprintf(stderr, ", ");
+                std::cerr << ", ";
             }
         }
-        fprintf(stderr, "!!\n");
+        std::cerr << "!!\n";
     }
 
     return 1;
@@ -94,7 +95,7 @@ void printSymbolTable(void)
 {
     for (auto &entry : symbolTable)
     {
-        fprintf(stderr, "%s\n", entry.second->to_string().c_str());
+        std::cerr << entry.second->to_string() << std::endl;
     }
 }
 

@@ -10,8 +10,6 @@
 
 #define REMOVE_LEADING_ZEROS
 
-#define printf(...) fprintf(stderr, __VA_ARGS__)
-
 enum SymbolType : uint8_t
 {
     SYMBOL_INVALID,

@@ -37,12 +37,12 @@ int main(int argc, char **argv)
     initMe();
 
     auto result = yy::parser().parse();
-    fprintf(stderr, "\nLines: %d\n", getLineNumber());
+    std::cerr << "Lines: " << getLineNumber() << std::endl;
 
     fclose(yyin);
     yylex_destroy();
-    
-    fprintf(stderr, "Symbol Table:\n");
+ 
+    std::cerr << "Symbol Table: \n";
     printSymbolTable();
     
     return result;
