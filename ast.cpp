@@ -11,6 +11,28 @@ std::string NodeTypeString(const NodeType type)
     {
         case NODE_UNKNOWN:
             return "NODE_UNKNOWN";
+        case NODE_PROGRAM:
+            return "NODE_PROGRAM";
+        case NODE_VAR_DECL:
+            return "NODE_VAR_DECL";
+        case NODE_VEC_DECL:
+            return "NODE_VEC_DECL";
+        case NODE_VEC_DEF:
+            return "NODE_VEC_DEF";
+        case NODE_VEC_INIT:
+            return "NODE_VEC_INIT";
+        case NODE_FUN_DECL:
+            return "NODE_FUN_DECL";
+        case NODE_PARAM_LIST:
+            return "NODE_PARAM_LIST";
+        case NODE_PARAM_DECL:
+            return "NODE_PARAM_DECL";
+        case NODE_CMD_BLOCK:
+            return "NODE_CMD_BLOCK";
+        case NODE_CMD_LIST:
+            return "NODE_CMD_LIST";
+        case NODE_ATRIB:
+            return "NODE_ATRIB";
         case NODE_ADD:
             return "NODE_ADD";
         case NODE_SUB:
@@ -41,12 +63,22 @@ std::string NodeTypeString(const NodeType type)
             return "NODE_NOT";
         case NODE_PARENTHESIS:
             return "NODE_PARENTHESIS";
-        case NODE_IF:
-            return "NODE_IF";
+        case NODE_FUN_CALL:
+            return "NODE_FUN_CALL";
         case NODE_ARG_LIST:
             return "NODE_ARG_LIST";
-        case NODE_FUNC_CALL:
-            return "NODE_FUNC_CALL";
+        case NODE_IF:
+            return "NODE_IF";
+        case NODE_WHILE:
+            return "NODE_WHILE";
+        case NODE_DO_WHILE:
+            return "NODE_DO_WHILE";
+        case NODE_READ:
+            return "NODE_READ";
+        case NODE_PRINT:
+            return "NODE_PRINT";
+        case NODE_RETURN:
+            return "NODE_RETURN";
         default:
             return "NODE_UNKNOWN";
     }

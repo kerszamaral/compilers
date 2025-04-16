@@ -11,6 +11,17 @@
 enum NodeType
 {
     NODE_UNKNOWN,
+    NODE_PROGRAM,
+    NODE_VAR_DECL,
+    NODE_VEC_DECL,
+    NODE_VEC_DEF,
+    NODE_VEC_INIT,
+    NODE_FUN_DECL,
+    NODE_PARAM_LIST,
+    NODE_PARAM_DECL,
+    NODE_CMD_BLOCK,
+    NODE_CMD_LIST,
+    NODE_ATRIB,
     NODE_ADD,
     NODE_SUB,
     NODE_MUL,
@@ -26,9 +37,14 @@ enum NodeType
     NODE_OR,
     NODE_NOT,
     NODE_PARENTHESIS,
-    NODE_IF,
+    NODE_FUN_CALL,
     NODE_ARG_LIST,
-    NODE_FUNC_CALL,
+    NODE_IF,
+    NODE_WHILE,
+    NODE_DO_WHILE,
+    NODE_READ,
+    NODE_PRINT,
+    NODE_RETURN,
 };
 
 std::string NodeTypeString(const NodeType type);
