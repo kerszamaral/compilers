@@ -1,5 +1,5 @@
 #pragma once
-// scanner.h file made by Ian Kersz Amaral - 2025/1
+// scanner.hpp file made by Ian Kersz Amaral - 2025/1
 
 #include <cstdbool>
 #include <cstdint>
@@ -10,7 +10,7 @@
 
 #include "parser.tab.hpp"
 
-// #define REMOVE_LEADING_ZEROS
+#define REMOVE_LEADING_ZEROS
 
 #define printf(...) fprintf(stderr, __VA_ARGS__)
 
@@ -45,5 +45,7 @@ std::string symbolName(SymbolType symbol);
 std::string tokenName(TokenType token);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
+
+std::string SymbolEntryString(const SymbolTableEntry &entry);
 
 void printSymbolTable(void);

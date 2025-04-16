@@ -85,14 +85,19 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
     return symbolTable.emplace(lexeme, new Symbol(symbol_type, lexeme, line_number)).first->second; // We dereference the iterator to get the value as a reference
 }
 
+std::string SymbolEntryString(const SymbolTableEntry &entry)
+{
+    const auto symbol_type = std::get<0>(*entry);
+    const auto lexeme = std::get<1>(*entry);
+    const auto line_number = std::get<2>(*entry);
+    return "Symbol[" + symbolName(symbol_type) + ", " + lexeme + ", " + std::to_string(line_number) + "]";
+}
+
 void printSymbolTable(void)
 {
     for (auto &entry : symbolTable)
     {
-        const auto symbol_type = std::get<0>(*entry.second);
-        const auto lexeme = std::get<1>(*entry.second);
-        const auto line_number = std::get<2>(*entry.second);
-        fprintf(stderr, "Symbol[%s, %s, %u]\n", symbolName(symbol_type).c_str(), lexeme.c_str(), line_number);
+        fprintf(stderr, "%s\n", SymbolEntryString(entry.second).c_str());
     }
 }
 

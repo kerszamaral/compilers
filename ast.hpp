@@ -1,28 +1,41 @@
 #pragma once
+// ast.hpp file made by Ian Kersz Amaral - 2025/1
 
 #include <cstdint>
 #include <memory>
+#include <vector>
+#include <variant>
 
 #include "scanner.hpp"
 
+enum NodeType
+{
+    NODE_UNKNOWN
+};
+
+std::string NodeTypeString(const NodeType type);
+
 typedef struct Node
 {
-    SymbolTableEntry symbol;
-    std::shared_ptr<Node> brother;
-    std::shared_ptr<Node> child;
+private:
+    std::variant<NodeType, SymbolTableEntry> value;
+    std::vector<std::shared_ptr<Node>> children;
 
-    Node(SymbolTableEntry symbol, std::shared_ptr<Node> brother = nullptr, std::shared_ptr<Node> child = nullptr)
-        : symbol(symbol), brother(brother), child(child) {}
+public:
+    Node(SymbolTableEntry symbol, std::vector<std::shared_ptr<Node>> children = {})
+        : value(symbol), children(children) {}
 
-    Node(Lexeme label, std::shared_ptr<Node> brother = nullptr, std::shared_ptr<Node> child = nullptr)
-        : symbol(std::make_shared<Symbol>(SymbolType::SYMBOL_OTHER, label, 0)), brother(brother), child(child) {}
+    Node(NodeType type, std::vector<std::shared_ptr<Node>> children = {})
+        : value(type), children(children) {}
 
     void add_child(std::shared_ptr<Node> child);
 
-    std::string tree_string(size_t depth);
-    std::string to_string();
-
-private:
-    std::shared_ptr<Node> find_last_brother();
-
+    std::string to_string() const;
+    std::string tree_string(size_t level = 0);
 } Node;
+
+typedef std::shared_ptr<Node> NodePtr;
+
+NodePtr make_node(NodeType type, std::vector<NodePtr> children = {});
+
+NodePtr make_node(SymbolTableEntry symbol, std::vector<NodePtr> children = {});

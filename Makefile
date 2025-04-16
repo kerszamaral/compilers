@@ -5,12 +5,11 @@ PROJECT = etapa3
 DEFAULT_VERSION = debug
 
 CXX = g++
-STD = -std=c++11
+STD = -std=c++17
 CXXFLAGS = -Wall -Wextra -pedantic -Wconversion $(STD)
 RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
 current_dir = /${shell pwd}
-DEP_FILES = tokens.h scanner.h
 
 LEX = flex
 
