@@ -28,7 +28,16 @@ enum SymbolType : uint8_t
 typedef yytoken_kind_t TokenType;
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
-typedef std::tuple<SymbolType, Lexeme, LineNumber> Symbol;
+
+typedef struct Symbol
+{
+    SymbolType type;
+    Lexeme lexeme;
+    LineNumber line_number;
+
+    std::string to_string() const;
+} Symbol;
+
 typedef std::shared_ptr<Symbol> SymbolTableEntry;
 typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
 
@@ -45,7 +54,5 @@ std::string symbolName(SymbolType symbol);
 std::string tokenName(TokenType token);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
-
-std::string SymbolEntryString(const SymbolTableEntry &entry);
 
 void printSymbolTable(void);

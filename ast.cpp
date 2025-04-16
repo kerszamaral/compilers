@@ -72,7 +72,7 @@ std::string Node::to_string() const
         }
         else if constexpr (std::is_same_v<T, SymbolTableEntry>)
         {
-            return "AST SymbolTableEntry: " + SymbolEntryString(value);
+            return "AST SymbolTableEntry: " + value->to_string();
         }
     }, this->value);
 }
