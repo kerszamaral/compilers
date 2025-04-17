@@ -50,4 +50,4 @@ std::string symbolName(SymbolType symbol);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 
-void printSymbolTable(void);
+std::string generateSymbolTable(void);

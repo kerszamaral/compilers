@@ -36,19 +36,17 @@ int main(int argc, char **argv)
     yyin = infile;
     
     initMe();
-
-    auto result = yy::parser().parse();
+    
+    const auto result = yy::parser().parse();
+    const auto num_lines = getLineNumber();
     if (g_AST != nullptr)
     {
-        print_tree(g_AST);
+        std::cerr << print_tree(g_AST) << std::endl;
     }
-    std::cerr << "Lines: " << getLineNumber() << std::endl;
-
     fclose(yyin);
     yylex_destroy();
- 
-    std::cerr << "Symbol Table: \n";
-    printSymbolTable();
-    
+    std::cerr << "Generated Symbol Table: \n";
+    std::cerr << generateSymbolTable();
+    std::cerr << "Lines: " << num_lines << std::endl;
     return result;
 }

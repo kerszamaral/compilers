@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 // scanner.cpp file made by Ian Kersz Amaral - 2025/1
 
@@ -151,10 +152,12 @@ std::string Symbol::get_type() const
 
 std::string generateSymbolTable(void)
 {
+    std::stringstream ss;
     for (auto &entry : symbolTable)
     {
-        std::cerr << entry.second->to_string() << std::endl;
+        ss << entry.second->to_string() << std::endl;
     }
+    return ss.str();
 }
 
 #pragma clang diagnostic push

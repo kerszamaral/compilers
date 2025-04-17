@@ -45,6 +45,11 @@ enum NodeType
     NODE_READ,
     NODE_PRINT,
     NODE_RETURN,
+
+    NODE_VEC,
+    NODE_KW_INT,
+    NODE_KW_REAL,
+    NODE_KW_BYTE,
 };
 
 std::string NodeTypeString(const NodeType type);
@@ -71,7 +76,7 @@ public:
     void add_child(NodePtr child);
 
     std::string to_string() const;
-    std::string tree_string(size_t level = 0);
+    std::string tree_string(size_t level = 0) const;
 } Node;
 
 typedef Node::NodePtr NodePtr;
@@ -81,4 +86,6 @@ NodePtr make_node(NodeType type, NodeList children = {});
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
 
-void print_tree(NodePtr);
+NodePtr make_node();
+
+std::string print_tree(NodePtr);

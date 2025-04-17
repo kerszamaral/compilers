@@ -81,8 +81,14 @@ std::string NodeTypeString(const NodeType type)
             return "NODE_PRINT";
         case NODE_RETURN:
             return "NODE_RETURN";
-        default:
-            return "NODE_UNKNOWN";
+        case NODE_VEC:
+            return "NODE_VEC";
+        case NODE_KW_INT:
+            return "NODE_KW_INT";
+        case NODE_KW_REAL:
+            return "NODE_KW_REAL";
+        case NODE_KW_BYTE:
+            return "NODE_KW_BYTE";
     }
 }
 #pragma clang diagnostic pop
@@ -114,7 +120,7 @@ std::string Node::to_string() const
     }, this->value);
 }
 
-std::string Node::tree_string(size_t level)
+std::string Node::tree_string(size_t level) const
 {
     std::stringstream ss;
     ss << std::string(level*2, ' ') << this->to_string() << "\n";
@@ -151,13 +157,17 @@ NodePtr make_node(SymbolTableEntry symbol, NodeList children)
     return std::make_shared<Node>(symbol, remove_null_nodes(children));
 }
 
-void print_tree(NodePtr node)
+NodePtr make_node()
+{
+    return std::make_shared<Node>(NODE_UNKNOWN);
+}
+
+std::string print_tree(NodePtr node)
 {
     if (node == nullptr)
     {
-        std::cerr << "Node is null" << std::endl;
-        return;
+        return "Node is null\n";
     }
 
-    std::cerr << node->tree_string() << std::endl;
+    return node->tree_string() + "\n";
 }
