@@ -93,7 +93,9 @@ void Node::add_child(NodePtr child)
     {
         return;
     }
-    children.push_back(child);
+    // children.push_back(child);
+    // Because the parser is bottom-up, we need to insert the child at the beginning of the list
+    children.insert(children.begin(), child);
 }
 
 std::string Node::to_string() const
