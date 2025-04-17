@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
 std::string NodeTypeString(const NodeType type)
 {
     switch (type)
@@ -83,6 +85,7 @@ std::string NodeTypeString(const NodeType type)
             return "NODE_UNKNOWN";
     }
 }
+#pragma clang diagnostic pop
 
 void Node::add_child(NodePtr child)
 {

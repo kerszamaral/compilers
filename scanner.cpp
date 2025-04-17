@@ -157,6 +157,8 @@ std::string generateSymbolTable(void)
     }
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
 std::string symbolName(SymbolType symbol) {
     switch (symbol) {
         case SymbolType::SYMBOL_INVALID:
@@ -173,7 +175,6 @@ std::string symbolName(SymbolType symbol) {
             return "SYMBOL_STRING";
         case SymbolType::SYMBOL_OTHER:
             return "SYMBOL_OTHER";
-        default:
-            return "UNKNOWN";
     }
 }
+#pragma clang diagnostic pop
