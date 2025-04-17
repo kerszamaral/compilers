@@ -77,6 +77,11 @@ public:
 
     std::string to_string() const;
     std::string tree_string(size_t level = 0) const;
+    std::string export_tree(size_t level = 0) const;
+
+private:
+    std::string export_symbol(SymbolTableEntry symbol) const;
+    std::string export_node(NodeType node, size_t level) const;
 } Node;
 
 typedef Node::NodePtr NodePtr;
