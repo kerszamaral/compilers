@@ -34,11 +34,11 @@ target: $(PROJECT)
 run: $(PROJECT)
 	./$(PROJECT)
 
-OBJS = lex.yy.o main.o scanner.o parser.tab.o ast.o
+OBJS = lex.yy.o main.o symbol.o parser.tab.o ast.o
 $(PROJECT): $(OBJS)
 	$(CXX) $(OBJS) -o $(PROJECT)
 
-ast.hpp: scanner.hpp
+ast.hpp: symbol.hpp
 parser.tab.hpp: ast.hpp
 
 main.o: parser.tab.hpp

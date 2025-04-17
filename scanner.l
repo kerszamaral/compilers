@@ -1,7 +1,7 @@
 %{
 // scanner.l file made by Ian Kersz - 2025/1
 
-#include "scanner.hpp"
+#include "symbol.hpp"
 #include "ast.hpp"
 
 #include "parser.tab.hpp"

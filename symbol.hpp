@@ -1,5 +1,5 @@
 #pragma once
-// scanner.hpp file made by Ian Kersz Amaral - 2025/1
+// symbol.hpp file made by Ian Kersz Amaral - 2025/1
 
 #include <cstdbool>
 #include <cstdint>

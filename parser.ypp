@@ -16,7 +16,7 @@
 %code requires {
     // C++ code required for the parser to work
     #include <memory>
-    #include "scanner.hpp"
+    #include "symbol.hpp"
     #include "ast.hpp"
 
     using symbol = std::shared_ptr<Symbol>;

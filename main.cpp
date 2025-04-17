@@ -6,18 +6,17 @@
 #include <iostream>
 #include <fstream>
 
+#include "symbol.hpp"
+#include "ast.hpp"
 #include "parser.tab.hpp"
+
 extern int yylex_destroy(void);
 extern FILE *yyin;
 
-extern void initMe(void);
-extern LineNumber getLineNumber(void);
-extern void printSymbolTable(void);
-
 node g_AST = nullptr;
 
-#define WRONG_ARGS_ERROR 1
-#define NO_FILE_ERROR 2
+static constexpr auto WRONG_ARGS_ERROR = 1;
+static constexpr auto NO_FILE_ERROR = 2;
 
 int main(int argc, char **argv)
 {

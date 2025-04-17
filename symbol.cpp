@@ -1,11 +1,11 @@
-#include "scanner.hpp"
+#include "symbol.hpp"
 
 #include <algorithm>
 #include <vector>
 #include <iostream>
 #include <sstream>
 
-// scanner.cpp file made by Ian Kersz Amaral - 2025/1
+// symbol.cpp file made by Ian Kersz Amaral - 2025/1
 
 
 bool running = true;

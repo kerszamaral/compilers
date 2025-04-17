@@ -11,6 +11,6 @@ From that, you can use the Makefile normally, using `make` to build the project,
 
 The files inside the folder are synced with the original folder, so you can use whatever you desire to edit them, without needing to be directly in the container.
 
-All other files (such as scanner.l, main.cpp, scanner.h, scanner.cpp) are provided blank for user customization. The token.h file is also already provided.
+All other files (such as scanner.l, main.cpp, symbol.h, symbol.cpp) are provided blank for user customization. The token.h file is also already provided.
 
 The `PROJECT`.tgz file can be generated automatically by the `make tgz` command. Please, use it while inside the Docker container, as it needs a specific version of `tar`.
