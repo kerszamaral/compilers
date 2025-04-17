@@ -91,7 +91,65 @@ std::string Symbol::to_string() const
     return "Symbol[" + symbolName(this->type) + ", " + this->lexeme + ", " + std::to_string(this->line_number) + "]";
 }
 
-void printSymbolTable(void)
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
+std::string Symbol::get_text() const
+{
+    switch (this->type)
+    {
+    case SymbolType::SYMBOL_IDENTIFIER:
+        return this->lexeme;
+    case SymbolType::SYMBOL_REAL:
+    {
+        std::string result = this->lexeme;
+        // Reverse the string to get the original number
+        const auto slashPos = result.find('/');
+        std::reverse(result.begin(), result.begin() + static_cast<long>(slashPos));
+        std::reverse(result.begin() + static_cast<long>(slashPos) + 1, result.end());
+        return result;
+    }
+    case SymbolType::SYMBOL_INT:
+    {
+        std::string result = this->lexeme;
+        // Reverse the string to get the original number
+        std::reverse(result.begin(), result.end());
+        return result;
+    }
+    case SymbolType::SYMBOL_CHAR:
+        return this->lexeme;
+    case SymbolType::SYMBOL_STRING:
+        return this->lexeme;
+    case SymbolType::SYMBOL_OTHER:
+        return this->lexeme;
+    case SymbolType::SYMBOL_INVALID:
+        return "SYMBOL_INVALID";
+    }
+}
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
+std::string Symbol::get_type() const
+{
+    switch (this->type)
+    {
+    case SymbolType::SYMBOL_REAL:
+        return "Real";
+    case SymbolType::SYMBOL_INT:
+        return "Integer";
+    case SymbolType::SYMBOL_CHAR:
+        return "Character";
+    case SymbolType::SYMBOL_STRING:
+        return "String";
+    case SymbolType::SYMBOL_IDENTIFIER:
+    case SymbolType::SYMBOL_OTHER:
+    case SymbolType::SYMBOL_INVALID:
+        return "";
+    }
+}
+#pragma clang diagnostic pop
+
+std::string generateSymbolTable(void)
 {
     for (auto &entry : symbolTable)
     {

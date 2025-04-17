@@ -31,6 +31,8 @@ typedef struct Symbol
     LineNumber line_number;
 
     std::string to_string() const;
+    std::string get_text() const;
+    std::string get_type() const;
 } Symbol;
 
 typedef std::shared_ptr<Symbol> SymbolTableEntry;
