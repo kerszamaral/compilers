@@ -67,6 +67,23 @@ tgz:
 	touch $(PROJECT).tgz
 	tar cvzf $(PROJECT).tgz --exclude=$(PROJECT).tgz --exclude-vcs-ignores --exclude=.git . || rm $(PROJECT).tgz
 
+# Automatically invokes the command two times to check for differences
+DIFF_FILE1 = diff1.txt
+DIFF_FILE2 = diff2.txt
+.PHONY: diff
+diff: $(DIFF_FILE) $(PROJECT)
+	@echo "Running diff..."
+	@echo "First run:"
+	@./$(PROJECT) $(DIFF_FILE) $(DIFF_FILE1)
+	@echo "Second run:"
+	@./$(PROJECT) $(DIFF_FILE1) $(DIFF_FILE2)
+	@if diff $(DIFF_FILE1) $(DIFF_FILE2) > /dev/null; then \
+		echo "\nDifferences not found!"; \
+	else \
+		echo "\nDifferences found!!"; \
+	fi
+	@rm -f $(DIFF_FILE1) $(DIFF_FILE2)
+
 # Docker related commands 
 .PHONY: docker
 docker: docker-build
