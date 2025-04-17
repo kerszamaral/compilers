@@ -1,6 +1,6 @@
 %{
 // parser.ypp file made by Ian Kersz - 2025/1
-#define EXIT_SYNTAX_ERROR 3
+static constexpr auto EXIT_SYNTAX_ERROR = 3;
 %}
 
 // C++ parser
