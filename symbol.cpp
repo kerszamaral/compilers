@@ -84,7 +84,7 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
     // If the key already exists, emplace does nothing, and returns an iterator to the existing element
 
 
-    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number}).first->second; // We dereference the iterator to get the value as a reference
+    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, TYPE_INVALID}).first->second; // We dereference the iterator to get the value as a reference
 }
 
 std::string Symbol::to_string() const
@@ -181,3 +181,8 @@ std::string symbolName(SymbolType symbol) {
     }
 }
 #pragma clang diagnostic pop
+
+DataType Symbol::get_data_type() const
+{
+    return this->data_type;
+}
