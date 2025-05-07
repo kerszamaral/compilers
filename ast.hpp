@@ -51,10 +51,7 @@ enum NodeType
     NODE_KW_REAL,
     NODE_KW_BYTE,
 };
-
 std::string NodeTypeString(const NodeType type);
-
-typedef std::variant<NodeType, SymbolTableEntry> NodeValue;
 
 typedef struct Node
 {   
@@ -62,22 +59,20 @@ public:
     typedef std::shared_ptr<struct Node> NodePtr;
     typedef std::vector<NodePtr> NodeList;
     
-private:
-    NodeValue value;
+protected:
     NodeList children;
 
 public:
-    Node(SymbolTableEntry symbol, NodeList children = {})
-        : value(symbol), children(children) {}
-
-    Node(NodeType type, NodeList children = {})
-        : value(type), children(children) {}
+    Node(NodeList children = {})
+        : children(children) {}
 
     void add_child(NodePtr child);
 
-    std::string to_string() const;
     std::string tree_string(size_t level = 0) const;
-    std::string export_tree(size_t level = 0) const;
+
+
+    virtual std::string to_string() const = 0;
+    virtual std::string export_tree(size_t level = 0) const = 0;
 
 private:
     std::string export_symbol(SymbolTableEntry symbol) const;
@@ -86,11 +81,37 @@ private:
 
 typedef Node::NodePtr NodePtr;
 typedef Node::NodeList NodeList;
+NodePtr make_node();
+std::string print_tree(NodePtr);
 
+
+
+typedef struct ASTNode final : public Node
+{
+private:
+    NodeType node_type;
+
+public:
+    ASTNode(NodeType type, NodeList children = {})
+        : Node(children), node_type(type) {}
+
+    std::string to_string() const override;
+    std::string export_tree(size_t level = 0) const override;
+} ASTNode;
 NodePtr make_node(NodeType type, NodeList children = {});
 
+
+
+typedef struct SymbolNode final : public Node
+{
+private:
+    SymbolTableEntry symbol;
+
+public:
+    SymbolNode(SymbolTableEntry symbol, NodeList children = {})
+        : Node(children), symbol(symbol) {}
+
+    std::string to_string() const override;
+    std::string export_tree(size_t level = 0) const override;
+} SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
-
-NodePtr make_node();
-
-std::string print_tree(NodePtr);

@@ -93,6 +93,8 @@ std::string NodeTypeString(const NodeType type)
 }
 #pragma clang diagnostic pop
 
+
+
 void Node::add_child(NodePtr child)
 {
     if (child == nullptr)
@@ -102,22 +104,6 @@ void Node::add_child(NodePtr child)
     // children.push_back(child);
     // Because the parser is bottom-up, we need to insert the child at the beginning of the list
     children.insert(children.begin(), child);
-}
-
-std::string Node::to_string() const
-{
-    return std::visit([](auto &&value)
-    {
-        using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, NodeType>)
-        {
-            return "AST NodeType: " + NodeTypeString(value);
-        }
-        else if constexpr (std::is_same_v<T, SymbolTableEntry>)
-        {
-            return "AST SymbolTableEntry: " + value->to_string();
-        }
-    }, this->value);
 }
 
 std::string Node::tree_string(size_t level) const
@@ -133,33 +119,9 @@ std::string Node::tree_string(size_t level) const
     return ss.str();
 }
 
-NodeList remove_null_nodes(const NodeList &children)
-{
-    NodeList result;
-    for (const auto &child : children)
-    {
-        if (child != nullptr)
-        {
-            result.push_back(child);
-        }
-    }
-    return result;
-}
-
-NodePtr make_node(NodeType type, NodeList children)
-{
-
-    return std::make_shared<Node>(type, remove_null_nodes(children));
-}
-
-NodePtr make_node(SymbolTableEntry symbol, NodeList children)
-{
-    return std::make_shared<Node>(symbol, remove_null_nodes(children));
-}
-
 NodePtr make_node()
 {
-    return std::make_shared<Node>(NODE_UNKNOWN);
+    return std::make_shared<ASTNode>(NODE_UNKNOWN);
 }
 
 std::string print_tree(NodePtr node)
@@ -172,20 +134,11 @@ std::string print_tree(NodePtr node)
     return node->tree_string() + "\n";
 }
 
-std::string Node::export_tree(size_t level) const
+
+
+std::string ASTNode::to_string() const
 {
-    return std::visit([this, level](auto &&value)
-    {
-        using T = std::decay_t<decltype(value)>;
-        if constexpr (std::is_same_v<T, NodeType>)
-        {
-            return this->export_node(value, level);
-        }
-        else if constexpr (std::is_same_v<T, SymbolTableEntry>)
-        {
-            return this->export_symbol(value);
-        }
-    }, this->value);
+   return "AST NodeType: " + NodeTypeString(node_type);
 }
 
 #pragma clang diagnostic push
@@ -228,10 +181,10 @@ std::string operator_string(NodeType node)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-std::string Node::export_node(NodeType node, size_t level) const
+std::string ASTNode::export_tree(size_t level) const
 {
     std::stringstream ss;
-    switch (node)
+    switch (node_type)
     {
     case NODE_UNKNOWN:
         {
@@ -381,7 +334,7 @@ std::string Node::export_node(NodeType node, size_t level) const
     case NODE_AND:
     case NODE_OR:
         {
-            const auto op = operator_string(node);
+            const auto op = operator_string(node_type);
             const auto left = this->children[0];
             const auto right = this->children[1];
             ss << left->export_tree(level);
@@ -524,10 +477,37 @@ std::string Node::export_node(NodeType node, size_t level) const
 }
 #pragma clang diagnostic pop
 
+NodeList remove_null_nodes(const NodeList &children)
+{
+    NodeList result;
+    for (const auto &child : children)
+    {
+        if (child != nullptr)
+        {
+            result.push_back(child);
+        }
+    }
+    return result;
+}
+
+NodePtr make_node(NodeType type, NodeList children)
+{
+
+    return std::make_shared<ASTNode>(type, remove_null_nodes(children));
+}
+
+
+
+std::string SymbolNode::to_string() const
+{
+    return "AST SymbolTableEntry: " + symbol->to_string();
+}
+
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-std::string Node::export_symbol(SymbolTableEntry symbol) const
+std::string SymbolNode::export_tree(size_t level) const
 {
+    (void)level; // Unused parameter
     switch (symbol->type)
     {
     case SYMBOL_IDENTIFIER:
@@ -541,3 +521,8 @@ std::string Node::export_symbol(SymbolTableEntry symbol) const
     }
 }
 #pragma clang diagnostic pop
+
+NodePtr make_node(SymbolTableEntry symbol, NodeList children)
+{
+    return std::make_shared<SymbolNode>(symbol, remove_null_nodes(children));
+}
