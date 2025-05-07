@@ -73,6 +73,7 @@ public:
 
     virtual std::string to_string() const = 0;
     virtual std::string export_tree(size_t level = 0) const = 0;
+    virtual DataType check_expr_type() const = 0;
 } Node;
 
 typedef Node::NodePtr NodePtr;
@@ -93,6 +94,7 @@ public:
 
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
+    DataType check_expr_type() const override;
 } ASTNode;
 NodePtr make_node(NodeType type, NodeList children = {});
 
@@ -109,5 +111,6 @@ public:
 
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
+    DataType check_expr_type() const override;
 } SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});

@@ -464,18 +464,125 @@ std::string ASTNode::export_tree(size_t level) const
         }
     }
 
-        // Find all \n and replace them with \n + level*2 spaces
-        std::string str = ss.str();
-        // size_t pos = 0;
-        // while ((pos = str.find("\n", pos)) != std::string::npos)
-        // {
-        //     str.replace(pos, 1, "\n" + std::string(level*2, ' '));
-        //     pos += level*2 + 1;
-        // }
-        // Add indentation to the beginning of the string
-        return str;
+    // Find all \n and replace them with \n + level*2 spaces
+    std::string str = ss.str();
+    // size_t pos = 0;
+    // while ((pos = str.find("\n", pos)) != std::string::npos)
+    // {
+    //     str.replace(pos, 1, "\n" + std::string(level*2, ' '));
+    //     pos += level*2 + 1;
+    // }
+    // Add indentation to the beginning of the string
+    return str;
 }
 #pragma clang diagnostic pop
+
+DataType ASTNode::check_expr_type() const
+{
+    switch (node_type)
+    {
+    // Arithmetic operations
+    case NODE_ADD:
+    case NODE_SUB:
+    case NODE_MUL:
+    case NODE_DIV:
+    case NODE_MOD:
+        {
+            const auto left = this->children[0];
+            const auto right = this->children[1];
+            const auto left_type = left->check_expr_type();
+            const auto right_type = right->check_expr_type();
+            // Trivial Cases
+            if (left_type == TYPE_INVALID || right_type == TYPE_INVALID)
+            {
+                return TYPE_INVALID;
+            }
+            if (left_type == right_type)
+            {
+                return left_type;
+            }
+
+            // Mixed Cases
+            if ((left_type == TYPE_CHAR && right_type == TYPE_INT) ||
+                (left_type == TYPE_INT && right_type == TYPE_CHAR))
+            {
+                return TYPE_INT;
+            }
+
+            break;
+        }
+    // Relational operations
+    case NODE_LT:
+    case NODE_GT:
+    case NODE_LE:
+    case NODE_GE:
+    case NODE_EQ:
+    case NODE_DIF:
+        {
+            const auto left = this->children[0];
+            const auto right = this->children[1];
+            const auto left_type = left->check_expr_type();
+            const auto right_type = right->check_expr_type();
+            // Trivial Cases
+            if (left_type == TYPE_INVALID || right_type == TYPE_INVALID)
+            {
+                return TYPE_INVALID;
+            }
+            if (left_type == right_type)
+            {
+                return TYPE_BOOL;
+            }
+
+            // Mixed Cases
+            if ((left_type == TYPE_CHAR && right_type == TYPE_INT) ||
+                (left_type == TYPE_INT && right_type == TYPE_CHAR))
+            {
+                return TYPE_BOOL;
+            }
+
+            break;
+        }
+    // Logical operations
+    case NODE_AND:
+    case NODE_OR:
+        {
+            const auto left = this->children[0];
+            const auto right = this->children[1];
+            const auto left_type = left->check_expr_type();
+            const auto right_type = right->check_expr_type();
+            if (left_type == TYPE_BOOL && right_type == TYPE_BOOL)
+            {
+                return TYPE_BOOL;
+            }
+            break;
+        }
+    case NODE_NOT:
+        {
+            const auto expr = this->children[0];
+            const auto expr_type = expr->check_expr_type();
+            if (expr_type == TYPE_BOOL)
+            {
+                return TYPE_BOOL;
+            }
+            break;
+        }
+    case NODE_PARENTHESIS:
+        {
+            const auto expr = this->children[0];
+            return expr->check_expr_type();
+        }
+    case NODE_FUN_CALL:
+        {
+            const auto symbol = this->children[0];
+            return symbol->check_expr_type();
+        }
+    
+    default:
+        return TYPE_INVALID;
+    }
+
+    return TYPE_INVALID;
+}
 
 NodeList remove_null_nodes(const NodeList &children)
 {
@@ -521,6 +628,15 @@ std::string SymbolNode::export_tree(size_t level) const
     }
 }
 #pragma clang diagnostic pop
+
+DataType SymbolNode::check_expr_type() const
+{
+    if (symbol == nullptr)
+    {
+        return TYPE_INVALID;
+    }
+    return symbol->get_data_type();
+}
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {

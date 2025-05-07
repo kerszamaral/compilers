@@ -21,6 +21,17 @@ enum SymbolType : uint8_t
     SYMBOL_OTHER
 };
 
+enum DataType : uint8_t
+{
+    TYPE_INVALID,
+    TYPE_INT,
+    TYPE_REAL,
+    TYPE_CHAR,
+    TYPE_STRING,
+    TYPE_BOOL,
+    TYPE_OTHER
+};
+
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
 
@@ -29,10 +40,12 @@ typedef struct Symbol
     SymbolType type;
     Lexeme lexeme;
     LineNumber line_number;
+    DataType data_type;
 
     std::string to_string() const;
     std::string get_text() const;
     std::string get_type() const;
+    DataType get_data_type() const;
 } Symbol;
 
 typedef std::shared_ptr<Symbol> SymbolTableEntry;
