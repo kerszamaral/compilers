@@ -73,10 +73,6 @@ public:
 
     virtual std::string to_string() const = 0;
     virtual std::string export_tree(size_t level = 0) const = 0;
-
-private:
-    std::string export_symbol(SymbolTableEntry symbol) const;
-    std::string export_node(NodeType node, size_t level) const;
 } Node;
 
 typedef Node::NodePtr NodePtr;
