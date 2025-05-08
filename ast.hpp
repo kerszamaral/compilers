@@ -99,6 +99,20 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    DataType kw_type() const
+    {
+        switch (node_type)
+        {
+            case NODE_KW_INT:
+                return TYPE_INT;
+            case NODE_KW_REAL:
+                return TYPE_REAL;
+            case NODE_KW_BYTE:
+                return TYPE_CHAR;
+            default:
+                return TYPE_INVALID;
+        }
+    }
 } ASTNode;
 NodePtr make_node(NodeType type, NodeList children = {});
 std::shared_ptr<ASTNode> to_ast_node(NodePtr);
