@@ -153,6 +153,10 @@ public:
         return symbol->is_valid();
     }
 
+    LineNumber get_original_line_number() const
+    {
+        return symbol->line_number;
+    }
 } SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
 std::shared_ptr<SymbolNode> to_symbol_node(NodePtr);

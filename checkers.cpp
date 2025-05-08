@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <optional>
 
 typedef std::function<SemanticAnalyzer(NodePtr)> Checker;
 
@@ -32,41 +33,28 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
 
 constexpr auto SHOULD_CONTINUE = true;
 
-std::string redec_of(const NodeType node_type)
-{
-    std::stringstream ss;
-    ss << "Redeclaration of ";
-    switch (node_type)
-    {
-        case NODE_VAR_DECL:
-            ss << "Variable";
-            break;
-        case NODE_VEC_DEF:
-            ss << "Vector";
-            break;
-        case NODE_PARAM_DECL:
-            ss << "Parameter";
-            break;
-        case NODE_FUN_DECL:
-            ss << "Function";
-            break;
-        default:
-            ss << "UNKNOWN";
-            break;
+// Helper: sets the optional only if it's not already set
+template<typename T, typename U>
+void set_if_unset(std::optional<T>& opt, U&& value) {
+    if (!opt) {
+        opt = T(std::forward<U>(value));
     }
-    ss << " ";
-    return ss.str();
 }
 
 bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
+    std::optional<std::string> redec_of;
     switch (node_type)
     {
     // Mark as declared and check redeclaration
     case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
+        set_if_unset(redec_of, "Variable");
     case NODE_VEC_DEF: // type: 0, symbol: 1, size: 2
+        set_if_unset(redec_of, "Vector");
     case NODE_PARAM_DECL: // type: 0, symbol: 1
+        set_if_unset(redec_of, "Parameter");
     case NODE_FUN_DECL: // ret_type: 0, symbol: 1
+        set_if_unset(redec_of, "Function");
         {
             const auto type = to_ast_node(children[0]);
             const auto data_type = type->kw_type();
@@ -75,7 +63,14 @@ bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, c
             if (!could_set)
             {
                 const auto line_number = type->get_line_number();
-                analyzer.add_error(line_number, redec_of(node_type) + symbol->get_text() + ". Originally declared at " + std::to_string(symbol->get_line_number()));
+                std::stringstream ss;
+                ss << "Redeclaration of ";
+                ss << redec_of.value();
+                ss << " ";
+                ss << symbol->get_text();
+                ss << ". Originally declared at ";
+                ss << std::to_string(symbol->get_original_line_number());
+                analyzer.add_error(line_number, ss.str());
             }
             return node_type != NODE_FUN_DECL ? !SHOULD_CONTINUE : SHOULD_CONTINUE;
         }
