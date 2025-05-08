@@ -101,7 +101,7 @@ public:
     DataType check_expr_type() const override;
 } ASTNode;
 NodePtr make_node(NodeType type, NodeList children = {});
-
+std::shared_ptr<ASTNode> to_ast_node(NodePtr);
 
 
 typedef struct SymbolNode final : public Node
@@ -127,5 +127,7 @@ public:
     {
         return symbol->is_valid();
     }
+
 } SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
+std::shared_ptr<SymbolNode> to_symbol_node(NodePtr);
