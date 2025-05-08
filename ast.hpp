@@ -50,6 +50,7 @@ enum NodeType
     NODE_KW_INT,
     NODE_KW_REAL,
     NODE_KW_BYTE,
+    NODE_SYMBOL,
 };
 std::string NodeTypeString(const NodeType type);
 
@@ -72,7 +73,7 @@ public:
     void add_child(NodePtr child);
 
     std::string tree_string(size_t level = 0) const;
-
+    LineNumber get_line_number() const;
 
     virtual std::string to_string() const = 0;
     virtual std::string export_tree(size_t level = 0) const = 0;

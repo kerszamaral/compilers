@@ -89,6 +89,8 @@ std::string NodeTypeString(const NodeType type)
             return "NODE_KW_REAL";
         case NODE_KW_BYTE:
             return "NODE_KW_BYTE";
+        case NODE_SYMBOL:
+            return "NODE_SYMBOL";
     }
 }
 #pragma clang diagnostic pop
@@ -467,6 +469,10 @@ std::string ASTNode::export_tree(size_t level) const
             ss << "byte";
             break;
         }
+    case NODE_SYMBOL:
+        {
+            break;
+        }
     }
 
     // Find all \n and replace them with \n + level*2 spaces
@@ -621,13 +627,13 @@ std::string SymbolNode::export_tree(size_t level) const
     (void)level; // Unused parameter
     switch (symbol->type)
     {
-    case SYMBOL_IDENTIFIER:
-    case SYMBOL_REAL:
-    case SYMBOL_INT:
-    case SYMBOL_CHAR:
-    case SYMBOL_STRING:
-    case SYMBOL_OTHER:
-    case SYMBOL_INVALID:
+        case SYMBOL_IDENTIFIER:
+        case SYMBOL_REAL:
+        case SYMBOL_INT:
+        case SYMBOL_CHAR:
+        case SYMBOL_STRING:
+        case SYMBOL_OTHER:
+        case SYMBOL_INVALID:
         return symbol->get_text();
     }
 }
