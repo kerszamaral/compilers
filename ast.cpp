@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
@@ -613,6 +614,10 @@ NodePtr make_node(NodeType type, NodeList children)
     return std::make_shared<ASTNode>(type, getLineNumber(), remove_null_nodes(children));
 }
 
+std::shared_ptr<ASTNode> to_ast_node(NodePtr node)
+{
+    return std::dynamic_pointer_cast<ASTNode>(node);
+}
 
 
 std::string SymbolNode::to_string() const
@@ -647,8 +652,21 @@ DataType SymbolNode::check_expr_type() const
     }
     return symbol->get_data_type();
 }
+bool SymbolNode::set_data_type(DataType type) const
+{
+    if (symbol == nullptr)
+    {
+        return false;
+    }
+    return symbol->set_data_type(type);
+}
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {
     return std::make_shared<SymbolNode>(symbol, getLineNumber(), remove_null_nodes(children));
+}
+
+std::shared_ptr<SymbolNode> to_symbol_node(NodePtr node)
+{
+    return std::dynamic_pointer_cast<SymbolNode>(node);
 }
