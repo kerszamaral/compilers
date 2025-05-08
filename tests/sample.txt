@@ -24,6 +24,11 @@ de multiplas
 linhas
 --/
 
+int incn (int p, int n )
+  {
+  return p + n;
+  }
+
 int main ()
   {
   number = 0;
@@ -64,11 +69,6 @@ int main ()
   else
     print "OK!\n"; 
   {{}} {}
-  }
-
-int incn (int p, int n )
-  {
-  return p + n;
   }
 
 // end of file
