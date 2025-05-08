@@ -119,9 +119,14 @@ std::string Node::tree_string(size_t level) const
     return ss.str();
 }
 
+LineNumber Node::get_line_number() const
+{
+    return line_number;
+}
+
 NodePtr make_node()
 {
-    return std::make_shared<ASTNode>(NODE_UNKNOWN);
+    return std::make_shared<ASTNode>(NODE_UNKNOWN, 0);
 }
 
 std::string print_tree(NodePtr node)
@@ -599,8 +604,7 @@ NodeList remove_null_nodes(const NodeList &children)
 
 NodePtr make_node(NodeType type, NodeList children)
 {
-
-    return std::make_shared<ASTNode>(type, remove_null_nodes(children));
+    return std::make_shared<ASTNode>(type, getLineNumber(), remove_null_nodes(children));
 }
 
 
@@ -640,5 +644,5 @@ DataType SymbolNode::check_expr_type() const
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 {
-    return std::make_shared<SymbolNode>(symbol, remove_null_nodes(children));
+    return std::make_shared<SymbolNode>(symbol, getLineNumber(), remove_null_nodes(children));
 }
