@@ -57,23 +57,23 @@ void initMe(void)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-DataType symbol_to_data_type(const SymbolType symbol_type) {
+std::pair<DataType, IdentType> symbol_to_data_type(const SymbolType symbol_type) {
     switch (symbol_type)
     {
     case SYMBOL_INVALID:
-        return TYPE_INVALID;
+        return {TYPE_INVALID, IDENT_INVALID};
     case SYMBOL_IDENTIFIER:
-        return TYPE_UNINITIALIZED;
+        return {TYPE_UNINITIALIZED, IDENT_UNINITIALIZED};
     case SYMBOL_REAL:
-        return TYPE_REAL;
+        return {TYPE_REAL, IDENT_LIT};
     case SYMBOL_INT:
-        return TYPE_INT;
+        return {TYPE_INT, IDENT_LIT};
     case SYMBOL_CHAR:
-        return TYPE_CHAR;
+        return {TYPE_CHAR, IDENT_LIT};
     case SYMBOL_STRING:
-        return TYPE_STRING;
+        return {TYPE_STRING, IDENT_LIT};
     case SYMBOL_OTHER:
-        return TYPE_OTHER;
+        return {TYPE_OTHER, IDENT_LIT};
     }
 }
 #pragma clang diagnostic pop
@@ -106,9 +106,9 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
     }
     // If the key already exists, emplace does nothing, and returns an iterator to the existing element
 
-    const auto data_type = symbol_to_data_type(symbol_type);
+    const auto [data_type, ident_type] = symbol_to_data_type(symbol_type);
 
-    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type}).first->second; // We dereference the iterator to get the value as a reference
+    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type}).first->second; // We dereference the iterator to get the value as a reference
 }
 
 std::string Symbol::to_string() const
@@ -122,6 +122,8 @@ std::string Symbol::to_string() const
     ss << std::to_string(this->line_number);
     ss << ", ";
     ss << data_type_to_str(this->data_type);
+    ss << ", ";
+    ss << ident_type_to_str(this->ident_type);
     ss << "]";
 
     return ss.str();
@@ -241,6 +243,25 @@ std::string data_type_to_str(const DataType data_type)
         return "TYPE_OTHE";
     }
 }
+
+std::string ident_type_to_str(const IdentType ident_type)
+{
+    switch (ident_type)
+    {
+    case IDENT_INVALID:
+        return "IDENT_INVALID";
+    case IDENT_UNINITIALIZED:
+        return "IDENT_UNINITIALIZED";
+    case IDENT_FUNC:
+        return "IDENT_FUNC";
+    case IDENT_VECTOR:
+        return "IDENT_VECTOR";
+    case IDENT_VAR:
+        return "IDENT_VAR";
+    case IDENT_LIT:
+        return "IDENT_LIT";
+    }
+}
 #pragma clang diagnostic pop
 
 DataType Symbol::get_data_type() const
@@ -249,12 +270,13 @@ DataType Symbol::get_data_type() const
 }
 
 
-bool Symbol::set_data_type(DataType type)
+bool Symbol::set_types(DataType type, IdentType ident_type)
 {
-    if (data_type != TYPE_UNINITIALIZED)
+    if (this->data_type != TYPE_UNINITIALIZED && this->data_type != type)
     {
         return false;
     }
+    this->ident_type = ident_type;
     this->data_type = type;
     return true;
 }
