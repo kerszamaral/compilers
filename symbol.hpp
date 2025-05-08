@@ -24,6 +24,7 @@ enum SymbolType : uint8_t
 enum DataType : uint8_t
 {
     TYPE_INVALID,
+    TYPE_UNINITIALIZED,
     TYPE_INT,
     TYPE_REAL,
     TYPE_CHAR,
@@ -46,6 +47,10 @@ typedef struct Symbol
     std::string get_text() const;
     std::string get_type() const;
     DataType get_data_type() const;
+
+    bool set_data_type(DataType type);
+
+    bool is_valid() const;
 } Symbol;
 
 typedef std::shared_ptr<Symbol> SymbolTableEntry;
@@ -60,6 +65,7 @@ void setError(void);
 LineNumber getLineNumber(void);
 
 std::string symbolName(SymbolType symbol);
+std::string data_type_to_str(const DataType data_type);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 
