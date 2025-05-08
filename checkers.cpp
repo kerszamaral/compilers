@@ -10,7 +10,10 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
 {
     const std::vector<Checker> checkers{
         check_declarations,
+        // check_uses,
         // check_types,
+        // check_arguments,
+        // check_return,
     };
 
     std::vector<SemanticAnalyzer> analyzers;
@@ -127,3 +130,49 @@ SemanticAnalyzer check_declarations(NodePtr node)
 
     return analyzer;
 }
+
+/*
+bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+{
+    switch (node_type)
+    {
+    // Mark as declared and check redeclaration
+    case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
+    case NODE_VEC_DEF: // type: 0, symbol: 1, size: 2
+    case NODE_FUN_DECL: // ret_type: 0, symbol: 1
+    case NODE_PARAM_DECL: // type: 0, symbol: 1
+        return !SHOULD_CONTINUE;
+
+    default:
+        throw std::runtime_error("Unhandled case in uses checker. " + NodeTypeString(node_type));
+        break;
+    }
+
+    return SHOULD_CONTINUE;
+}
+
+SemanticAnalyzer check_uses(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return SemanticAnalyzer();
+    }
+
+    auto analyzer = SemanticAnalyzer();
+    const ActiveNodes active_nodes{
+        // Mark as declared and check redeclaration
+        NODE_VAR_DECL,
+        NODE_VEC_DEF,
+        NODE_FUN_DECL,
+        NODE_PARAM_DECL,
+        // Check if undeclared
+        NODE_SYMBOL, //? It will be skipped over when unneeded by should_continue.
+    };
+
+    WalkFunc func = uses_checker;
+
+    node->walk_tree(analyzer, active_nodes, func, true);
+
+    return analyzer;
+}
+*/
