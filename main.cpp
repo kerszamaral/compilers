@@ -9,6 +9,7 @@
 #include "symbol.hpp"
 #include "ast.hpp"
 #include "parser.tab.hpp"
+#include "checkers.hpp"
 
 extern int yylex_destroy(void);
 extern FILE *yyin;
@@ -17,6 +18,7 @@ node g_AST = nullptr;
 
 static constexpr auto WRONG_ARGS_ERROR = 1;
 static constexpr auto NO_FILE_ERROR = 2;
+static constexpr auto SEMANTIC_ERROR = 4;
 
 int main(int argc, char **argv)
 {
@@ -42,12 +44,6 @@ int main(int argc, char **argv)
     
     const auto result = yy::parser().parse();
     const auto num_lines = getLineNumber();
-    if (g_AST != nullptr)
-    {
-        std::cerr << "Generated the AST: \n";
-        std::cerr << print_tree(g_AST) << std::endl;
-        
-    }
     if (result != 0)
     {
         std::cerr << "Error parsing the file. Please check the syntax." << std::endl;
@@ -55,9 +51,25 @@ int main(int argc, char **argv)
     }
     fclose(yyin);
     yylex_destroy();
+    
+    if (g_AST == nullptr)
+    {
+        std::cerr << "Error Generating AST!!!!" << std::endl;
+        std::exit(-1);
+    }
+
+    const auto [number_of_errors, error_messages] = run_semantic_analysis(g_AST);
+    std::cerr << "Generated the AST: \n";
+    std::cerr << print_tree(g_AST);
     std::cerr << "Generated Symbol Table: \n";
     std::cerr << generateSymbolTable();
     std::cerr << "Lines: " << num_lines << std::endl;
+    if (number_of_errors != 0)
+    {
+        std::cerr << "\nSemantic Error found, please correct them\n";
+        std::cerr << error_messages;
+        std::exit(SEMANTIC_ERROR);
+    }
 
     std::ofstream outfile(args[1], std::ios::out);
     if (!outfile || !outfile.is_open() || outfile.bad())
