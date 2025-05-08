@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     std::cerr << "Lines: " << num_lines << std::endl;
     if (number_of_errors != 0)
     {
-        std::cerr << "\nSemantic Error found, please correct them\n";
+        std::cerr << "\n" << std::to_string(number_of_errors) << " Semantic Errors found:\n";
         std::cerr << error_messages;
         std::exit(SEMANTIC_ERROR);
     }
