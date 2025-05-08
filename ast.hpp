@@ -141,7 +141,7 @@ public:
     DataType check_expr_type() const override;
     void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
     
-    bool set_data_type(DataType type) const;
+    bool set_types(DataType type, IdentType ident_type) const;
 
     std::string get_text() const
     {

@@ -33,6 +33,16 @@ enum DataType : uint8_t
     TYPE_OTHER
 };
 
+enum IdentType : uint8_t
+{
+    IDENT_INVALID,
+    IDENT_UNINITIALIZED,
+    IDENT_FUNC,
+    IDENT_VECTOR,
+    IDENT_VAR,
+    IDENT_LIT,
+};
+
 typedef unsigned int LineNumber;
 typedef std::string Lexeme;
 
@@ -42,13 +52,14 @@ typedef struct Symbol
     Lexeme lexeme;
     LineNumber line_number;
     DataType data_type;
+    IdentType ident_type;
 
     std::string to_string() const;
     std::string get_text() const;
     std::string get_type() const;
     DataType get_data_type() const;
 
-    bool set_data_type(DataType type);
+    bool set_types(DataType type, IdentType ident_type);
 
     bool is_valid() const;
 } Symbol;
@@ -66,6 +77,7 @@ LineNumber getLineNumber(void);
 
 std::string symbolName(SymbolType symbol);
 std::string data_type_to_str(const DataType data_type);
+std::string ident_type_to_str(const IdentType ident_type);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 

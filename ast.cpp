@@ -698,13 +698,13 @@ void SymbolNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active
     return;
 }
 
-bool SymbolNode::set_data_type(DataType type) const
+bool SymbolNode::set_types(DataType type, IdentType ident_type) const
 {
     if (symbol == nullptr)
     {
         return false;
     }
-    return symbol->set_data_type(type);
+    return symbol->set_types(type, ident_type);
 }
 
 NodePtr make_node(SymbolTableEntry symbol, NodeList children)

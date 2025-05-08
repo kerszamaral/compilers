@@ -44,22 +44,27 @@ void set_if_unset(std::optional<T>& opt, U&& value) {
 bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
     std::optional<std::string> redec_of;
+    std::optional<IdentType> ident_type;
     switch (node_type)
     {
     // Mark as declared and check redeclaration
     case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
         set_if_unset(redec_of, "Variable");
+        set_if_unset(ident_type, IDENT_VAR);
     case NODE_VEC_DEF: // type: 0, symbol: 1, size: 2
         set_if_unset(redec_of, "Vector");
-    case NODE_PARAM_DECL: // type: 0, symbol: 1
-        set_if_unset(redec_of, "Parameter");
+        set_if_unset(ident_type, IDENT_VECTOR);
     case NODE_FUN_DECL: // ret_type: 0, symbol: 1
         set_if_unset(redec_of, "Function");
+        set_if_unset(ident_type, IDENT_FUNC);
+    case NODE_PARAM_DECL: // type: 0, symbol: 1
+        set_if_unset(redec_of, "Parameter");
+        set_if_unset(ident_type, IDENT_VAR);
         {
             const auto type = to_ast_node(children[0]);
             const auto data_type = type->kw_type();
             const auto symbol = to_symbol_node(children[1]);
-            const auto could_set = symbol->set_data_type(data_type);
+            const auto could_set = symbol->set_types(data_type, ident_type.value());
             if (!could_set)
             {
                 const auto line_number = type->get_line_number();
