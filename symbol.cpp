@@ -55,6 +55,29 @@ void initMe(void)
     encounteredError.clear();
 }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
+DataType symbol_to_data_type(const SymbolType symbol_type) {
+    switch (symbol_type)
+    {
+    case SYMBOL_INVALID:
+        return TYPE_INVALID;
+    case SYMBOL_IDENTIFIER:
+        return TYPE_UNINITIALIZED;
+    case SYMBOL_REAL:
+        return TYPE_REAL;
+    case SYMBOL_INT:
+        return TYPE_INT;
+    case SYMBOL_CHAR:
+        return TYPE_CHAR;
+    case SYMBOL_STRING:
+        return TYPE_STRING;
+    case SYMBOL_OTHER:
+        return TYPE_OTHER;
+    }
+}
+#pragma clang diagnostic pop
+
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number)
 {   
     // If we encounter numbers, we need to reverse them and remove the leading zeros
@@ -83,13 +106,25 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
     }
     // If the key already exists, emplace does nothing, and returns an iterator to the existing element
 
+    const auto data_type = symbol_to_data_type(symbol_type);
 
-    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, TYPE_INVALID}).first->second; // We dereference the iterator to get the value as a reference
+    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type}).first->second; // We dereference the iterator to get the value as a reference
 }
 
 std::string Symbol::to_string() const
 {
-    return "Symbol[" + symbolName(this->type) + ", " + this->lexeme + ", " + std::to_string(this->line_number) + "]";
+    std::stringstream ss;
+    ss << "Symbol[";
+    ss << symbolName(this->type);
+    ss << ", ";
+    ss << this->lexeme;
+    ss << ", ";
+    ss << std::to_string(this->line_number);
+    ss << ", ";
+    ss << data_type_to_str(this->data_type);
+    ss << "]";
+
+    return ss.str();
 }
 
 #pragma clang diagnostic push
@@ -182,7 +217,49 @@ std::string symbolName(SymbolType symbol) {
 }
 #pragma clang diagnostic pop
 
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
+std::string data_type_to_str(const DataType data_type)
+{
+    switch (data_type)
+    {
+    case TYPE_INVALID:
+        return "TYPE_INVALID";
+    case TYPE_UNINITIALIZED:
+        return "TYPE_UNINITIALIZED";
+    case TYPE_INT:
+        return "TYPE_INT";
+    case TYPE_REAL:
+        return "TYPE_REAL";
+    case TYPE_CHAR:
+        return "TYPE_CHAR";
+    case TYPE_STRING:
+        return "TYPE_STRING";
+    case TYPE_BOOL:
+        return "TYPE_BOOL";
+    case TYPE_OTHER:
+        return "TYPE_OTHE";
+    }
+}
+#pragma clang diagnostic pop
+
 DataType Symbol::get_data_type() const
 {
     return this->data_type;
+}
+
+
+bool Symbol::set_data_type(DataType type)
+{
+    if (data_type != TYPE_UNINITIALIZED)
+    {
+        return false;
+    }
+    this->data_type = type;
+    return true;
+}
+
+bool Symbol::is_valid() const
+{
+    return this->type != SYMBOL_INVALID && this->data_type != TYPE_INVALID && this->data_type != TYPE_UNINITIALIZED;
 }
