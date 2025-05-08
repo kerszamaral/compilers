@@ -116,5 +116,16 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    bool set_data_type(DataType type) const;
+
+    std::string get_text() const
+    {
+        return symbol->get_text();
+    }
+
+    bool is_valid() const
+    {
+        return symbol->is_valid();
+    }
 } SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
