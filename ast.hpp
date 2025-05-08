@@ -62,9 +62,12 @@ public:
 protected:
     NodeList children;
 
+private:
+    LineNumber line_number;
+
 public:
-    Node(NodeList children = {})
-        : children(children) {}
+    Node(LineNumber line_number, NodeList children = {})
+        : children(children), line_number(line_number) {}
 
     void add_child(NodePtr child);
 
@@ -89,8 +92,8 @@ private:
     NodeType node_type;
 
 public:
-    ASTNode(NodeType type, NodeList children = {})
-        : Node(children), node_type(type) {}
+    ASTNode(NodeType type, LineNumber line_number, NodeList children = {})
+        : Node(line_number, children), node_type(type) {}
 
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
@@ -106,8 +109,8 @@ private:
     SymbolTableEntry symbol;
 
 public:
-    SymbolNode(SymbolTableEntry symbol, NodeList children = {})
-        : Node(children), symbol(symbol) {}
+    SymbolNode(SymbolTableEntry symbol, LineNumber line_number, NodeList children = {})
+        : Node(line_number, children), symbol(symbol) {}
 
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
