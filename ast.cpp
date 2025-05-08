@@ -596,6 +596,32 @@ DataType ASTNode::check_expr_type() const
     return TYPE_INVALID;
 }
 
+void ASTNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up)
+{
+    if (up && active_nodes.find(this->node_type) != active_nodes.end())
+    {
+        const auto should_continue = func(analyzer, this->node_type, this->children);
+        if (!should_continue)
+        {
+            return;
+        }
+    }
+
+    for (const auto &child : this->children)
+    {
+        child->walk_tree(analyzer, active_nodes, func, up);
+    }
+
+    if (!up && active_nodes.find(this->node_type) != active_nodes.end())
+    {
+        const auto should_continue = func(analyzer, this->node_type, this->children);
+        if (!should_continue)
+        {
+            return;
+        }
+    }
+}
+
 NodeList remove_null_nodes(const NodeList &children)
 {
     NodeList result;
@@ -652,6 +678,26 @@ DataType SymbolNode::check_expr_type() const
     }
     return symbol->get_data_type();
 }
+
+
+struct null_deleter
+{
+    void operator()(void const *) const
+    {
+    }
+};
+
+void SymbolNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up)
+{
+    (void)up;
+    if (active_nodes.find(NODE_SYMBOL) != active_nodes.end())
+    {
+        const auto as_shared = std::shared_ptr<Node>(dynamic_cast<Node*>(this), null_deleter());
+        func(analyzer, NODE_SYMBOL, {as_shared});
+    }
+    return;
+}
+
 bool SymbolNode::set_data_type(DataType type) const
 {
     if (symbol == nullptr)

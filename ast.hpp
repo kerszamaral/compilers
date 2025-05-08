@@ -5,8 +5,11 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <set>
+#include <functional>
 
 #include "symbol.hpp"
+#include "semantic.hpp"
 
 enum NodeType
 {
@@ -59,6 +62,8 @@ typedef struct Node
 public:
     typedef std::shared_ptr<struct Node> NodePtr;
     typedef std::vector<NodePtr> NodeList;
+    typedef std::set<NodeType> ActiveNodes;
+    typedef std::function<bool(SemanticAnalyzer&, const NodeType, const NodeList&)> WalkFunc;
     
 protected:
     NodeList children;
@@ -78,10 +83,13 @@ public:
     virtual std::string to_string() const = 0;
     virtual std::string export_tree(size_t level = 0) const = 0;
     virtual DataType check_expr_type() const = 0;
+    virtual void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) = 0;
 } Node;
 
 typedef Node::NodePtr NodePtr;
 typedef Node::NodeList NodeList;
+typedef Node::ActiveNodes ActiveNodes;
+typedef Node::WalkFunc WalkFunc;
 NodePtr make_node();
 std::string print_tree(NodePtr);
 
@@ -99,6 +107,7 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
     DataType kw_type() const
     {
         switch (node_type)
@@ -130,6 +139,8 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
+    
     bool set_data_type(DataType type) const;
 
     std::string get_text() const
