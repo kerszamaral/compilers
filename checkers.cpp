@@ -384,9 +384,6 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
         {
             const auto expr_type = expr_opt.value()->check_expr_type();
             const auto line_number = expr_opt.value()->get_line_number();
-            std::cerr << "Line number: " << line_number << std::endl;
-            std::cerr << "Condition type: " << type_name.value_or("Unknown") << std::endl;
-            std::cerr << "Expression type: " << expr_type << std::endl;
             if (expr_type == TYPE_INVALID)
             {
                 analyzer.add_error(line_number, "Invalid" + type_name.value() + "condition");
