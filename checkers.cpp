@@ -12,7 +12,7 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
     const std::vector<Checker> checkers{
         check_declarations,
         check_uses,
-        // check_types,
+        check_types,
         // check_arguments,
         // check_return,
     };
@@ -146,17 +146,10 @@ ptrdiff_t uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, con
                 AST SymbolTableEntry: Symbol[SYMBOL_INT, 7, 35, TYPE_INT, IDENT_LIT]
             */
             const auto vec = to_symbol_node(children[0]);
-            const auto index = to_symbol_node(children[1]);
             // check if vec is a vector
             if (vec->get_ident_type() != IDENT_VECTOR)
             {
                 analyzer.add_error(vec->get_line_number(), "Variable " + vec->get_text() + " is not a vector");
-            }
-            // check if index is an int or byte variable, or a int or byte literal
-            const auto index_type = index->check_expr_type();
-            if (index_type != TYPE_INT && index_type != TYPE_CHAR)
-            {
-                analyzer.add_error(index->get_line_number(), "Index " + index->get_text() + " is not an int or byte");
             }
             return SKIP_ALL;
         }
@@ -266,3 +259,114 @@ SemanticAnalyzer check_uses(NodePtr node)
     return analyzer;
 }
 
+ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+{
+    std::optional<DataType> assignee_opt;
+    std::optional<DataType> expr_opt;
+    switch (node_type)
+    {
+    case NODE_VEC: // vec: 0, index: 1
+        {
+            /*
+            AST NodeType: NODE_VEC
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, v, 12, TYPE_INT, IDENT_VECTOR]
+                AST SymbolTableEntry: Symbol[SYMBOL_INT, 7, 35, TYPE_INT, IDENT_LIT]
+            */
+            const auto index = to_symbol_node(children[1]);
+            // check if index is an int or byte variable, or a int or byte literal
+            const auto index_type = index->check_expr_type();
+            if (index_type != TYPE_INT && index_type != TYPE_CHAR)
+            {
+                analyzer.add_error(index->get_line_number(), "Index " + index->get_text() + " is not an int or byte");
+            }
+            return SKIP_ALL;
+        }
+    case NODE_VEC_DECL:
+        /*
+        AST NodeType: NODE_VEC_DECL 12
+            AST NodeType: NODE_VEC_DEF 12
+                AST NodeType: NODE_KW_INT 12
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, v, 12, TYPE_INT, IDENT_VECTOR]
+                AST SymbolTableEntry: Symbol[SYMBOL_INT, 10, 12, TYPE_INT, IDENT_LIT]
+          AST NodeType: NODE_VEC_INIT 12
+                AST SymbolTableEntry: Symbol[SYMBOL_CHAR, 'a', 12, TYPE_CHAR, IDENT_LIT]
+                AST SymbolTableEntry: Symbol[SYMBOL_INT, 0, 12, TYPE_INT, IDENT_LIT]
+        */
+        if (children.size() < 2)
+            return SKIP_ALL;
+        set_if_unset(assignee_opt, children[0]->check_expr_type());
+        set_if_unset(expr_opt, children[1]->check_expr_type());
+    case NODE_ATRIB: // var: 0, expr: 1
+        set_if_unset(assignee_opt, children[0]->check_expr_type());
+        set_if_unset(expr_opt, children[1]->check_expr_type());
+    case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
+        set_if_unset(assignee_opt, children[1]->check_expr_type());
+        set_if_unset(expr_opt, children[2]->check_expr_type());
+        {
+            /*
+            AST NodeType: NODE_ATRIB
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, a, 3, TYPE_CHAR, IDENT_VAR]
+                AST NodeType: NODE_ADD
+                    AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, a, 3, TYPE_CHAR, IDENT_VAR]
+                    AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
+            */
+            // check if var is a variable, not a literal or a function
+            const auto assignee_type = assignee_opt.value_or(TYPE_INVALID);
+            const auto expr_type = expr_opt.value_or(TYPE_INVALID);
+            const auto line_number = children[0]->get_line_number();
+            if (assignee_type == TYPE_INVALID || expr_type == TYPE_INVALID)
+            {
+                analyzer.add_error(line_number, "Invalid assignment");   
+                return SKIP_NONE;
+            }
+            if (expr_type == TYPE_REAL && assignee_type != TYPE_REAL)
+            {
+                analyzer.add_error(line_number, "Cannot assign real to int or byte");
+            }
+            if (expr_type == TYPE_BOOL)
+            {
+                analyzer.add_error(line_number, "Cannot assign boolean to a variable");
+            }
+            // Need to check if the expr type is int or byte and the assignee is a real
+            if ((expr_type == TYPE_INT || expr_type == TYPE_CHAR) && assignee_type == TYPE_REAL)
+            {
+                analyzer.add_error(line_number, "Cannot assign int or byte to real");
+            }
+            return SKIP_ALL;
+        }
+    case NODE_IF:
+    case NODE_WHILE:
+    case NODE_DO_WHILE:
+    default:
+        throw std::runtime_error("Unhandled case in types checker. " + NodeTypeString(node_type));
+        break;
+    }
+
+    return SKIP_NONE;
+}
+
+SemanticAnalyzer check_types(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return SemanticAnalyzer();
+    }
+
+    auto analyzer = SemanticAnalyzer();
+    // Need to check the following:
+    const ActiveNodes active_nodes{
+        NODE_VAR_DECL, // Declarations are initialized with the correct type (int, real, byte)
+        NODE_VEC_DECL,  // Be careful as they can be not initialized.
+        NODE_ATRIB, // Assignments are used with the correct type (int and bytes can mix, but real cannot, booleans can never be assigned)
+        NODE_VEC, // Vec indexes are used with the correct type (int or byte)
+        NODE_IF, // If conditions are used with the correct type (boolean)
+        NODE_WHILE, // While conditions are used with the correct type (boolean)
+        NODE_DO_WHILE, // Do-while conditions are used with the correct type (boolean)
+    };
+
+    WalkFunc func = types_checker;
+
+    node->walk_tree(analyzer, active_nodes, func, true);
+
+    return analyzer;
+}
