@@ -584,11 +584,46 @@ DataType ASTNode::check_expr_type() const
             return expr->check_expr_type();
         }
     case NODE_FUN_CALL:
+    case NODE_VEC:
         {
             const auto symbol = this->children[0];
             return symbol->check_expr_type();
         }
-    
+    case NODE_VEC_DEF:
+        {
+            const auto symbol = this->children[1];
+            return symbol->check_expr_type();
+        }
+    case NODE_VEC_INIT:
+        {
+            auto children_type = TYPE_UNINITIALIZED;
+            for (const auto &child : this->children)
+            {
+                const auto child_type = child->check_expr_type();
+                if (child_type == TYPE_INVALID)
+                {
+                    return TYPE_INVALID;
+                }
+                if (children_type == TYPE_UNINITIALIZED)
+                {
+                    children_type = child_type;
+                }
+                if (children_type == TYPE_CHAR && child_type == TYPE_INT)
+                {
+                    children_type = TYPE_INT;
+                }
+                else if (children_type == TYPE_INT && child_type == TYPE_CHAR)
+                {
+                    children_type = TYPE_INT;
+                }
+                else if (children_type != child_type)
+                {
+                    return TYPE_INVALID;
+                }
+            }
+            return children_type;
+        }
+
     default:
         return TYPE_INVALID;
     }
