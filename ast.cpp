@@ -601,29 +601,54 @@ NodeType ASTNode::get_node_type() const
     return node_type;
 }
 
+// Needed as we dont have cpp20 ranges
+// and we need to skip the first n elements of a range
+// code gotten from https://stackoverflow.com/a/25652548
+template <typename T>
+struct skip
+{
+    T& t;
+    std::ptrdiff_t n;
+    skip(T& v, std::ptrdiff_t s) : t(v), n(s) {}
+    auto begin() -> decltype(std::begin(t))
+    {
+        if (n < 0)
+        {
+            return std::begin(t);
+        }
+        if (n >= std::distance(std::begin(t), std::end(t)))
+        {
+            return std::end(t);
+        }
+        return std::next(std::begin(t), n);
+    }
+    auto end() -> decltype(std::end(t))
+    {
+        return std::end(t);
+    }
+};
+
 void ASTNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up)
 {
+    ptrdiff_t nodes_skipped = 0;
     if (up && active_nodes.find(this->node_type) != active_nodes.end())
     {
-        const auto should_continue = func(analyzer, this->node_type, this->children);
-        if (!should_continue)
-        {
-            return;
-        }
+        nodes_skipped = func(analyzer, this->node_type, this->children);
     }
 
-    for (const auto &child : this->children)
+    for (const auto &child : skip(this->children, nodes_skipped))
     {
+        if (child == nullptr)
+        {
+            continue;
+        }
+        // Skip the children that
         child->walk_tree(analyzer, active_nodes, func, up);
     }
 
     if (!up && active_nodes.find(this->node_type) != active_nodes.end())
     {
-        const auto should_continue = func(analyzer, this->node_type, this->children);
-        if (!should_continue)
-        {
-            return;
-        }
+        nodes_skipped =  func(analyzer, this->node_type, this->children);
     }
 }
 
@@ -706,7 +731,8 @@ void SymbolNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active
     if (active_nodes.find(NODE_SYMBOL) != active_nodes.end())
     {
         const auto as_shared = std::shared_ptr<Node>(dynamic_cast<Node*>(this), null_deleter());
-        func(analyzer, NODE_SYMBOL, {as_shared});
+        const auto _ = func(analyzer, NODE_SYMBOL, {as_shared});
+        (void)_;
     }
     return;
 }

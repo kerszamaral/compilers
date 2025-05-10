@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <optional>
+#include <limits>
 
 typedef std::function<SemanticAnalyzer(NodePtr)> Checker;
 
@@ -34,7 +35,8 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
     return {number_of_errors, ss.str()};
 }
 
-constexpr auto SHOULD_CONTINUE = true;
+constexpr ptrdiff_t SKIP_NONE = 0;
+constexpr ptrdiff_t SKIP_ALL = std::numeric_limits<ptrdiff_t>::max();
 
 // Helper: sets the optional only if it's not already set
 template<typename T, typename U>
@@ -44,7 +46,7 @@ void set_if_unset(std::optional<T>& opt, U&& value) {
     }
 }
 
-bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
     std::optional<std::string> redec_of;
     std::optional<IdentType> ident_type;
@@ -80,7 +82,7 @@ bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, c
                 ss << std::to_string(symbol->get_original_line_number());
                 analyzer.add_error(line_number, ss.str());
             }
-            return node_type != NODE_FUN_DECL ? !SHOULD_CONTINUE : SHOULD_CONTINUE;
+            return node_type != NODE_FUN_DECL ? SKIP_ALL : SKIP_NONE;
         }
 
     // Check if undeclare:
@@ -95,7 +97,7 @@ bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, c
             {
                 analyzer.add_error(symbol->get_line_number(), "Undeclared Variable " + symbol->get_text());
             }
-            return !SHOULD_CONTINUE;
+            return SKIP_ALL;
         }
 
     default:
@@ -103,7 +105,7 @@ bool declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, c
         break;
     }
 
-    return SHOULD_CONTINUE;
+    return SKIP_NONE;
 }
 
 SemanticAnalyzer check_declarations(NodePtr node)
@@ -132,7 +134,7 @@ SemanticAnalyzer check_declarations(NodePtr node)
 }
 
 
-bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+ptrdiff_t uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
     switch (node_type)
     {
@@ -156,7 +158,7 @@ bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const No
             {
                 analyzer.add_error(index->get_line_number(), "Index " + index->get_text() + " is not an int or byte");
             }
-            return !SHOULD_CONTINUE;
+            return SKIP_ALL;
         }
     case NODE_FUN_CALL: // fun: 0, args: 1
         {
@@ -174,18 +176,12 @@ bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const No
             {
                 analyzer.add_error(fun->get_line_number(), "Variable " + fun->get_text() + " is not a function");
             }
-            return SHOULD_CONTINUE; // Check arguments in the function
+            return 1; // Check arguments in the function, skipping the function name itself
         }
     case NODE_ATRIB: // var: 0, expr: 1
         {
             // check if var is a variable, not a literal or a function
-            const auto var = to_symbol_node(children[0]);
-            const auto expr = to_ast_node(children[1]);
-            if (var->get_ident_type() == IDENT_LIT || var->get_ident_type() == IDENT_FUNC)
-            {
-                analyzer.add_error(var->get_line_number(), "Variable " + var->get_text() + " is not an assignable variable");
-            }
-            return SHOULD_CONTINUE; // Check expression type
+                return 1; // Check expression type, skipping the variable name itself
         }
     case NODE_SYMBOL:
         // need to check if its not a literal, then it is being used as a variable
@@ -194,7 +190,7 @@ bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const No
             const auto symbol = to_symbol_node(children[0]);
             if (symbol->get_ident_type() == IDENT_LIT)
             {
-                return !SHOULD_CONTINUE;
+                return SKIP_ALL;
             }
             else if (symbol->get_ident_type() == IDENT_FUNC)
             {
@@ -204,14 +200,14 @@ bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const No
             {
                 analyzer.add_error(symbol->get_line_number(), "Vector " + symbol->get_text() + " cannot be used as a variable");
             }
-            return SHOULD_CONTINUE;
+            return SKIP_NONE;
         }
     default:
         throw std::runtime_error("Unhandled case in uses checker. " + NodeTypeString(node_type));
         break;
     }
 
-    return SHOULD_CONTINUE;
+    return SKIP_NONE;
 }
 
 SemanticAnalyzer check_uses(NodePtr node)

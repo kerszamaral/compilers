@@ -63,7 +63,7 @@ public:
     typedef std::shared_ptr<struct Node> NodePtr;
     typedef std::vector<NodePtr> NodeList;
     typedef std::set<NodeType> ActiveNodes;
-    typedef std::function<bool(SemanticAnalyzer&, const NodeType, const NodeList&)> WalkFunc;
+    typedef std::function<ptrdiff_t(SemanticAnalyzer&, const NodeType, const NodeList&)> WalkFunc;
     
 protected:
     NodeList children;
