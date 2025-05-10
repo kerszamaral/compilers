@@ -83,6 +83,7 @@ public:
     virtual std::string to_string() const = 0;
     virtual std::string export_tree(size_t level = 0) const = 0;
     virtual DataType check_expr_type() const = 0;
+    virtual NodeType get_node_type() const = 0;
     virtual void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) = 0;
 } Node;
 
@@ -107,6 +108,7 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    NodeType get_node_type() const override;
     void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
     DataType kw_type() const
     {
@@ -139,6 +141,7 @@ public:
     std::string to_string() const override;
     std::string export_tree(size_t level = 0) const override;
     DataType check_expr_type() const override;
+    NodeType get_node_type() const override;
     void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
     
     bool set_types(DataType type, IdentType ident_type) const;

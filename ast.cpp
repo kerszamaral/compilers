@@ -596,6 +596,11 @@ DataType ASTNode::check_expr_type() const
     return TYPE_INVALID;
 }
 
+NodeType ASTNode::get_node_type() const
+{
+    return node_type;
+}
+
 void ASTNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up)
 {
     if (up && active_nodes.find(this->node_type) != active_nodes.end())
@@ -642,6 +647,10 @@ NodePtr make_node(NodeType type, NodeList children)
 
 std::shared_ptr<ASTNode> to_ast_node(NodePtr node)
 {
+    if (node->get_node_type() == NODE_SYMBOL)
+    {
+        throw std::runtime_error("Trying to cast a SymbolNode to ASTNode");
+    }
     return std::dynamic_pointer_cast<ASTNode>(node);
 }
 
@@ -679,6 +688,10 @@ DataType SymbolNode::check_expr_type() const
     return symbol->get_data_type();
 }
 
+NodeType SymbolNode::get_node_type() const
+{
+    return NODE_SYMBOL;
+}
 
 struct null_deleter
 {
@@ -714,5 +727,9 @@ NodePtr make_node(SymbolTableEntry symbol, NodeList children)
 
 std::shared_ptr<SymbolNode> to_symbol_node(NodePtr node)
 {
+    if (node->get_node_type() != NODE_SYMBOL)
+    {
+        throw std::runtime_error("Trying to cast a ASTNode to SymbolNode");
+    }
     return std::dynamic_pointer_cast<SymbolNode>(node);
 }
