@@ -45,6 +45,13 @@ void set_if_unset(std::optional<T>& opt, U&& value) {
         opt = T(std::forward<U>(value));
     }
 }
+// Helper: sets the optional only if it's not already set, also prevents the index from being evaluated.
+template<typename T, typename U>
+void set_if_unset(std::optional<T>& opt, std::vector<U> value, size_t&& index) {
+    if (!opt) {
+        opt = T(std::forward<U>(value[index]));
+    }
+}
 
 ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
@@ -261,8 +268,9 @@ SemanticAnalyzer check_uses(NodePtr node)
 
 ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
-    std::optional<DataType> assignee_opt;
-    std::optional<DataType> expr_opt;
+    std::optional<NodePtr> assignee_opt;
+    std::optional<NodePtr> expr_opt;
+    std::optional<std::string> type_name;
     switch (node_type)
     {
     case NODE_VEC: // vec: 0, index: 1
@@ -277,7 +285,7 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
             const auto index_type = index->check_expr_type();
             if (index_type != TYPE_INT && index_type != TYPE_CHAR)
             {
-                analyzer.add_error(index->get_line_number(), "Index " + index->get_text() + " is not an int or byte");
+                analyzer.add_error(index->get_line_number(), "Vector index " + index->get_text() + " is not an int or byte");
             }
             return SKIP_ALL;
         }
@@ -288,20 +296,25 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
                 AST NodeType: NODE_KW_INT 12
                 AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, v, 12, TYPE_INT, IDENT_VECTOR]
                 AST SymbolTableEntry: Symbol[SYMBOL_INT, 10, 12, TYPE_INT, IDENT_LIT]
-          AST NodeType: NODE_VEC_INIT 12
+            AST NodeType: NODE_VEC_INIT 12
                 AST SymbolTableEntry: Symbol[SYMBOL_CHAR, 'a', 12, TYPE_CHAR, IDENT_LIT]
                 AST SymbolTableEntry: Symbol[SYMBOL_INT, 0, 12, TYPE_INT, IDENT_LIT]
         */
         if (children.size() < 2)
+        {
             return SKIP_ALL;
-        set_if_unset(assignee_opt, children[0]->check_expr_type());
-        set_if_unset(expr_opt, children[1]->check_expr_type());
+        }
+        set_if_unset(assignee_opt, children, 0);
+        set_if_unset(expr_opt, children, 1);
+        set_if_unset(type_name, "Vector declaration");
     case NODE_ATRIB: // var: 0, expr: 1
-        set_if_unset(assignee_opt, children[0]->check_expr_type());
-        set_if_unset(expr_opt, children[1]->check_expr_type());
+        set_if_unset(assignee_opt, children, 0);
+        set_if_unset(expr_opt, children, 1);
+        set_if_unset(type_name, "Assignment");
     case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
-        set_if_unset(assignee_opt, children[1]->check_expr_type());
-        set_if_unset(expr_opt, children[2]->check_expr_type());
+        set_if_unset(assignee_opt, children, 1);
+        set_if_unset(expr_opt, children, 2);
+        set_if_unset(type_name, "Variable declaration");
         {
             /*
             AST NodeType: NODE_ATRIB
@@ -311,32 +324,80 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
                     AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
             */
             // check if var is a variable, not a literal or a function
-            const auto assignee_type = assignee_opt.value_or(TYPE_INVALID);
-            const auto expr_type = expr_opt.value_or(TYPE_INVALID);
-            const auto line_number = children[0]->get_line_number();
+            const auto assignee_type = assignee_opt.value()->check_expr_type();
+            const auto expr_type = expr_opt.value()->check_expr_type();
+            const auto line_number = assignee_opt.value()->get_line_number();
             if (assignee_type == TYPE_INVALID || expr_type == TYPE_INVALID)
             {
-                analyzer.add_error(line_number, "Invalid assignment");   
+                analyzer.add_error(line_number, "Invalid " + data_type_to_str(assignee_type) + " to " + data_type_to_str(expr_type));   
                 return SKIP_NONE;
             }
             if (expr_type == TYPE_REAL && assignee_type != TYPE_REAL)
             {
-                analyzer.add_error(line_number, "Cannot assign real to int or byte");
+                analyzer.add_error(line_number, type_name.value() + ": Cannot convert real to int or byte");
             }
             if (expr_type == TYPE_BOOL)
             {
-                analyzer.add_error(line_number, "Cannot assign boolean to a variable");
+                analyzer.add_error(line_number, type_name.value() + ": Cannot assign boolean to a variable");
             }
             // Need to check if the expr type is int or byte and the assignee is a real
             if ((expr_type == TYPE_INT || expr_type == TYPE_CHAR) && assignee_type == TYPE_REAL)
             {
-                analyzer.add_error(line_number, "Cannot assign int or byte to real");
+                analyzer.add_error(line_number, type_name.value() + "Cannot convert int or byte to real");
             }
             return SKIP_ALL;
         }
     case NODE_IF:
+        /*
+        AST NodeType: NODE_IF 70
+          AST NodeType: NODE_EQ 65
+            AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, x, 7, TYPE_INT, IDENT_VAR]
+            AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
+          AST NodeType: NODE_CMD_BLOCK 68
+            ...
+        */
+        set_if_unset(expr_opt, children, 0);
+        set_if_unset(type_name, "If");
     case NODE_WHILE:
+        /*
+        AST NodeType: NODE_WHILE 48
+          AST NodeType: NODE_LT 44
+            AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, x, 7, TYPE_INT, IDENT_VAR]
+            AST SymbolTableEntry: Symbol[SYMBOL_INT, 20, 44, TYPE_INT, IDENT_LIT]
+          AST NodeType: NODE_CMD_BLOCK 48
+            ...
+        */
+        set_if_unset(expr_opt, children, 0);
+        set_if_unset(type_name, "While");
     case NODE_DO_WHILE:
+        /*
+        AST NodeType: NODE_DO_WHILE 55
+          AST NodeType: NODE_CMD_BLOCK 55
+            ...
+          AST NodeType: NODE_PARENTHESIS 55
+            AST NodeType: NODE_LT 55
+              AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, x, 7, TYPE_INT, IDENT_VAR]
+              AST SymbolTableEntry: Symbol[SYMBOL_INT, 10, 12, TYPE_INT, IDENT_LIT]
+        */
+        set_if_unset(expr_opt, children, 1);
+        set_if_unset(type_name, "Do-While");
+        {
+            const auto expr_type = expr_opt.value()->check_expr_type();
+            const auto line_number = expr_opt.value()->get_line_number();
+            std::cerr << "Line number: " << line_number << std::endl;
+            std::cerr << "Condition type: " << type_name.value_or("Unknown") << std::endl;
+            std::cerr << "Expression type: " << expr_type << std::endl;
+            if (expr_type == TYPE_INVALID)
+            {
+                analyzer.add_error(line_number, "Invalid" + type_name.value() + "condition");
+                return SKIP_NONE;
+            }
+            if (expr_type != TYPE_BOOL)
+            {
+                analyzer.add_error(line_number, type_name.value() + " condition is not a boolean");
+            }
+            return SKIP_NONE;
+        }
     default:
         throw std::runtime_error("Unhandled case in types checker. " + NodeTypeString(node_type));
         break;
