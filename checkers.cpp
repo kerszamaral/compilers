@@ -11,7 +11,7 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
 {
     const std::vector<Checker> checkers{
         check_declarations,
-        // check_uses,
+        check_uses,
         // check_types,
         // check_arguments,
         // check_return,
@@ -180,8 +180,32 @@ ptrdiff_t uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, con
         }
     case NODE_ATRIB: // var: 0, expr: 1
         {
+            /*
+            AST NodeType: NODE_ATRIB
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, a, 3, TYPE_CHAR, IDENT_VAR]
+                AST NodeType: NODE_ADD
+                    AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, a, 3, TYPE_CHAR, IDENT_VAR]
+                    AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
+            */
             // check if var is a variable, not a literal or a function
+            // A crash can happen because the assigned can be either a vector or a variable.
+            const auto assignee = children[0];
+            if (assignee->get_node_type() != NODE_SYMBOL)
+            {
+                return SKIP_NONE; // Check both sides (vector and expression).
+            }
+            else
+            {
+                // check if var is a variable
+                const auto var = to_symbol_node(children[0]);
+                const auto type = var->get_ident_type();
+                if (type == IDENT_LIT || type == IDENT_FUNC || type == IDENT_VECTOR)
+                {
+                    const auto type_str = type == IDENT_LIT ? "Literal " : type == IDENT_FUNC ? "Function " : "Vector ";
+                    analyzer.add_error(var->get_line_number(), type_str + var->get_text() + " cannot be assigned to.");
+                }
                 return 1; // Check expression type, skipping the variable name itself
+            }
         }
     case NODE_SYMBOL:
         // need to check if its not a literal, then it is being used as a variable
@@ -202,6 +226,10 @@ ptrdiff_t uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, con
             }
             return SKIP_NONE;
         }
+    case NODE_FUN_DECL:
+        return 2; // Skip the function return type and the function name, but check the arguments and the body
+    case NODE_VEC_DEF:
+        return SKIP_ALL; // Declarations need to be skipped.
     default:
         throw std::runtime_error("Unhandled case in uses checker. " + NodeTypeString(node_type));
         break;
@@ -223,6 +251,12 @@ SemanticAnalyzer check_uses(NodePtr node)
         NODE_FUN_CALL,
         NODE_VEC,
         NODE_SYMBOL,
+
+        // Declarations need to be skipped.
+        // NODE_VAR_DECL,
+        NODE_VEC_DEF,
+        NODE_FUN_DECL,
+        // NODE_PARAM_DECL,
     };
 
     WalkFunc func = uses_checker;
