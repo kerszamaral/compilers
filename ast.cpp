@@ -146,7 +146,7 @@ std::string print_tree(NodePtr node)
 
 std::string ASTNode::to_string() const
 {
-   return "AST NodeType: " + NodeTypeString(node_type);
+   return "AST NodeType: " + NodeTypeString(node_type) + " " + std::to_string(this->get_line_number());
 }
 
 #pragma clang diagnostic push
