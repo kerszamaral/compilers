@@ -131,18 +131,81 @@ SemanticAnalyzer check_declarations(NodePtr node)
     return analyzer;
 }
 
-/*
+
 bool uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
     switch (node_type)
     {
-    // Mark as declared and check redeclaration
-    case NODE_VAR_DECL: // type: 0, symbol: 1, init_val: 2
-    case NODE_VEC_DEF: // type: 0, symbol: 1, size: 2
-    case NODE_FUN_DECL: // ret_type: 0, symbol: 1
-    case NODE_PARAM_DECL: // type: 0, symbol: 1
-        return !SHOULD_CONTINUE;
-
+    case NODE_VEC: // vec: 0, index: 1
+        {
+            /*
+            AST NodeType: NODE_VEC
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, v, 12, TYPE_INT, IDENT_VECTOR]
+                AST SymbolTableEntry: Symbol[SYMBOL_INT, 7, 35, TYPE_INT, IDENT_LIT]
+            */
+            const auto vec = to_symbol_node(children[0]);
+            const auto index = to_symbol_node(children[1]);
+            // check if vec is a vector
+            if (vec->get_ident_type() != IDENT_VECTOR)
+            {
+                analyzer.add_error(vec->get_line_number(), "Variable " + vec->get_text() + " is not a vector");
+            }
+            // check if index is an int or byte variable, or a int or byte literal
+            const auto index_type = index->check_expr_type();
+            if (index_type != TYPE_INT && index_type != TYPE_CHAR)
+            {
+                analyzer.add_error(index->get_line_number(), "Index " + index->get_text() + " is not an int or byte");
+            }
+            return !SHOULD_CONTINUE;
+        }
+    case NODE_FUN_CALL: // fun: 0, args: 1
+        {
+            /*
+            AST NodeType: NODE_FUN_CALL
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, incn, 27, TYPE_INT, IDENT_FUNC]
+                AST NodeType: NODE_ARG_LIST
+                    AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, x, 7, TYPE_INT, IDENT_VAR]
+                    AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
+            */
+            const auto fun = to_symbol_node(children[0]);
+            const auto args = to_ast_node(children[1]);
+            // check if fun is a function
+            if (fun->get_ident_type() != IDENT_FUNC)
+            {
+                analyzer.add_error(fun->get_line_number(), "Variable " + fun->get_text() + " is not a function");
+            }
+            return SHOULD_CONTINUE; // Check arguments in the function
+        }
+    case NODE_ATRIB: // var: 0, expr: 1
+        {
+            // check if var is a variable, not a literal or a function
+            const auto var = to_symbol_node(children[0]);
+            const auto expr = to_ast_node(children[1]);
+            if (var->get_ident_type() == IDENT_LIT || var->get_ident_type() == IDENT_FUNC)
+            {
+                analyzer.add_error(var->get_line_number(), "Variable " + var->get_text() + " is not an assignable variable");
+            }
+            return SHOULD_CONTINUE; // Check expression type
+        }
+    case NODE_SYMBOL:
+        // need to check if its not a literal, then it is being used as a variable
+        // Functions and vectors cannot be used as variables. Literals can be ignored.
+        {
+            const auto symbol = to_symbol_node(children[0]);
+            if (symbol->get_ident_type() == IDENT_LIT)
+            {
+                return !SHOULD_CONTINUE;
+            }
+            else if (symbol->get_ident_type() == IDENT_FUNC)
+            {
+                analyzer.add_error(symbol->get_line_number(), "Function " + symbol->get_text() + " cannot be used as a variable");
+            }
+            else if (symbol->get_ident_type() == IDENT_VECTOR)
+            {
+                analyzer.add_error(symbol->get_line_number(), "Vector " + symbol->get_text() + " cannot be used as a variable");
+            }
+            return SHOULD_CONTINUE;
+        }
     default:
         throw std::runtime_error("Unhandled case in uses checker. " + NodeTypeString(node_type));
         break;
@@ -160,13 +223,10 @@ SemanticAnalyzer check_uses(NodePtr node)
 
     auto analyzer = SemanticAnalyzer();
     const ActiveNodes active_nodes{
-        // Mark as declared and check redeclaration
-        NODE_VAR_DECL,
-        NODE_VEC_DEF,
-        NODE_FUN_DECL,
-        NODE_PARAM_DECL,
-        // Check if undeclared
-        NODE_SYMBOL, //? It will be skipped over when unneeded by should_continue.
+        NODE_ATRIB,
+        NODE_FUN_CALL,
+        NODE_VEC,
+        NODE_SYMBOL,
     };
 
     WalkFunc func = uses_checker;
@@ -175,4 +235,4 @@ SemanticAnalyzer check_uses(NodePtr node)
 
     return analyzer;
 }
-*/
+

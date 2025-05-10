@@ -143,6 +143,16 @@ public:
     
     bool set_types(DataType type, IdentType ident_type) const;
 
+    DataType get_data_type() const
+    {
+        return symbol->get_data_type();
+    }
+
+    IdentType get_ident_type() const
+    {
+        return symbol->ident_type;
+    }
+
     std::string get_text() const
     {
         return symbol->get_text();
