@@ -13,7 +13,7 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
         check_declarations,
         check_uses,
         check_types,
-        // check_arguments,
+        check_arguments,
         // check_return,
     };
 
@@ -88,6 +88,11 @@ ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_ty
                 ss << ". Originally declared at ";
                 ss << std::to_string(symbol->get_original_line_number());
                 analyzer.add_error(line_number, ss.str());
+            }
+            if (node_type == NODE_FUN_DECL)
+            {
+                // param list is the third child
+                symbol->set_node(children[2]);
             }
             return node_type != NODE_FUN_DECL ? SKIP_ALL : SKIP_NONE;
         }
@@ -420,6 +425,96 @@ SemanticAnalyzer check_types(NodePtr node)
     };
 
     WalkFunc func = types_checker;
+
+    node->walk_tree(analyzer, active_nodes, func, true);
+
+    return analyzer;
+}
+
+// Again... as we are using C++17, we dont have std::zip from the STL ranges...
+// Implemented a simple version of it, but it is not as efficient as the STL one. From:
+// https://stackoverflow.com/questions/12552277/whats-the-best-way-to-iterate-over-two-or-more-containers-simultaneously
+template<typename... Container>
+auto zip(Container&... containers) noexcept {
+    using tuple_type = std::tuple<std::decay_t<decltype(*std::begin(containers))>...>;
+    std::size_t container_size = std::min({ std::size(containers)... });
+
+    std::vector<tuple_type> result;
+    result.reserve(container_size);
+
+    auto iterators = std::make_tuple(std::begin(containers)...);
+    for (std::size_t i = 0; i < container_size; ++i) {
+        std::apply([&result](auto&... it) { 
+            result.emplace_back(*it++...);
+        }, iterators);
+    }
+
+    return result;
+}
+
+ptrdiff_t arguments_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+{
+    std::optional<std::string> type_name;
+    switch (node_type)
+    {
+    case NODE_FUN_CALL: // fun: 0, args: 1
+        {
+            /*
+            AST NodeType: NODE_FUN_CALL
+                AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, incn, 27, TYPE_INT, IDENT_FUNC]
+                AST NodeType: NODE_ARG_LIST
+                    AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, x, 7, TYPE_INT, IDENT_VAR]
+                    AST SymbolTableEntry: Symbol[SYMBOL_INT, 1, 7, TYPE_INT, IDENT_LIT]
+            */
+            const auto fun = to_symbol_node(children[0]);
+            const auto args = to_ast_node(children[1]);
+            const auto fun_decl = fun->get_node();
+            if (fun_decl == nullptr)
+            {
+                // Should never happen, but just in case
+                analyzer.add_error(fun->get_line_number(), "Function " + fun->get_text() + " is not declared");
+                return SKIP_ALL;
+            }
+            const auto declared_args = fun_decl.value()->get_children();
+            const auto args_list = args->get_children();
+            if (declared_args.size() != args_list.size())
+            {
+                analyzer.add_error(fun->get_line_number(), "Function " + fun->get_text() + " expects " + std::to_string(declared_args.size()) + " arguments, but got " + std::to_string(args_list.size()));
+                return SKIP_ALL;
+            }
+            // Check if the types match
+            for (const auto& [declared_arg, arg] : zip(declared_args, args_list))
+            {
+                const auto declared_arg_type = declared_arg->check_expr_type();
+                const auto arg_type = arg->check_expr_type();
+                if (declared_arg_type != arg_type)
+                {
+                    analyzer.add_error(arg->get_line_number(), "Function " + fun->get_text() + " expects argument of type " + data_type_to_str(declared_arg_type, true) + ", but got " + data_type_to_str(arg_type, true));
+                }
+            }
+            return SKIP_ALL;
+        }
+    default:
+        throw std::runtime_error("Unhandled case in arguments checker. " + NodeTypeString(node_type));
+        break;
+    }
+
+    return SKIP_NONE;
+}
+
+SemanticAnalyzer check_arguments(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return SemanticAnalyzer();
+    }
+
+    auto analyzer = SemanticAnalyzer();
+    const ActiveNodes active_nodes{
+        NODE_FUN_CALL,
+    };
+
+    WalkFunc func = arguments_checker;
 
     node->walk_tree(analyzer, active_nodes, func, true);
 
