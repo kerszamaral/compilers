@@ -688,6 +688,25 @@ void ASTNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_no
     }
 }
 
+const NodeList ASTNode::find_all(NodeType type) const
+{
+    NodeList result;
+    for (const auto &child : this->children)
+    {
+        if (child == nullptr)
+        {
+            continue;
+        }
+        if (child->get_node_type() == type)
+        {
+            result.push_back(child);
+        }
+        const auto child_result = child->find_all(type);
+        result.insert(result.end(), child_result.begin(), child_result.end());
+    }
+    return result;
+}
+
 NodeList remove_null_nodes(const NodeList &children)
 {
     NodeList result;
@@ -771,6 +790,12 @@ void SymbolNode::walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active
         (void)_;
     }
     return;
+}
+
+const NodeList SymbolNode::find_all(NodeType type) const
+{
+    (void)type; // Unused parameter
+    return {};
 }
 
 bool SymbolNode::set_types(DataType type, IdentType ident_type) const

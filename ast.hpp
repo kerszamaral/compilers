@@ -90,6 +90,7 @@ public:
     virtual DataType check_expr_type() const = 0;
     virtual NodeType get_node_type() const = 0;
     virtual void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) = 0;
+    virtual const NodeList find_all(NodeType type) const = 0;
 } Node;
 
 typedef Node::NodePtr NodePtr;
@@ -115,6 +116,7 @@ public:
     DataType check_expr_type() const override;
     NodeType get_node_type() const override;
     void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
+    const NodeList find_all(NodeType type) const override;
     DataType kw_type() const
     {
         switch (node_type)
@@ -148,6 +150,7 @@ public:
     DataType check_expr_type() const override;
     NodeType get_node_type() const override;
     void walk_tree(SemanticAnalyzer &analyzer, const ActiveNodes &active_nodes, const WalkFunc func, bool up = false) override;
+    const NodeList find_all(NodeType type) const override;
     
     bool set_types(DataType type, IdentType ident_type) const;
 
