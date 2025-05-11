@@ -221,7 +221,7 @@ std::string symbolName(SymbolType symbol) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-std::string data_type_to_str(const DataType data_type, bool user_friendly = false)
+std::string data_type_to_str(const DataType data_type, bool user_friendly)
 {
     if (user_friendly)
     {
@@ -269,7 +269,7 @@ std::string data_type_to_str(const DataType data_type, bool user_friendly = fals
     }
 }
 
-std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = false)
+std::string ident_type_to_str(const IdentType ident_type, bool user_friendly)
 {
     if (user_friendly)
     {
