@@ -346,7 +346,23 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
             {
                 analyzer.add_error(line_number, type_name.value() + ": Cannot assign boolean to a variable");
             }
-            // Need to check if the expr type is int or byte and the assignee is a real
+            // Need to check if the vector initialization lenghth is the same as the vector size
+            if (node_type == NODE_VEC_DECL)
+            {
+                const auto vec_decl = to_ast_node(assignee_opt.value());
+                const auto vec_decl_index = to_symbol_node(vec_decl->get_children()[2]);
+                if (vec_decl_index->check_expr_type() != TYPE_INT && vec_decl_index->check_expr_type() != TYPE_CHAR)
+                {
+                    analyzer.add_error(vec_decl_index->get_line_number(), "Vector size " + vec_decl_index->get_text() + " is not an int or byte");
+                    return SKIP_ALL;
+                }
+                const auto vec_decl_size = static_cast<size_t>(std::stoi(vec_decl_index->get_text()));
+                const auto vec_init_size = expr_opt.value()->get_children().size();
+                if (vec_decl_size != vec_init_size)
+                {
+                    analyzer.add_error(line_number, "Vector size " + std::to_string(vec_decl_size) + " does not match the initialization size " + std::to_string(vec_init_size));
+                }
+            }
             return SKIP_ALL;
         }
     case NODE_IF:
