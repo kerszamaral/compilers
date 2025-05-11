@@ -77,6 +77,11 @@ public:
 
     void add_child(NodePtr child);
 
+    const NodeList &get_children() const
+    {
+        return children;
+    }
+
     std::string tree_string(size_t level = 0) const;
     LineNumber get_line_number() const;
 

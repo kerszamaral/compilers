@@ -590,6 +590,7 @@ DataType ASTNode::check_expr_type() const
             return symbol->check_expr_type();
         }
     case NODE_VEC_DEF:
+    case NODE_PARAM_DECL:
         {
             const auto symbol = this->children[1];
             return symbol->check_expr_type();
