@@ -585,6 +585,7 @@ DataType ASTNode::check_expr_type() const
         }
     case NODE_FUN_CALL:
     case NODE_VEC:
+    case NODE_RETURN:
         {
             const auto symbol = this->children[0];
             return symbol->check_expr_type();
