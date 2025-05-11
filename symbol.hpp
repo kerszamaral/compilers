@@ -76,8 +76,8 @@ void setError(void);
 LineNumber getLineNumber(void);
 
 std::string symbolName(SymbolType symbol);
-std::string data_type_to_str(const DataType data_type);
-std::string ident_type_to_str(const IdentType ident_type);
+std::string data_type_to_str(const DataType data_type, bool user_friendly = false);
+std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = false);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 

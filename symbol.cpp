@@ -221,45 +221,91 @@ std::string symbolName(SymbolType symbol) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-std::string data_type_to_str(const DataType data_type)
+std::string data_type_to_str(const DataType data_type, bool user_friendly = false)
 {
+    if (user_friendly)
+    {
+        switch (data_type)
+        {
+        case TYPE_INVALID:
+            return "Invalid";
+        case TYPE_UNINITIALIZED:
+            return "Uninitialized";
+        case TYPE_INT:
+            return "Integer";
+        case TYPE_REAL:
+            return "Real";
+        case TYPE_CHAR:
+            return "Character";
+        case TYPE_STRING:
+            return "String";
+        case TYPE_BOOL:
+            return "Boolean";
+        case TYPE_OTHER:
+            return "Other";
+        }
+    }
+    else
+    {
     switch (data_type)
     {
-    case TYPE_INVALID:
-        return "TYPE_INVALID";
-    case TYPE_UNINITIALIZED:
-        return "TYPE_UNINITIALIZED";
-    case TYPE_INT:
-        return "TYPE_INT";
-    case TYPE_REAL:
-        return "TYPE_REAL";
-    case TYPE_CHAR:
-        return "TYPE_CHAR";
-    case TYPE_STRING:
-        return "TYPE_STRING";
-    case TYPE_BOOL:
-        return "TYPE_BOOL";
-    case TYPE_OTHER:
-        return "TYPE_OTHE";
+        case TYPE_INVALID:
+            return "TYPE_INVALID";
+        case TYPE_UNINITIALIZED:
+            return "TYPE_UNINITIALIZED";
+        case TYPE_INT:
+            return "TYPE_INT";
+        case TYPE_REAL:
+            return "TYPE_REAL";
+        case TYPE_CHAR:
+            return "TYPE_CHAR";
+        case TYPE_STRING:
+            return "TYPE_STRING";
+        case TYPE_BOOL:
+            return "TYPE_BOOL";
+        case TYPE_OTHER:
+            return "TYPE_OTHER";
+        }
     }
 }
 
-std::string ident_type_to_str(const IdentType ident_type)
+std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = false)
 {
-    switch (ident_type)
+    if (user_friendly)
     {
-    case IDENT_INVALID:
-        return "IDENT_INVALID";
-    case IDENT_UNINITIALIZED:
-        return "IDENT_UNINITIALIZED";
-    case IDENT_FUNC:
-        return "IDENT_FUNC";
-    case IDENT_VECTOR:
-        return "IDENT_VECTOR";
-    case IDENT_VAR:
-        return "IDENT_VAR";
-    case IDENT_LIT:
-        return "IDENT_LIT";
+        switch (ident_type)
+        {
+        case IDENT_INVALID:
+            return "Invalid";
+        case IDENT_UNINITIALIZED:
+            return "Uninitialized";
+        case IDENT_FUNC:
+            return "Function";
+        case IDENT_VECTOR:
+            return "Vector";
+        case IDENT_VAR:
+            return "Variable";
+        case IDENT_LIT:
+            return "Literal";
+        }
+    }
+    else
+    {
+        switch (ident_type)
+        {
+        case IDENT_INVALID:
+            return "IDENT_INVALID";
+        case IDENT_UNINITIALIZED:
+            return "IDENT_UNINITIALIZED";
+        case IDENT_FUNC:
+            return "IDENT_FUNC";
+        case IDENT_VECTOR:
+            return "IDENT_VECTOR";
+        case IDENT_VAR:
+            return "IDENT_VAR";
+        case IDENT_LIT:
+            return "IDENT_LIT";
+        }
     }
 }
 #pragma clang diagnostic pop
