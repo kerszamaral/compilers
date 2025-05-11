@@ -487,7 +487,8 @@ ptrdiff_t arguments_checker(SemanticAnalyzer& analyzer, const NodeType node_type
             {
                 const auto declared_arg_type = declared_arg->check_expr_type();
                 const auto arg_type = arg->check_expr_type();
-                if (declared_arg_type != arg_type)
+                const auto int_conversion = (declared_arg_type == TYPE_INT && arg_type == TYPE_CHAR) || (declared_arg_type == TYPE_CHAR && arg_type == TYPE_INT);
+                if (declared_arg_type != arg_type && !int_conversion)
                 {
                     analyzer.add_error(arg->get_line_number(), "Function " + fun->get_text() + " expects argument of type " + data_type_to_str(declared_arg_type, true) + ", but got " + data_type_to_str(arg_type, true));
                 }
