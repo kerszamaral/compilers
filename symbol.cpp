@@ -131,7 +131,7 @@ std::string Symbol::to_string() const
 
 #pragma clang diagnostic push
 #pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
-std::string Symbol::get_text() const
+std::string Symbol::get_original_text() const
 {
     switch (this->type)
     {
@@ -157,6 +157,25 @@ std::string Symbol::get_text() const
         return this->lexeme;
     case SymbolType::SYMBOL_STRING:
         return this->lexeme;
+    case SymbolType::SYMBOL_OTHER:
+        return this->lexeme;
+    case SymbolType::SYMBOL_INVALID:
+        return "SYMBOL_INVALID";
+    }
+}
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic error "-Wswitch" // Makes switch exhaustive
+std::string Symbol::get_text() const
+{
+    switch (this->type)
+    {
+    case SymbolType::SYMBOL_IDENTIFIER:
+    case SymbolType::SYMBOL_REAL:
+    case SymbolType::SYMBOL_INT:
+    case SymbolType::SYMBOL_CHAR:
+    case SymbolType::SYMBOL_STRING:
     case SymbolType::SYMBOL_OTHER:
         return this->lexeme;
     case SymbolType::SYMBOL_INVALID:

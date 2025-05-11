@@ -59,6 +59,7 @@ typedef struct Symbol
     std::optional<std::shared_ptr<Node>> node;
 
     std::string to_string() const;
+    std::string get_original_text() const;
     std::string get_text() const;
     std::string get_type() const;
     DataType get_data_type() const;

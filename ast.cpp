@@ -735,7 +735,7 @@ std::string SymbolNode::export_tree(size_t level) const
         case SYMBOL_STRING:
         case SYMBOL_OTHER:
         case SYMBOL_INVALID:
-        return symbol->get_text();
+        return symbol->get_original_text();
     }
 }
 #pragma clang diagnostic pop

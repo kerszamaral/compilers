@@ -176,6 +176,11 @@ public:
         return symbol->get_text();
     }
 
+    std::string get_original_text() const
+    {
+        return symbol->get_original_text();
+    }
+
     bool is_valid() const
     {
         return symbol->is_valid();
