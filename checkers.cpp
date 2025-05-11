@@ -66,7 +66,7 @@ ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_ty
     case NODE_VEC_DEF: // type: 0, symbol: 1, size: 2
         set_if_unset(redec_of, "Vector");
         set_if_unset(ident_type, IDENT_VECTOR);
-    case NODE_FUN_DECL: // ret_type: 0, symbol: 1
+    case NODE_FUN_DECL: // ret_type: 0, symbol: 1, param_list: 2, body: 3
         set_if_unset(redec_of, "Function");
         set_if_unset(ident_type, IDENT_FUNC);
     case NODE_PARAM_DECL: // type: 0, symbol: 1
@@ -201,7 +201,7 @@ ptrdiff_t uses_checker(SemanticAnalyzer& analyzer, const NodeType node_type, con
                 const auto type = var->get_ident_type();
                 if (type == IDENT_LIT || type == IDENT_FUNC || type == IDENT_VECTOR)
                 {
-                    const auto type_str = type == IDENT_LIT ? "Literal " : type == IDENT_FUNC ? "Function " : "Vector ";
+                    const auto type_str = ident_type_to_str(type, true);
                     analyzer.add_error(var->get_line_number(), type_str + var->get_text() + " cannot be assigned to.");
                 }
                 return 1; // Check expression type, skipping the variable name itself
@@ -329,22 +329,19 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
             const auto line_number = assignee_opt.value()->get_line_number();
             if (assignee_type == TYPE_INVALID || expr_type == TYPE_INVALID)
             {
-                analyzer.add_error(line_number, "Invalid " + data_type_to_str(assignee_type) + " to " + data_type_to_str(expr_type));   
+                analyzer.add_error(line_number, "Invalid " + data_type_to_str(assignee_type, true) + " to " + data_type_to_str(expr_type, true));   
                 return SKIP_NONE;
             }
-            if (expr_type == TYPE_REAL && assignee_type != TYPE_REAL)
+            if ( (expr_type == TYPE_REAL && assignee_type != TYPE_REAL) 
+              || ((expr_type == TYPE_INT || expr_type == TYPE_CHAR) && assignee_type == TYPE_REAL))
             {
-                analyzer.add_error(line_number, type_name.value() + ": Cannot convert real to int or byte");
+                analyzer.add_error(line_number, type_name.value() + ": Cannot convert " + data_type_to_str(expr_type, true) + " to " + data_type_to_str(assignee_type, true));
             }
             if (expr_type == TYPE_BOOL)
             {
                 analyzer.add_error(line_number, type_name.value() + ": Cannot assign boolean to a variable");
             }
             // Need to check if the expr type is int or byte and the assignee is a real
-            if ((expr_type == TYPE_INT || expr_type == TYPE_CHAR) && assignee_type == TYPE_REAL)
-            {
-                analyzer.add_error(line_number, type_name.value() + "Cannot convert int or byte to real");
-            }
             return SKIP_ALL;
         }
     case NODE_IF:
