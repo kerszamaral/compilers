@@ -7,8 +7,11 @@
 #include <tuple>
 #include <map>
 #include <memory>
+#include <optional>
 
 #define REMOVE_LEADING_ZEROS
+
+struct Node;
 
 enum SymbolType : uint8_t
 {
@@ -53,6 +56,7 @@ typedef struct Symbol
     LineNumber line_number;
     DataType data_type;
     IdentType ident_type;
+    std::optional<std::shared_ptr<Node>> node;
 
     std::string to_string() const;
     std::string get_text() const;
@@ -62,6 +66,17 @@ typedef struct Symbol
     bool set_types(DataType type, IdentType ident_type);
 
     bool is_valid() const;
+
+    bool set_node(std::shared_ptr<Node> node)
+    {
+        this->node = node;
+        return true;
+    }
+
+    std::optional<std::shared_ptr<Node>> get_node() const
+    {
+        return this->node;
+    }
 } Symbol;
 
 typedef std::shared_ptr<Symbol> SymbolTableEntry;

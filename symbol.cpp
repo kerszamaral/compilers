@@ -108,7 +108,7 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
 
     const auto [data_type, ident_type] = symbol_to_data_type(symbol_type);
 
-    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type}).first->second; // We dereference the iterator to get the value as a reference
+    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type, std::nullopt}).first->second; // We dereference the iterator to get the value as a reference
 }
 
 std::string Symbol::to_string() const

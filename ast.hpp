@@ -151,6 +151,16 @@ public:
         return symbol->get_data_type();
     }
 
+    bool set_node(std::shared_ptr<Node> node) const
+    {
+        return symbol->set_node(node);
+    }
+
+    std::optional<std::shared_ptr<Node>> get_node() const
+    {
+        return symbol->get_node();
+    }
+
     IdentType get_ident_type() const
     {
         return symbol->ident_type;
