@@ -14,7 +14,7 @@ std::pair<size_t, std::string> run_semantic_analysis(NodePtr node)
         check_uses,
         check_types,
         check_arguments,
-        // check_return,
+        check_return,
     };
 
     std::vector<SemanticAnalyzer> analyzers;
@@ -532,6 +532,59 @@ SemanticAnalyzer check_arguments(NodePtr node)
     };
 
     WalkFunc func = arguments_checker;
+
+    node->walk_tree(analyzer, active_nodes, func, true);
+
+    return analyzer;
+}
+
+ptrdiff_t return_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+{
+    switch (node_type)
+    {
+    case NODE_FUN_DECL: // ret_type: 0, symbol: 1, param_list: 2, body: 3
+        {
+            const auto fun_decl = to_symbol_node(children[1]);
+            const auto body = children[3];
+            const auto rets = body->find_all(NODE_RETURN);
+            if (rets.size() < 1)
+            {
+                analyzer.add_error(fun_decl->get_line_number(), "Function " + fun_decl->get_text() + " must have at least one return statement");
+            }
+            else
+            {
+                for (const auto& ret : rets)
+                {
+                    const auto ret_type = ret->check_expr_type();
+                    if (ret_type != TYPE_INVALID && ret_type != fun_decl->get_data_type())
+                    {
+                        analyzer.add_error(ret->get_line_number(), "Function " + fun_decl->get_text() + " must return " + data_type_to_str(fun_decl->get_data_type(), true) + ", but got " + data_type_to_str(ret_type, true));
+                    }
+                }
+            }
+            return SKIP_ALL;
+        }
+    default:
+        throw std::runtime_error("Unhandled case in return checker. " + NodeTypeString(node_type));
+        break;
+    }
+
+    return SKIP_NONE;
+}
+
+SemanticAnalyzer check_return(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return SemanticAnalyzer();
+    }
+
+    auto analyzer = SemanticAnalyzer();
+    const ActiveNodes active_nodes{
+        NODE_FUN_DECL,
+    };
+
+    WalkFunc func = return_checker;
 
     node->walk_tree(analyzer, active_nodes, func, true);
 
