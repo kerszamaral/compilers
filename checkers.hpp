@@ -1,5 +1,7 @@
 #pragma once
 
+// checkers.hpp file made by Ian Kersz Amaral - 2025/1
+
 #include "semantic.hpp"
 #include "ast.hpp"
 
