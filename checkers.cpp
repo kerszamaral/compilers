@@ -287,12 +287,12 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
                 AST SymbolTableEntry: Symbol[SYMBOL_IDENTIFIER, v, 12, TYPE_INT, IDENT_VECTOR]
                 AST SymbolTableEntry: Symbol[SYMBOL_INT, 7, 35, TYPE_INT, IDENT_LIT]
             */
-            const auto index = to_symbol_node(children[1]);
+            const auto index = children[1];
             // check if index is an int or byte variable, or a int or byte literal
             const auto index_type = index->check_expr_type();
             if (index_type != TYPE_INT && index_type != TYPE_CHAR)
             {
-                analyzer.add_error(index->get_line_number(), "Vector index " + index->get_text() + " is not an int or byte");
+                analyzer.add_error(index->get_line_number(), "Vector index is not an int or byte");
             }
             return SKIP_ALL;
         }
@@ -364,6 +364,10 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
                 {
                     analyzer.add_error(line_number, "Vector size " + std::to_string(vec_decl_size) + " does not match the initialization size " + std::to_string(vec_init_size));
                 }
+            }
+            if (assignee_opt.value()->get_node_type() == NODE_VEC)
+            {
+                types_checker(analyzer, NODE_VEC, assignee_opt.value()->get_children());
             }
             return SKIP_ALL;
         }
