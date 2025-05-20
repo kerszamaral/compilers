@@ -365,11 +365,7 @@ ptrdiff_t types_checker(SemanticAnalyzer& analyzer, const NodeType node_type, co
                     analyzer.add_error(line_number, "Vector size " + std::to_string(vec_decl_size) + " does not match the initialization size " + std::to_string(vec_init_size));
                 }
             }
-            if (assignee_opt.value()->get_node_type() == NODE_VEC)
-            {
-                types_checker(analyzer, NODE_VEC, assignee_opt.value()->get_children());
-            }
-            return SKIP_ALL;
+            return SKIP_NONE;
         }
     case NODE_IF:
         /*
