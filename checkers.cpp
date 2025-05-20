@@ -549,11 +549,7 @@ ptrdiff_t return_checker(SemanticAnalyzer& analyzer, const NodeType node_type, c
             const auto fun_decl = to_symbol_node(children[1]);
             const auto body = children[3];
             const auto rets = body->find_all(NODE_RETURN);
-            if (rets.size() < 1)
-            {
-                analyzer.add_error(fun_decl->get_line_number(), "Function " + fun_decl->get_text() + " must have at least one return statement");
-            }
-            else
+            if (rets.size() > 0)
             {
                 for (const auto& ret : rets)
                 {
