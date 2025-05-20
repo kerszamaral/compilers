@@ -472,7 +472,6 @@ auto zip(Container&... containers) noexcept {
 
 ptrdiff_t arguments_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
 {
-    std::optional<std::string> type_name;
     switch (node_type)
     {
     case NODE_FUN_CALL: // fun: 0, args: 1
@@ -487,7 +486,7 @@ ptrdiff_t arguments_checker(SemanticAnalyzer& analyzer, const NodeType node_type
             const auto fun = to_symbol_node(children[0]);
             const auto args = to_ast_node(children[1]);
             const auto fun_decl = fun->get_node();
-            if (!fun_decl.has_value() && fun_decl == nullptr)
+            if (!fun_decl.has_value() || fun_decl == nullptr)
             {
                 // Should never happen, but just in case
                 analyzer.add_error(fun->get_line_number(), "Function " + fun->get_text() + " is not declared");
