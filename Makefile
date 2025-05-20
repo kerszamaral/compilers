@@ -72,6 +72,7 @@ tgz:
 # Automatically invokes the command two times to check for differences
 DIFF_FILE1 = diff1.txt
 DIFF_FILE2 = diff2.txt
+DIFF_FILE ?= tests/sample.txt
 .PHONY: diff
 diff: $(DIFF_FILE) $(PROJECT)
 	@echo "Running diff..."
