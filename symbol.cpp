@@ -337,7 +337,7 @@ DataType Symbol::get_data_type() const
 
 bool Symbol::set_types(DataType type, IdentType ident_type)
 {
-    if (this->data_type != TYPE_UNINITIALIZED && this->data_type != type)
+    if (this->data_type != TYPE_UNINITIALIZED)
     {
         return false;
     }
