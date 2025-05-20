@@ -43,14 +43,14 @@ constexpr ptrdiff_t SKIP_ALL = std::numeric_limits<ptrdiff_t>::max();
 // Helper: sets the optional only if it's not already set
 template<typename T, typename U>
 void set_if_unset(std::optional<T>& opt, U&& value) {
-    if (!opt) {
+    if (!opt.has_value()) {
         opt = T(std::forward<U>(value));
     }
 }
 // Helper: sets the optional only if it's not already set, also prevents the index from being evaluated.
 template<typename T, typename U>
 void set_if_unset(std::optional<T>& opt, std::vector<U> value, size_t&& index) {
-    if (!opt) {
+    if (!opt.has_value()) {
         opt = T(std::forward<U>(value[index]));
     }
 }
