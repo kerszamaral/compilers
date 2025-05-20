@@ -69,7 +69,7 @@ int main ()
   else
     print "OK!\n"; 
   {{}} {}
-  return 0;
+  // return 0;
   }
 
 // end of file
