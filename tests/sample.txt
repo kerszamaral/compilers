@@ -24,11 +24,6 @@ de multiplas
 linhas
 --/
 
-int incn (int p, int n )
-  {
-  return p + n;
-  }
-
 int main ()
   {
   number = 0;
@@ -55,6 +50,7 @@ int main ()
     } while (x<01);
 
   print "Dobrando algumas vezes y fica " y "\n";
+    a = test();
 
   if (a==51) 
     {
@@ -70,6 +66,11 @@ int main ()
     print "OK!\n"; 
   {{}} {}
   // return 0;
+  }
+
+int incn (int p, int n )
+  {
+  return p + n;
   }
 
 // end of file

@@ -99,6 +99,18 @@ ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_ty
             return node_type != NODE_FUN_DECL ? SKIP_ALL : SKIP_NONE;
         }
 
+    default:
+        throw std::runtime_error("Unhandled case in declaration checker. " + NodeTypeString(node_type));
+        break;
+    }
+
+    return SKIP_NONE;
+}
+
+ptrdiff_t undeclared_checker(SemanticAnalyzer& analyzer, const NodeType node_type, const NodeList& children)
+{
+    switch (node_type)
+    {
     // Check if undeclare:
     case NODE_SYMBOL: // Itself: 0
         {
@@ -137,12 +149,14 @@ SemanticAnalyzer check_declarations(NodePtr node)
         NODE_FUN_DECL,
         NODE_PARAM_DECL,
         // Check if undeclared
-        NODE_SYMBOL, //? It will be skipped over when unneeded by should_continue.
+        // NODE_SYMBOL, //? It will be skipped over when unneeded by should_continue.
     };
 
     WalkFunc func = declaration_checker;
 
     node->walk_tree(analyzer, active_nodes, func, true);
+
+    node->walk_tree(analyzer, {NODE_SYMBOL}, undeclared_checker, true);
 
     return analyzer;
 }
