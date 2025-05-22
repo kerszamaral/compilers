@@ -50,7 +50,6 @@ int main ()
     } while (x<01);
 
   print "Dobrando algumas vezes y fica " y "\n";
-    a = test();
 
   if (a==51) 
     {
