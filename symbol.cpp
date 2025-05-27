@@ -111,6 +111,24 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
     return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type, std::nullopt}).first->second; // We dereference the iterator to get the value as a reference
 }
 
+SymbolTableEntry register_temp(DataType data_type)
+{
+    static size_t temp_count = 0;
+
+    std::string lexeme = "temp" + std::to_string(temp_count++);
+
+    return symbolTable.emplace(
+                          lexeme,
+                          new Symbol{
+                              SYMBOL_IDENTIFIER,
+                              lexeme,
+                              data_type,
+                              TYPE_OTHER,
+                              IDENT_VAR,
+                              std::nullopt})
+        .first->second;
+}
+
 std::string Symbol::to_string() const
 {
     std::stringstream ss;

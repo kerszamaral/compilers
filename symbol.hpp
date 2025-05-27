@@ -96,5 +96,6 @@ std::string data_type_to_str(const DataType data_type, bool user_friendly = fals
 std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = false);
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
+SymbolTableEntry register_temp(DataType data_type = TYPE_OTHER);
 
 std::string generateSymbolTable(void);
