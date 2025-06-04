@@ -34,7 +34,7 @@ target: $(PROJECT)
 run: $(PROJECT)
 	./$(PROJECT)
 
-OBJS = lex.yy.o main.o symbol.o parser.tab.o ast.o checkers.o
+OBJS = lex.yy.o main.o symbol.o parser.tab.o ast.o checkers.o tac.o
 $(PROJECT): $(OBJS)
 	$(CXX) $(OBJS) -o $(PROJECT)
 
@@ -42,8 +42,10 @@ ast.hpp: symbol.hpp
 parser.tab.hpp: ast.hpp
 semantic.hpp: symbol.hpp
 checkers.hpp: semantic.hpp ast.hpp
+tac.hpp: symbol.hpp ast.hpp
+tac.cpp: set_once.hpp
 
-main.o: parser.tab.hpp checkers.hpp
+main.o: parser.tab.hpp checkers.hpp tac.hpp
 parser.tab.o: CXXFLAGS += -Wno-sign-conversion
 %.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $< -c

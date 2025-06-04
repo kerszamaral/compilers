@@ -10,6 +10,7 @@
 #include "ast.hpp"
 #include "parser.tab.hpp"
 #include "checkers.hpp"
+#include "tac.hpp"
 
 extern int yylex_destroy(void);
 extern FILE *yyin;
@@ -76,6 +77,15 @@ int main(int argc, char **argv)
         std::cerr << error_messages;
         std::exit(SEMANTIC_ERROR);
     }
+
+    TACptr tac = TAC::generate_code(g_AST);
+    if (tac == nullptr)
+    {
+        std::cerr << "Error generating TAC from AST." << std::endl;
+        std::exit(-1);
+    }
+    std::cerr << "Generated TAC: \n";
+    std::cerr << TAC::tac_string(tac) << std::endl;
 
     std::ofstream outfile(args[1], std::ios::out);
     if (!outfile || !outfile.is_open() || outfile.bad())
