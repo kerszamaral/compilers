@@ -193,6 +193,11 @@ public:
     {
         return symbol->line_number;
     }
+
+    SymbolTableEntry get_symbol() const
+    {
+        return symbol;
+    }
 } SymbolNode;
 NodePtr make_node(SymbolTableEntry symbol, NodeList children = {});
 std::shared_ptr<SymbolNode> to_symbol_node(NodePtr);
