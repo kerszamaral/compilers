@@ -23,7 +23,13 @@ static constexpr auto SEMANTIC_ERROR = 4;
 int main(int argc, char **argv)
 {
     std::vector<std::string> args(argv + 1, argv + argc);
-    if (args.size() != 2)
+    if (args.size() == 1)
+    {
+        std::cerr << "No output file provided. ";
+        std::cerr << "Using default output file: out.txt" << std::endl;    
+        args.push_back("out.txt");
+    }
+    else if (args.size() != 2)
     {
         std::cerr << "No input or output file provided. ";
         std::cerr << "Usage: " << argv[0] << " <input file> <output file>" << std::endl;

@@ -44,6 +44,7 @@ etapa*
 *.html
 *.xml
 *.output
+out.txt
 
 # Folders
 tests
