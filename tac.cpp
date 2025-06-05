@@ -151,6 +151,28 @@ TACptr TAC::generate_code(NodePtr node)
 
             return TAC::join(move_to, moved_from, move_tac);
         }
+    case NodeType::NODE_FUN_DECL:
+        {
+            const auto func_name = to_symbol_node(node->get_children()[1])->get_symbol();
+            
+            const auto begin_func_tac = std::make_shared<TAC>(
+                TAC_BEGINFUN,
+                func_name
+            );
+
+            const auto func_body = generate_code(node->get_children()[3]);
+
+            const auto end_func_tac = std::make_shared<TAC>(
+                TAC_ENDFUN,
+                func_name
+            );
+            
+            return TAC::join(
+                begin_func_tac,
+                func_body,
+                end_func_tac
+            );
+        }
     case NodeType::NODE_PRINT:
         {
             std::vector<TACptr> print_tacs;
