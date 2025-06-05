@@ -77,6 +77,28 @@ TACptr TAC::join(const std::vector<TACptr> &tac_list)
     return result;
 }
 
+
+// Again... as we are using C++17, we dont have std::zip from the STL ranges...
+// Implemented a simple version of it, but it is not as efficient as the STL one. From:
+// https://stackoverflow.com/questions/12552277/whats-the-best-way-to-iterate-over-two-or-more-containers-simultaneously
+template<typename... Container>
+auto zip(Container&... containers) noexcept {
+    using tuple_type = std::tuple<std::decay_t<decltype(*std::begin(containers))>...>;
+    std::size_t container_size = std::min({ std::size(containers)... });
+
+    std::vector<tuple_type> result;
+    result.reserve(container_size);
+
+    auto iterators = std::make_tuple(std::begin(containers)...);
+    for (std::size_t i = 0; i < container_size; ++i) {
+        std::apply([&result](auto&... it) { 
+            result.emplace_back(*it++...);
+        }, iterators);
+    }
+
+    return result;
+}
+
 TACptr TAC::generate_code(NodePtr node)
 {
     if (node == nullptr)
@@ -172,6 +194,44 @@ TACptr TAC::generate_code(NodePtr node)
                 func_body,
                 end_func_tac
             );
+        }
+    case NodeType::NODE_FUN_CALL:
+        {
+            std::vector<TACptr> call_seq_tacs;
+            const auto func_args = node->get_children()[1]->get_children();
+            const auto func_name = to_symbol_node(node->get_children()[0]);
+            const auto func_params = func_name->get_symbol()->get_node().value()->get_children();
+
+            const auto func_name_tac = generate_code(func_name);
+
+            // call_seq_tacs.push_back(func_name_tac);
+
+            for (const auto &[param, arg] : zip(func_params, func_args))
+            {
+                const auto param_tac = generate_code(param);
+                call_seq_tacs.push_back(param_tac);
+
+                const auto arg_tac = generate_code(arg);
+                call_seq_tacs.push_back(arg_tac);
+
+                const auto tac_arg = std::make_shared<TAC>(
+                    TAC_ARG,
+                    param_tac,
+                    arg_tac,
+                    nullptr
+                );
+                call_seq_tacs.push_back(tac_arg);
+            }
+
+            const auto call_tac = std::make_shared<TAC>(
+                TAC_CALL,
+                nullptr,
+                func_name_tac,
+                nullptr
+            );
+            call_seq_tacs.push_back(call_tac);
+
+            return TAC::join(call_seq_tacs);
         }
     case NodeType::NODE_PRINT:
         {
