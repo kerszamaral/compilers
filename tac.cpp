@@ -233,6 +233,38 @@ TACptr TAC::generate_code(NodePtr node)
 
             return TAC::join(call_seq_tacs);
         }
+    case NodeType::NODE_IF:
+        {
+            auto cond_expr_code = generate_code(node->get_children()[0]); // Code that evaluates condition
+            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result(); // Symbol holding condition's boolean result
+
+            auto if_block_code = generate_code(node->get_children()[1]); // Code for the if block
+            TACptr else_block_code = (node->get_children().size() > 2) ? generate_code(node->get_children()[2]) : nullptr;
+
+            SymbolTableEntry else_label_sym = register_label();
+            SymbolTableEntry endif_label_sym = (else_block_code) ? register_label() : else_label_sym; // If no else, IFZ jumps to endif
+
+            // TAC_IFZ Lbl, Var -> type=TAC_IFZ, result_tac (for Lbl), first_op_tac (for Var)
+            auto else_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, else_label_sym); // Wrapper for label symbol
+            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol); // Wrapper for cond var symbol
+
+            auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, else_label_tac_node, cond_var_tac_node, nullptr);
+
+            auto tac_else_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, else_label_sym);
+            auto tac_endif_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, endif_label_sym);
+            
+            std::vector<TACptr> if_sequence = {cond_expr_code, tac_ifz, if_block_code};
+
+            if (else_block_code) {
+                auto tac_jump_to_endif = std::make_shared<TAC>(TacType::TAC_JUMP, endif_label_sym);
+                if_sequence.push_back(tac_jump_to_endif);
+                if_sequence.push_back(tac_else_label_instr);
+                if_sequence.push_back(else_block_code);
+            }
+            if_sequence.push_back(tac_endif_label_instr); // endif_label is distinct if there was an else block
+
+            return TAC::join(if_sequence);
+        }
     case NodeType::NODE_PRINT:
         {
             std::vector<TACptr> print_tacs;
