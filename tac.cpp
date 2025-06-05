@@ -286,6 +286,27 @@ TACptr TAC::generate_code(NodePtr node)
 
             return TAC::join(tac_cond_label_instr, cond_expr_code, tac_ifz, while_block_code, tac_jump_to_cond, tac_end_while_label_instr);
         }
+    case NodeType::NODE_DO_WHILE:
+        {
+            SymbolTableEntry loop_start_label_sym = register_label();
+            SymbolTableEntry after_loop_label_sym = register_label();
+
+            auto tac_loop_start_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, loop_start_label_sym);
+            auto do_block_code = generate_code(node->get_children()[0]); // Code for the do block
+            auto cond_expr_code = generate_code(node->get_children()[1]); // Code that evaluates condition
+            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result();
+            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol);
+
+            // IFZ cond_var, L_AFTER_LOOP  (if condition is false, jump out)
+            // JUMP L_START
+            // L_AFTER_LOOP:
+            auto after_loop_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, after_loop_label_sym);
+            auto tac_ifz_cond = std::make_shared<TAC>(TacType::TAC_IFZ, after_loop_label_tac_node, cond_var_tac_node, nullptr);
+            auto tac_jump_to_start = std::make_shared<TAC>(TacType::TAC_JUMP, loop_start_label_sym);
+            auto tac_after_loop_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, after_loop_label_sym);
+        
+            return TAC::join({tac_loop_start_label_instr, do_block_code, cond_expr_code, tac_ifz_cond, tac_jump_to_start, tac_after_loop_label_instr});
+        }
     case NodeType::NODE_PRINT:
         {
             std::vector<TACptr> print_tacs;
