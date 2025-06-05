@@ -74,14 +74,23 @@ std::pair<DataType, IdentType> symbol_to_data_type(const SymbolType symbol_type)
         return {TYPE_STRING, IDENT_LIT};
     case SYMBOL_OTHER:
         return {TYPE_OTHER, IDENT_LIT};
+    case SYMBOL_TEMP:
+        return {TYPE_UNINITIALIZED, IDENT_VAR};
+    case SYMBOL_LABEL:
+        return {TYPE_OTHER, IDENT_VAR};
     }
 }
 #pragma clang diagnostic pop
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number)
 {   
+
+    if (symbol_type == SymbolType::SYMBOL_IDENTIFIER)
+    {
+        lexeme = "_" + lexeme; // Add leading underscore   
+    }
     // If we encounter numbers, we need to reverse them and remove the leading zeros
-    if (symbol_type == SymbolType::SYMBOL_INT) {
+    else if (symbol_type == SymbolType::SYMBOL_INT) {
         std::reverse(lexeme.begin(), lexeme.end());
 #ifdef REMOVE_LEADING_ZEROS
         // Need to be careful with the case where the number is 0, as we would erase the whole string
@@ -120,9 +129,27 @@ SymbolTableEntry register_temp(DataType data_type)
     return symbolTable.emplace(
                           lexeme,
                           new Symbol{
-                              SYMBOL_IDENTIFIER,
+                              SYMBOL_TEMP,
                               lexeme,
+                              0,
                               data_type,
+                              IDENT_VAR,
+                              std::nullopt})
+        .first->second;
+}
+
+SymbolTableEntry register_label()
+{
+    static size_t label_count = 0;
+
+    std::string lexeme = "label" + std::to_string(label_count++);
+
+    return symbolTable.emplace(
+                          lexeme,
+                          new Symbol{
+                              SYMBOL_LABEL,
+                              lexeme,
+                              0,
                               TYPE_OTHER,
                               IDENT_VAR,
                               std::nullopt})
@@ -154,7 +181,7 @@ std::string Symbol::get_original_text() const
     switch (this->type)
     {
     case SymbolType::SYMBOL_IDENTIFIER:
-        return this->lexeme;
+        return this->lexeme.substr(1); // Remove the leading '_' character
     case SymbolType::SYMBOL_REAL:
     {
         std::string result = this->lexeme;
@@ -177,6 +204,10 @@ std::string Symbol::get_original_text() const
         return this->lexeme;
     case SymbolType::SYMBOL_OTHER:
         return this->lexeme;
+    case SymbolType::SYMBOL_TEMP:
+        return this->lexeme; // Temp symbols are not modified
+    case SymbolType::SYMBOL_LABEL:
+        return this->lexeme; // Label symbols are not modified
     case SymbolType::SYMBOL_INVALID:
         return "SYMBOL_INVALID";
     }
@@ -194,6 +225,8 @@ std::string Symbol::get_text() const
     case SymbolType::SYMBOL_INT:
     case SymbolType::SYMBOL_CHAR:
     case SymbolType::SYMBOL_STRING:
+    case SymbolType::SYMBOL_TEMP:
+    case SymbolType::SYMBOL_LABEL:
     case SymbolType::SYMBOL_OTHER:
         return this->lexeme;
     case SymbolType::SYMBOL_INVALID:
@@ -218,6 +251,8 @@ std::string Symbol::get_type() const
         return "String";
     case SymbolType::SYMBOL_IDENTIFIER:
     case SymbolType::SYMBOL_OTHER:
+    case SymbolType::SYMBOL_TEMP:
+    case SymbolType::SYMBOL_LABEL:
     case SymbolType::SYMBOL_INVALID:
         return "";
     }
@@ -252,6 +287,10 @@ std::string symbolName(SymbolType symbol) {
             return "SYMBOL_STRING";
         case SymbolType::SYMBOL_OTHER:
             return "SYMBOL_OTHER";
+        case SymbolType::SYMBOL_TEMP:
+            return "SYMBOL_TEMP";
+        case SymbolType::SYMBOL_LABEL:
+            return "SYMBOL_LABEL";
     }
 }
 #pragma clang diagnostic pop

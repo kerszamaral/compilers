@@ -21,7 +21,9 @@ enum SymbolType : uint8_t
     SYMBOL_INT,
     SYMBOL_CHAR,
     SYMBOL_STRING,
-    SYMBOL_OTHER
+    SYMBOL_OTHER,
+    SYMBOL_TEMP,
+    SYMBOL_LABEL
 };
 
 enum DataType : uint8_t
@@ -97,5 +99,6 @@ std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = f
 
 SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
 SymbolTableEntry register_temp(DataType data_type = TYPE_OTHER);
+SymbolTableEntry register_label();
 
 std::string generateSymbolTable(void);
