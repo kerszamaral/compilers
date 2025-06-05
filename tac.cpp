@@ -265,6 +265,27 @@ TACptr TAC::generate_code(NodePtr node)
 
             return TAC::join(if_sequence);
         }
+    case NodeType::NODE_WHILE:
+        {
+            SymbolTableEntry cond_label_sym = register_label();
+            SymbolTableEntry end_while_label_sym = register_label();
+
+            auto tac_cond_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, cond_label_sym);
+            
+            auto cond_expr_code = generate_code(node->get_children()[0]); // Code that evaluates condition
+            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result();
+            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol);
+
+
+            auto end_while_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, end_while_label_sym);
+            auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, end_while_label_tac_node, cond_var_tac_node, nullptr);
+            
+            auto while_block_code = generate_code(node->get_children()[1]); // Code for the while block
+            auto tac_jump_to_cond = std::make_shared<TAC>(TacType::TAC_JUMP, cond_label_sym);
+            auto tac_end_while_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, end_while_label_sym);
+
+            return TAC::join(tac_cond_label_instr, cond_expr_code, tac_ifz, while_block_code, tac_jump_to_cond, tac_end_while_label_instr);
+        }
     case NodeType::NODE_PRINT:
         {
             std::vector<TACptr> print_tacs;
