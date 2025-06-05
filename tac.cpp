@@ -200,6 +200,15 @@ TACptr TAC::generate_code(NodePtr node)
 
             return TAC::join(dest_var_symbol, read_tac);
         }
+    case NodeType::NODE_RETURN:
+        {
+            const auto return_value = generate_code(node->get_children()[0]);
+            TACptr return_tac = std::make_shared<TAC>(
+                TAC_RET,
+                return_value->get_result()
+            );
+            return TAC::join(return_value, return_tac);
+        }
     // case NodeType::NODE_PARENTHESIS: // Default
     default:
         {
