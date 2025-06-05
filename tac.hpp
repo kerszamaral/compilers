@@ -12,7 +12,7 @@ enum TacType
 {
     TAC_INVALID,
     TAC_SYMBOL,
-    TAC_ATRIB,
+    TAC_MOVE,
     TAC_ADD,
     TAC_SUB,
     TAC_MUL,
@@ -27,6 +27,16 @@ enum TacType
     TAC_AND,
     TAC_OR,
     TAC_NOT,
+    TAC_LABEL,
+    TAC_BEGINFUN,
+    TAC_ENDFUN,
+    TAC_IFZ,
+    TAC_JUMP,
+    TAC_CALL,
+    TAC_ARG,
+    TAC_RET,
+    TAC_PRINT,
+    TAC_READ
 };
 
 std::string tac_type_to_string(TacType type);
