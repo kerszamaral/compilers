@@ -78,14 +78,18 @@ int main(int argc, char **argv)
         std::exit(SEMANTIC_ERROR);
     }
 
-    TACptr tac = TAC::generate_code(g_AST);
+    const auto tac = TAC::generate_code(g_AST);
     if (tac == nullptr)
     {
         std::cerr << "Error generating TAC from AST." << std::endl;
         std::exit(-1);
     }
     std::cerr << "Generated TAC: \n";
-    std::cerr << TAC::tac_string(tac) << std::endl;
+    std::cerr << "TAC in backwards order: \n";
+    std::cerr << TAC::tac_string_backwards(tac) << std::endl;
+    std::cerr << "TAC in forward order: \n";
+    const auto last_tac = TAC::build_forward_links(tac);
+    std::cerr << TAC::tac_string(last_tac) << std::endl;
 
     std::ofstream outfile(args[1], std::ios::out);
     if (!outfile || !outfile.is_open() || outfile.bad())

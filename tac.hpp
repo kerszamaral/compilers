@@ -102,43 +102,10 @@ public:
 
     static std::string tac_string(TACptr tac);
 
+    static std::string tac_string_backwards(TACptr tac);
+
+    static TACptr build_forward_links(TACptr tac);
+
 } TAC;
 
 typedef TAC::TACptr TACptr;
-
-/*
-typedef struct TACList
-{
-private:
-    std::deque<TACptr> tacs;
-
-public:
-    template<typename... OtherTACLists>
-    void join(const OtherTACLists&... others) {
-        // Static assert to ensure all arguments are actually TACList types.
-        // std::decay_t removes const/references for type checking.
-        static_assert((std::is_same_v<TACList, std::decay_t<OtherTACLists>> && ...),
-                      "All arguments to join must be TACList types.");
-
-        // C++17 fold expression over the comma operator.
-        // For each list in 'other_lists', its internal deque ('tacs_deque')
-        // is inserted at the end of the current list's 'tacs_deque'.
-        (this->tacs.insert(this->tacs_deque.end(),
-                                 others.tacs.begin(),
-                                 others.tacs.end()), ...);
-    }
-
-    const std::deque<TACptr>& get_instructions() const {
-        return tacs;
-    }
-
-    auto begin() const { return tacs.begin(); }
-    auto end() const { return tacs.end(); }
-    auto begin() { return tacs.begin(); }
-    auto end() { return tacs.end(); }
-
-    bool empty() const { return tacs.empty(); }
-    size_t size() const { return tacs.size(); }
-
-} TACList;
-*/

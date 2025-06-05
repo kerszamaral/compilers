@@ -174,6 +174,30 @@ std::string TAC::to_string() const
 std::string TAC::tac_string(TACptr tac)
 {
     std::stringstream ss;
+    while (tac && tac->next)
+    {
+#ifndef SHOW_TAC_SYMBOL
+        if (tac->get_type() == TAC_SYMBOL)
+        {
+            tac = tac->next; // Skip symbol TACs
+            continue;
+        }
+#endif
+        ss << tac->to_string() << "\n";
+        tac = tac->next; // Traverse to the first TAC in the list
+    }
+
+    if (tac)
+    {
+        ss << tac->to_string(); // Add the last TAC
+    }
+
+    return ss.str();
+}
+
+std::string TAC::tac_string_backwards(TACptr tac)
+{
+    std::stringstream ss;
     while (tac && tac->prev)
     {
 #ifndef SHOW_TAC_SYMBOL
@@ -188,4 +212,32 @@ std::string TAC::tac_string(TACptr tac)
     }
 
     return ss.str();
+}
+
+TACptr TAC::build_forward_links(TACptr tac) {
+    if (!tac) {
+        return nullptr;
+    }
+
+    std::vector<TACptr> tacs_in_execution_order;
+    TACptr current = tac;
+
+    while (current) {
+        tacs_in_execution_order.push_back(current);
+        if (!current->prev) { // Found the head of the list
+            break;
+        }
+        current = current->prev;
+    }
+
+    std::reverse(tacs_in_execution_order.begin(), tacs_in_execution_order.end());
+
+    for (size_t i = 0; i < tacs_in_execution_order.size(); ++i) {
+        if (i + 1 < tacs_in_execution_order.size()) {
+            tacs_in_execution_order[i]->next = tacs_in_execution_order[i+1];
+        } else {
+            tacs_in_execution_order[i]->next = nullptr; // Last TACs next is nullptr
+        }
+    }
+    return tacs_in_execution_order.front(); // Return the head of the list
 }
