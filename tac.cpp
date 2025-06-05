@@ -25,7 +25,17 @@ std::string tac_type_to_string(TacType type)
         case TAC_AND: return "AND";
         case TAC_OR: return "OR";
         case TAC_NOT: return "NOT";
-        case TAC_ATRIB: return "ATRIB";
+        case TAC_MOVE: return "MOVE";
+        case TAC_LABEL: return "LABEL";
+        case TAC_BEGINFUN: return "BEGINFUN";
+        case TAC_ENDFUN: return "ENDFUN";
+        case TAC_IFZ: return "IFZ";
+        case TAC_JUMP: return "JUMP";
+        case TAC_CALL: return "CALL";
+        case TAC_ARG: return "ARG";
+        case TAC_RET: return "RET";
+        case TAC_PRINT: return "PRINT";
+        case TAC_READ: return "READ";
         default: return "UNKNOWN_TAC_TYPE";
     }
 }
@@ -74,17 +84,6 @@ TACptr TAC::generate_code(NodePtr node)
         return nullptr;
     }
 
-    std::vector<TACptr> child_tacs;
-    for (auto &child : node->get_children())
-    {
-        auto tac = generate_code(child);
-        if (tac)
-        {
-            child_tacs.push_back(tac);
-        }
-    }
-    
-
     SetOnce<TacType> tac_type;
 
     switch (node->get_node_type())
@@ -118,38 +117,63 @@ TACptr TAC::generate_code(NodePtr node)
     case NodeType::NODE_OR:
         tac_type = TacType::TAC_OR;
         {
-            TACptr new_tac = std::make_shared<TAC>(
+            const auto first_op = generate_code(node->get_children()[0]);
+            const auto second_op = generate_code(node->get_children()[1]);
+            TACptr math_tac = std::make_shared<TAC>(
                 tac_type.value(),
                 nullptr,
-                child_tacs[0],
-                child_tacs[1]
+                first_op,
+                second_op
             );
-            return TAC::join(child_tacs[0], child_tacs[1], new_tac);
+            return TAC::join(first_op, second_op, math_tac);
         }
     case NodeType::NODE_NOT:
         {
-            TACptr new_tac = std::make_shared<TAC>(
+            const auto first_op = generate_code(node->get_children()[0]);
+            TACptr not_tac = std::make_shared<TAC>(
                 TAC_NOT,
                 nullptr,
-                child_tacs[0],
+                first_op,
                 nullptr
             );
-            return TAC::join(child_tacs[0], new_tac);
+            return TAC::join(first_op, not_tac);
         }
     case NodeType::NODE_ATRIB:
         {
-            TACptr new_tac = std::make_shared<TAC>(
-                TAC_ATRIB,
-                child_tacs[0],
-                child_tacs[1],
+            const auto move_to = generate_code(node->get_children()[0]);
+            const auto moved_from = generate_code(node->get_children()[1]);
+            TACptr move_tac = std::make_shared<TAC>(
+                TAC_MOVE,
+                move_to,
+                moved_from,
                 nullptr
             );
 
-            return TAC::join(child_tacs[0], child_tacs[1], new_tac);
+            return TAC::join(move_to, moved_from, move_tac);
         }
     // case NodeType::NODE_PARENTHESIS: // Default
     default:
-        return TAC::join(child_tacs);
+        {
+            // Generate code for all children
+            std::vector<TACptr> child_tacs;
+            for (const auto &child : node->get_children())
+            {
+                TACptr child_tac = generate_code(child);
+                if (child_tac)
+                {
+                    child_tacs.push_back(child_tac);
+                }
+            }
+
+            // If no children, return nullptr
+            if (child_tacs.empty())
+            {
+                return nullptr;
+            }
+
+            // Join all child TACs into a single TAC
+            return TAC::join(child_tacs);
+        }
     }
 
 }
