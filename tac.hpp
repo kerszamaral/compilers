@@ -36,7 +36,9 @@ enum TacType
     TAC_ARG,
     TAC_RET,
     TAC_PRINT,
-    TAC_READ
+    TAC_READ,
+    TAC_VECLOAD,
+    TAC_VECSTORE
 };
 
 std::string tac_type_to_string(TacType type);

@@ -1,6 +1,8 @@
 #include "tac.hpp"
 
 #include "set_once.hpp"
+#include "symbol.hpp"
+#include <memory>
 
 // tac.cpp file made by Ian Kersz Amaral - 2025/1
 
@@ -36,6 +38,8 @@ std::string tac_type_to_string(TacType type)
         case TAC_RET: return "RET";
         case TAC_PRINT: return "PRINT";
         case TAC_READ: return "READ";
+        case TAC_VECLOAD: return "VECLOAD"; 
+        case TAC_VECSTORE: return "VECSTORE";
         default: return "UNKNOWN_TAC_TYPE";
     }
 }
@@ -162,16 +166,24 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_ATRIB:
         {
-            const auto move_to = generate_code(node->get_children()[0]);
+            const auto maybe_vec = node->get_children()[0];
+            const auto is_vec = node->get_children()[0]->get_node_type() == NODE_VEC;
+            const auto &move = is_vec ? maybe_vec : node;
+            const auto tac_should_be = is_vec ? TAC_VECSTORE : TAC_MOVE;
+
+            const auto move_to = generate_code(move->get_children()[0]);
+            const auto offset = is_vec ? generate_code(move->get_children()[1]) : nullptr;
+
             const auto moved_from = generate_code(node->get_children()[1]);
+
             TACptr move_tac = std::make_shared<TAC>(
-                TAC_MOVE,
+                tac_should_be,
                 move_to,
                 moved_from,
-                nullptr
+                offset
             );
 
-            return TAC::join(move_to, moved_from, move_tac);
+            return TAC::join(move_to, moved_from, offset, move_tac);
         }
     case NodeType::NODE_FUN_DECL:
         {
@@ -343,6 +355,21 @@ TACptr TAC::generate_code(NodePtr node)
             );
             return TAC::join(return_value, return_tac);
         }
+    case NodeType::NODE_VEC:
+        {
+            const auto symbol_tac = generate_code(node->get_children()[0]);
+            const auto offset_tac = generate_code(node->get_children()[1]);
+
+            TACptr vec_tac = std::make_shared<TAC>(
+                TAC_VECLOAD,
+                nullptr,
+                symbol_tac,
+                offset_tac
+            );
+
+            return TAC::join(symbol_tac, offset_tac, vec_tac);
+        }
+
     // case NodeType::NODE_PARENTHESIS: // Default
     default:
         {
