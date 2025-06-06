@@ -755,6 +755,8 @@ std::string SymbolNode::export_tree(size_t level) const
         case SYMBOL_STRING:
         case SYMBOL_OTHER:
         case SYMBOL_INVALID:
+        case SYMBOL_TEMP:
+        case SYMBOL_LABEL:
         return symbol->get_original_text();
     }
 }
