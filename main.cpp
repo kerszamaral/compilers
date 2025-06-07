@@ -78,7 +78,7 @@ int main(int argc, char **argv)
         std::exit(SEMANTIC_ERROR);
     }
 
-    const auto tac = TAC::generate_code(g_AST);
+    const auto tac = TAC::generate_tacs(g_AST);
     if (tac == nullptr)
     {
         std::cerr << "Error generating TAC from AST." << std::endl;

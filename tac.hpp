@@ -39,6 +39,8 @@ enum TacType
     TAC_READ,
     TAC_VECLOAD,
     TAC_VECSTORE,
+    TAC_BEGINVARS,
+    TAC_BEGINCODE,
     TAC_VARBEGIN,
     TAC_VARINIT,
     TAC_VAREND,
@@ -99,6 +101,8 @@ public:
     static TACptr generate_code(NodePtr node);
 
     static TACptr generate_vars(NodePtr node);
+
+    static TACptr generate_tacs(NodePtr node);
 
     static TACptr join(const TACptr &first, const TACptr &second);
 

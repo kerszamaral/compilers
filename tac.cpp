@@ -40,6 +40,8 @@ std::string tac_type_to_string(TacType type)
         case TAC_READ: return "READ";
         case TAC_VECLOAD: return "VECLOAD"; 
         case TAC_VECSTORE: return "VECSTORE";
+        case TAC_BEGINVARS: return "BEGINVARS";
+        case TAC_BEGINCODE: return "BEGINCODE";
         case TAC_VARBEGIN: return "VARBEGIN";
         case TAC_VARINIT: return "VARINIT";
         case TAC_VAREND: return "VAREND";
@@ -496,6 +498,28 @@ TACptr TAC::generate_vars(NodePtr node)
     }
 }
 
+TACptr TAC::generate_tacs(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return nullptr;
+    }
+
+    // Generate variable declarations first
+    const auto begin_vars = std::make_shared<TAC>(
+        TAC_BEGINVARS,
+        register_label()
+    );
+
+    const auto vars = generate_vars(node);
+
+    const auto begin_code = std::make_shared<TAC>(
+        TAC_BEGINCODE,
+        register_label()
+    );
+    const auto code = generate_code(node);
+
+    return TAC::join(begin_vars, vars, begin_code, code);
 }
 
 std::string TAC::to_string() const
