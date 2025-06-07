@@ -609,3 +609,41 @@ TACptr TAC::build_forward_links(TACptr tac) {
     }
     return tacs_in_execution_order.front(); // Return the head of the list
 }
+
+
+TACptr make_tac_symbol(SymbolTableEntry result)
+{
+    if (!result)
+    {
+        result = register_temp();
+    }
+    return std::make_shared<TAC>(TAC_SYMBOL, result);
+}
+
+TACptr make_tac_temp(TacType type, TACptr first, TACptr second)
+{
+    return std::make_shared<TAC>(type, nullptr, first, second);
+}
+
+TACptr make_tac(TacType type, TACptr result, TACptr first, TACptr second)
+{
+    return std::make_shared<TAC>(type, result, first, second);
+}
+
+TACptr make_tac(TacType type, SymbolTableEntry result, TACptr first, TACptr second)
+{
+    const auto result_tac = make_tac_symbol(result);
+    const auto ret_tac = std::make_shared<TAC>(type, result_tac, first, second);
+    return TAC::join(result_tac, ret_tac);
+}
+
+TACptr make_tac(TacType type, SymbolTableEntry symbol)
+{
+    return std::make_shared<TAC>(type, symbol);
+}
+
+
+TACptr make_tac_label()
+{
+    return std::make_shared<TAC>(TAC_LABEL, register_label());
+}

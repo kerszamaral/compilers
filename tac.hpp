@@ -134,3 +134,15 @@ public:
 } TAC;
 
 typedef TAC::TACptr TACptr;
+
+TACptr make_tac_symbol(SymbolTableEntry result = nullptr);
+
+TACptr make_tac_temp(TacType type, TACptr first, TACptr second = nullptr);
+
+TACptr make_tac(TacType type, TACptr result, TACptr first, TACptr second = nullptr);
+
+TACptr make_tac(TacType type, SymbolTableEntry result, TACptr first, TACptr second = nullptr);
+
+TACptr make_tac(TacType type, SymbolTableEntry symbol);
+
+TACptr make_tac_label();
