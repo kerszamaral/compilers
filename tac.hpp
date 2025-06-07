@@ -38,7 +38,14 @@ enum TacType
     TAC_PRINT,
     TAC_READ,
     TAC_VECLOAD,
-    TAC_VECSTORE
+    TAC_VECSTORE,
+    TAC_VARBEGIN,
+    TAC_VARINIT,
+    TAC_VAREND,
+    TAC_VECBEGIN,
+    TAC_VECINIT,
+    TAC_VECZEROS,
+    TAC_VECEND
 };
 
 std::string tac_type_to_string(TacType type);
@@ -90,6 +97,8 @@ public:
     SymbolTableEntry get_result() const { return this->result; }
 
     static TACptr generate_code(NodePtr node);
+
+    static TACptr generate_vars(NodePtr node);
 
     static TACptr join(const TACptr &first, const TACptr &second);
 

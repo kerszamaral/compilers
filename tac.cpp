@@ -40,6 +40,13 @@ std::string tac_type_to_string(TacType type)
         case TAC_READ: return "READ";
         case TAC_VECLOAD: return "VECLOAD"; 
         case TAC_VECSTORE: return "VECSTORE";
+        case TAC_VARBEGIN: return "VARBEGIN";
+        case TAC_VARINIT: return "VARINIT";
+        case TAC_VAREND: return "VAREND";
+        case TAC_VECBEGIN: return "VECBEGIN";
+        case TAC_VECINIT: return "VECINIT";
+        case TAC_VECZEROS: return "VECZEROS";
+        case TAC_VECEND: return "VECEND";
         default: return "UNKNOWN_TAC_TYPE";
     }
 }
@@ -385,6 +392,109 @@ TACptr TAC::generate_code(NodePtr node)
             return TAC::join(child_tacs);
         }
     }
+}
+
+TACptr TAC::generate_vars(NodePtr node)
+{
+    if (node == nullptr)
+    {
+        return nullptr;
+    }
+
+    switch (node->get_node_type())
+    {
+    case NODE_VAR_DECL:
+        {
+            const auto var = generate_code(node->get_children()[1]);
+            const auto var_begin = std::make_shared<TAC>(
+                TAC_VARBEGIN,
+                var,
+                nullptr,
+                nullptr
+            );
+            const auto init = generate_code(node->get_children()[2]);
+            const auto init_tac = std::make_shared<TAC>(
+                TAC_VARINIT,
+                init,
+                nullptr,
+                nullptr
+            );
+            const auto var_end = std::make_shared<TAC>(
+                TAC_VAREND,
+                var,
+                nullptr,
+                nullptr
+            );
+            return TAC::join(var_begin, init_tac, var_end);
+        }
+    case NODE_VEC_DECL:
+        {
+            std::vector<TACptr> vec_decl;
+            const auto vec_def = node->get_children()[0];
+            const auto vec_symb = generate_code(vec_def->get_children()[1]);
+            const auto vec_size = generate_code(vec_def->get_children()[2]);
+            
+            const auto vec_begin = std::make_shared<TAC>(
+                TAC_VECBEGIN,
+                vec_symb,
+                nullptr,
+                nullptr
+            );
+            vec_decl.push_back(vec_begin);
+            
+            const auto vec_end = std::make_shared<TAC>(
+                TAC_VECEND,
+                vec_symb,
+                vec_size
+            );
+
+
+            if (node->get_children().size() > 1)
+            {
+                const auto &inits = node->get_children()[1];
+                for (const auto &init_val : inits->get_children())
+                {
+                        const auto init_val_tac = generate_code(init_val);
+                        const auto init_tac = std::make_shared<TAC>(
+                            TAC_VECINIT,
+                            init_val_tac,
+                            nullptr,
+                            nullptr
+                        );
+                        vec_decl.push_back(init_tac);
+                }
+            }
+            else
+            {
+                const auto zeros = std::make_shared<TAC>(
+                    TAC_VECZEROS,
+                    vec_size,
+                    nullptr,
+                    nullptr
+                );
+                vec_decl.push_back(zeros);
+            }
+
+            vec_decl.push_back(vec_end);
+            return TAC::join(vec_decl);
+        }
+    default:
+        {
+            std::vector<TACptr> child_tacs;
+            for (const auto &child : node->get_children())
+            {
+                TACptr child_tac = generate_vars(child);
+                if (child_tac)
+                {
+                    child_tacs.push_back(child_tac);
+                }
+            }
+
+            return TAC::join(child_tacs);
+        }
+
+    }
+}
 
 }
 
