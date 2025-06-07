@@ -247,77 +247,68 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_IF:
         {
-            auto cond_expr_code = generate_code(node->get_children()[0]); // Code that evaluates condition
-            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result(); // Symbol holding condition's boolean result
+            const auto condition = generate_code(node->get_children()[0]);
+            const SymbolTableEntry condition_symb = condition->get_result();
 
-            auto if_block_code = generate_code(node->get_children()[1]); // Code for the if block
-            TACptr else_block_code = (node->get_children().size() > 2) ? generate_code(node->get_children()[2]) : nullptr;
+            const auto if_block = generate_code(node->get_children()[1]);
+            const TACptr else_block = node->get_children().size() > 2 ? generate_code(node->get_children()[2]) : nullptr;
 
-            SymbolTableEntry else_label_sym = register_label();
-            SymbolTableEntry endif_label_sym = (else_block_code) ? register_label() : else_label_sym; // If no else, IFZ jumps to endif
+            const SymbolTableEntry else_label_sym = register_label();
+            const SymbolTableEntry endif_label_sym = else_block ? register_label() : else_label_sym; // If no else, IFZ jumps to endif
 
-            // TAC_IFZ Lbl, Var -> type=TAC_IFZ, result_tac (for Lbl), first_op_tac (for Var)
-            auto else_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, else_label_sym); // Wrapper for label symbol
-            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol); // Wrapper for cond var symbol
+            const auto else_label_tac_symbol = std::make_shared<TAC>(TacType::TAC_SYMBOL, else_label_sym);
+            const auto condition_var = std::make_shared<TAC>(TacType::TAC_SYMBOL, condition_symb);
 
-            auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, else_label_tac_node, cond_var_tac_node, nullptr);
+            const auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, else_label_tac_symbol, condition_var, nullptr);
 
-            auto tac_else_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, else_label_sym);
-            auto tac_endif_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, endif_label_sym);
-            
-            std::vector<TACptr> if_sequence = {cond_expr_code, tac_ifz, if_block_code};
+            const auto else_label = std::make_shared<TAC>(TacType::TAC_LABEL, else_label_sym);
+            const auto endif_label = std::make_shared<TAC>(TacType::TAC_LABEL, endif_label_sym);
 
-            if (else_block_code) {
-                auto tac_jump_to_endif = std::make_shared<TAC>(TacType::TAC_JUMP, endif_label_sym);
-                if_sequence.push_back(tac_jump_to_endif);
-                if_sequence.push_back(tac_else_label_instr);
-                if_sequence.push_back(else_block_code);
+            std::vector<TACptr> if_sequence = {condition, tac_ifz, if_block};
+
+            if (else_block) {
+                const auto endif_jump = std::make_shared<TAC>(TacType::TAC_JUMP, endif_label_sym);
+                if_sequence.push_back(endif_jump);
+                if_sequence.push_back(else_label);
+                if_sequence.push_back(else_block);
             }
-            if_sequence.push_back(tac_endif_label_instr); // endif_label is distinct if there was an else block
+            if_sequence.push_back(endif_label);
 
             return TAC::join(if_sequence);
         }
     case NodeType::NODE_WHILE:
         {
-            SymbolTableEntry cond_label_sym = register_label();
-            SymbolTableEntry end_while_label_sym = register_label();
-
-            auto tac_cond_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, cond_label_sym);
+            const SymbolTableEntry end_while_label_sym = register_label();
+            const auto end_while_symbol = std::make_shared<TAC>(TacType::TAC_SYMBOL, end_while_label_sym);
+            const auto end_while_label = std::make_shared<TAC>(TacType::TAC_LABEL, end_while_label_sym);
             
-            auto cond_expr_code = generate_code(node->get_children()[0]); // Code that evaluates condition
-            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result();
-            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol);
-
-
-            auto end_while_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, end_while_label_sym);
-            auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, end_while_label_tac_node, cond_var_tac_node, nullptr);
+            const SymbolTableEntry condition_label_sym = register_label();
+            const auto condition_label = std::make_shared<TAC>(TacType::TAC_LABEL, condition_label_sym);
+            const auto jump_to_condition = std::make_shared<TAC>(TacType::TAC_JUMP, condition_label_sym);
             
-            auto while_block_code = generate_code(node->get_children()[1]); // Code for the while block
-            auto tac_jump_to_cond = std::make_shared<TAC>(TacType::TAC_JUMP, cond_label_sym);
-            auto tac_end_while_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, end_while_label_sym);
+            const auto condition = generate_code(node->get_children()[0]);
 
-            return TAC::join(tac_cond_label_instr, cond_expr_code, tac_ifz, while_block_code, tac_jump_to_cond, tac_end_while_label_instr);
+            const auto tac_ifz = std::make_shared<TAC>(TacType::TAC_IFZ, end_while_symbol, condition, nullptr);
+            
+            const auto while_block = generate_code(node->get_children()[1]);
+
+            return TAC::join(condition_label, condition, tac_ifz, while_block, jump_to_condition, end_while_label);
         }
     case NodeType::NODE_DO_WHILE:
         {
-            SymbolTableEntry loop_start_label_sym = register_label();
-            SymbolTableEntry after_loop_label_sym = register_label();
+            const SymbolTableEntry loop_start_label_sym = register_label();
+            const SymbolTableEntry after_loop_label_sym = register_label();
 
-            auto tac_loop_start_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, loop_start_label_sym);
-            auto do_block_code = generate_code(node->get_children()[0]); // Code for the do block
-            auto cond_expr_code = generate_code(node->get_children()[1]); // Code that evaluates condition
-            SymbolTableEntry cond_var_symbol = cond_expr_code->get_result();
-            auto cond_var_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, cond_var_symbol);
+            const auto loop_start_label = std::make_shared<TAC>(TacType::TAC_LABEL, loop_start_label_sym);
+            const auto do_block = generate_code(node->get_children()[0]);
+            const auto condition = generate_code(node->get_children()[1]);
 
-            // IFZ cond_var, L_AFTER_LOOP  (if condition is false, jump out)
-            // JUMP L_START
-            // L_AFTER_LOOP:
-            auto after_loop_label_tac_node = std::make_shared<TAC>(TacType::TAC_SYMBOL, after_loop_label_sym);
-            auto tac_ifz_cond = std::make_shared<TAC>(TacType::TAC_IFZ, after_loop_label_tac_node, cond_var_tac_node, nullptr);
-            auto tac_jump_to_start = std::make_shared<TAC>(TacType::TAC_JUMP, loop_start_label_sym);
-            auto tac_after_loop_label_instr = std::make_shared<TAC>(TacType::TAC_LABEL, after_loop_label_sym);
+            const auto after_loop_symbol = std::make_shared<TAC>(TacType::TAC_SYMBOL, after_loop_label_sym);
+            const auto ifz = std::make_shared<TAC>(TacType::TAC_IFZ, after_loop_symbol, condition, nullptr);
+            const auto jump_to_start = std::make_shared<TAC>(TacType::TAC_JUMP, loop_start_label_sym);
+            const auto after_loop_label = std::make_shared<TAC>(TacType::TAC_LABEL, after_loop_label_sym);
         
-            return TAC::join({tac_loop_start_label_instr, do_block_code, cond_expr_code, tac_ifz_cond, tac_jump_to_start, tac_after_loop_label_instr});
+            return TAC::join({loop_start_label, do_block, condition, ifz, jump_to_start, after_loop_label});
         }
     case NodeType::NODE_PRINT:
         {
