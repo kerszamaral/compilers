@@ -135,14 +135,14 @@ public:
 
 typedef TAC::TACptr TACptr;
 
-TACptr make_tac_symbol(SymbolTableEntry result = nullptr);
+TACptr make_tac_symbol(const SymbolTableEntry result = nullptr);
 
-TACptr make_tac_temp(TacType type, TACptr first, TACptr second = nullptr);
+TACptr make_tac_temp(const TacType type, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(TacType type, TACptr result, TACptr first, TACptr second = nullptr);
+TACptr make_tac(const TacType type,  const TACptr result, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(TacType type, SymbolTableEntry result, TACptr first, TACptr second = nullptr);
+TACptr make_tac(const TacType type, const SymbolTableEntry result, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(TacType type, SymbolTableEntry symbol);
+TACptr make_tac(const TacType type, const SymbolTableEntry symbol);
 
 TACptr make_tac_label();
