@@ -27,8 +27,14 @@ int main(int argc, char **argv)
     if (args.size() == 1)
     {
         std::cerr << "No output file provided. ";
-        std::cerr << "Using default output file: out.txt" << std::endl;    
-        args.push_back("out.txt");
+        std::cerr << "Using default output file: out.txt" << std::endl;
+        auto output_file = args[0];
+        if (output_file.find_last_of(".") != std::string::npos)
+        {
+            output_file = output_file.substr(0, output_file.find_last_of("."));
+        }
+        output_file += ".out";
+        args.push_back(output_file);
     }
     else if (args.size() != 2)
     {
