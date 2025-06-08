@@ -385,6 +385,15 @@ TACptr TAC::generate_vars(NodePtr node)
             vec_decl.push_back(vec_end);
             return TAC::join(vec_decl);
         }
+#ifndef PARAM_ISNT_VAR_DECL
+    case NODE_PARAM_DECL:
+        {
+            const auto var = generate_code(node->get_children()[1]);
+            const auto var_begin = make_tac(TAC_VARBEGIN, var->get_result());
+            const auto var_end = make_tac(TAC_VAREND, var->get_result());
+            return TAC::join(var_begin, var_end);
+        }
+#endif
     default:
         {
             TACList child_tacs;
