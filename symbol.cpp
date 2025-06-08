@@ -411,3 +411,21 @@ bool Symbol::is_valid() const
 {
     return this->type != SYMBOL_INVALID && this->data_type != TYPE_INVALID && this->data_type != TYPE_UNINITIALIZED;
 }
+
+const SymbolTable &get_symbol_table(void)
+{
+    return symbolTable;
+}
+
+const std::vector<SymbolTableEntry> filtered_table_entries(const std::function<bool(const SymbolTableEntry &)> &filter)
+{
+    std::vector<SymbolTableEntry> result;
+    for (const auto &entry : symbolTable)
+    {
+        if (filter(entry.second))
+        {
+            result.push_back(entry.second);
+        }
+    }
+    return result;
+}
