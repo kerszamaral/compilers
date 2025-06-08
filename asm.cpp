@@ -303,6 +303,68 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    call printf@PLT\n";
                 break;
             }
+        case TacType::TAC_MOVE:
+            {
+                const auto move_to_var = tac->get_result();
+                const auto move_to_text = get_label_or_text(move_to_var);
+
+                const auto moved_var = tac->get_first_operator();
+                const auto moved_text = get_label_or_text(moved_var);
+
+                const auto move_to_type = move_to_var->get_data_type();
+
+                switch (move_to_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov eax, dword ptr [rip + " << moved_text << "]\n";
+                    asm_stream << "    mov dword ptr [rip + " << move_to_text << "], eax\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx eax, byte ptr [rip + " << moved_text << "]\n";
+                    asm_stream << "    mov byte ptr [rip + " << move_to_text << "], al\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rip + " << moved_text << "]\n";
+                    asm_stream << "    movss dword ptr [rip + " << move_to_text << "], xmm0\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for assignment operation.");
+                }
+                break;
+            }
+        case TacType::TAC_ADD:
+            {
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto first_op = tac->get_first_operator();
+                const auto first_op_text = get_label_or_text(first_op);
+                const auto second_op = tac->get_second_operator();
+                const auto second_op_text = get_label_or_text(second_op);
+
+                const auto result_type = result_var->get_data_type();
+
+                switch (result_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov eax, dword ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    add eax, dword ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    mov dword ptr [rip + " << result_text << "], eax\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    add al, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    addss xmm0, dword ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    movss dword ptr [rip + " << result_text << "], xmm0\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for addition operation.");
+                }
+                break;
+            }
         default:
             break;
         }
