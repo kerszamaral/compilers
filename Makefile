@@ -11,6 +11,13 @@ RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
 current_dir = /${shell pwd}
 
+ASM_FLAGS = -masm=intel -x c
+ASM_COMP = $(CXX)
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    ASM_FLAGS += -arch x86_64
+endif
+
 LEX = flex
 
 BISON = bison
@@ -29,6 +36,9 @@ debug: target
 
 .PHONY: target
 target: $(PROJECT)
+
+%.S: %.c
+	$(ASM_COMP) $(ASM_FLAGS) -S $< -o $@
 
 .PHONY: run
 run: $(PROJECT)
