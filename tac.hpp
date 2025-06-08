@@ -134,6 +134,16 @@ public:
 
     static TACList build_forward_links(TACptr tac);
 
+    const SymbolTableEntry get_first_operator() const
+    {
+        return this->first_operator;
+    }
+
+    const SymbolTableEntry get_second_operator() const
+    {
+        return this->second_operator;
+    }
+
 } TAC;
 
 typedef TAC::TACptr TACptr;
