@@ -304,6 +304,7 @@ std::string functions_asm(const TACList tac_list)
                 break;
             }
         case TacType::TAC_MOVE:
+        case TacType::TAC_ARG:
             {
                 const auto move_to_var = tac->get_result();
                 const auto move_to_text = get_label_or_text(move_to_var);
@@ -362,6 +363,51 @@ std::string functions_asm(const TACList tac_list)
                     break;
                 default:
                     throw std::runtime_error("Unsupported data type for addition operation.");
+                }
+                break;
+            }
+        case TacType::TAC_RET:
+            {
+                const auto ret_val = tac->get_result();
+                const auto ret_val_text = get_label_or_text(ret_val);
+                const auto ret_type = ret_val->get_data_type();
+                switch (ret_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov eax, dword ptr [rip + " << ret_val_text << "]\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx al, byte ptr [rip + " << ret_val_text << "]\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rip + " << ret_val_text << "]\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for return operation.");
+                }
+                break;
+            }
+        case TacType::TAC_CALL:
+            {
+                const auto func_name = tac->get_first_operator()->get_text();
+                asm_stream << "    call " << func_name << "\n";
+                // If the function returns a value, we need to move it to the result variable
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto result_type = result_var->get_data_type();
+                switch (result_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov dword ptr [rip + " << result_text << "], eax\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss dword ptr [rip + " << result_text << "], xmm0\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for function call result.");
                 }
                 break;
             }
@@ -454,7 +500,8 @@ std::string temporaries_asm(const SymbolTable &symbol_table)
     asm_stream << "    .bss\n"; // Uninitialized data section for temporaries
 
     const auto temp_filter = [](const SymbolTableEntry &entry) {
-        return entry->ident_type == IdentType::IDENT_VAR && entry->type == SymbolType::SYMBOL_TEMP;
+        return (entry->ident_type == IdentType::IDENT_VAR && entry->type == SymbolType::SYMBOL_TEMP)
+            || entry->ident_type == IdentType::IDENT_PARAM;
     };
 
     const auto temporaries = filtered_table_entries(symbol_table, temp_filter);
