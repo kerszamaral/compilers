@@ -11,6 +11,7 @@
 #include "parser.tab.hpp"
 #include "checkers.hpp"
 #include "tac.hpp"
+#include "asm.hpp"
 
 extern int yylex_destroy(void);
 extern FILE *yyin;
@@ -107,6 +108,23 @@ int main(int argc, char **argv)
     outfile.close();
     
     std::cerr << "Exported AST to file: " << args[1] << std::endl;
+
+    std::cerr << "Generating assembly code..." << std::endl;
+
+    const auto generated_assembly = generate_asm(tac_list, get_symbol_table());
+
+    const auto assembly_file = args[0].substr(0, args[0].find_last_of(".")) + ".S";
+    std::ofstream asmfile(assembly_file, std::ios::out);
+    if (!asmfile || !asmfile.is_open() || asmfile.bad())
+    {
+        std::cerr << "Error opening assembly file " << assembly_file << std::endl;
+        std::cerr << "Please check if the file exists and is writable." << std::endl;
+        std::exit(NO_FILE_ERROR);
+    }
+    asmfile << "## Generated Assembly -- Ian Kersz - 2025/1 \n";
+    asmfile << generated_assembly;
+    asmfile.close();
+    std::cerr << "Assembly code generated and saved to: " << assembly_file << std::endl;
 
     return result;
 }
