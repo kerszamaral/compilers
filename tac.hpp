@@ -66,19 +66,19 @@ private:
     TACptr prev;
 
 public:
-    TAC(TacType type, SymbolTableEntry result) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), next(nullptr), prev(nullptr)
+    TAC(TacType type, SymbolTableEntry result, const DataType data_type = DataType::TYPE_OTHER) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), next(nullptr), prev(nullptr)
     {
         if (!result)
         {
-            this->result = register_temp();
+            this->result = register_temp(data_type);
         }
     }
 
-    TAC(TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr) : type(type), next(nullptr), prev(nullptr)
+    TAC(TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr, const DataType data_type = DataType::TYPE_OTHER) : type(type), next(nullptr), prev(nullptr)
     {
         if (!result)
         {
-            this->result = register_temp();
+            this->result = register_temp(data_type);
         }
         else
         {
@@ -135,9 +135,9 @@ public:
 
 typedef TAC::TACptr TACptr;
 
-TACptr make_tac_symbol(const SymbolTableEntry result = nullptr);
+TACptr make_tac_symbol(const SymbolTableEntry result);
 
-TACptr make_tac_temp(const TacType type, const TACptr first, const TACptr second = nullptr);
+TACptr make_tac_temp(const TacType type, const DataType data_type, const TACptr first, const TACptr second = nullptr);
 
 TACptr make_tac(const TacType type,  const TACptr result, const TACptr first, const TACptr second = nullptr);
 

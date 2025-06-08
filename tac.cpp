@@ -154,13 +154,15 @@ TACptr TAC::generate_code(NodePtr node)
         {
             const auto first_op = generate_code(node->get_children()[0]);
             const auto second_op = generate_code(node->get_children()[1]);
-            const auto math_tac = make_tac_temp(tac_type.value(), first_op, second_op);
+            const auto result_data_type = node->check_expr_type();
+            const auto math_tac = make_tac_temp(tac_type.value(), result_data_type, first_op, second_op);
             return TAC::join(first_op, second_op, math_tac);
         }
     case NodeType::NODE_NOT:
         {
             const auto first_op = generate_code(node->get_children()[0]);
-            const auto not_tac = make_tac_temp(TacType::TAC_NOT, first_op);
+            const auto result_data_type = node->check_expr_type();
+            const auto not_tac = make_tac_temp(TacType::TAC_NOT, result_data_type, first_op);
             return TAC::join(first_op, not_tac);
         }
     case NodeType::NODE_ATRIB:
@@ -213,7 +215,8 @@ TACptr TAC::generate_code(NodePtr node)
                 call_seq_tacs.push_back(tac_arg);
             }
 
-            const auto call_tac = make_tac_temp(TAC_CALL, func_name_tac);
+            const auto func_return_type = node->check_expr_type();
+            const auto call_tac = make_tac_temp(TAC_CALL, func_return_type, func_name_tac);
 
             call_seq_tacs.push_back(call_tac);
 
@@ -301,7 +304,8 @@ TACptr TAC::generate_code(NodePtr node)
         {
             const auto symbol_tac = generate_code(node->get_children()[0]);
             const auto offset_tac = generate_code(node->get_children()[1]);
-            const auto vec_tac = make_tac_temp(TAC_VECLOAD, symbol_tac, offset_tac);
+            const auto vec_data_type = node->check_expr_type();
+            const auto vec_tac = make_tac_temp(TAC_VECLOAD, vec_data_type, symbol_tac, offset_tac);
             return TAC::join(symbol_tac, offset_tac, vec_tac);
         }
 
@@ -514,12 +518,16 @@ TACptr TAC::build_forward_links(TACptr tac) {
 
 TACptr make_tac_symbol(const SymbolTableEntry result)
 {    
-    return std::make_shared<TAC>(TAC_SYMBOL, result ? result : register_temp());
+    if (!result)
+    {
+        throw std::runtime_error("Cannot create TAC with null symbol");
+    }
+    return std::make_shared<TAC>(TAC_SYMBOL, result);
 }
 
-TACptr make_tac_temp(const TacType type, const TACptr first, const TACptr second)
+TACptr make_tac_temp(const TacType type, const DataType data_type, const TACptr first, const TACptr second)
 {
-    return std::make_shared<TAC>(type, nullptr, first, second);
+    return std::make_shared<TAC>(type, nullptr, first, second, data_type);
 }
 
 TACptr make_tac(const TacType type, const TACptr result, const TACptr first, const TACptr second)
