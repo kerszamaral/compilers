@@ -363,6 +363,8 @@ std::string ident_type_to_str(const IdentType ident_type, bool user_friendly)
             return "Variable";
         case IDENT_LIT:
             return "Literal";
+        case IDENT_PARAM:
+            return "Parameter";
         }
     }
     else
@@ -381,6 +383,8 @@ std::string ident_type_to_str(const IdentType ident_type, bool user_friendly)
             return "IDENT_VAR";
         case IDENT_LIT:
             return "IDENT_LIT";
+        case IDENT_PARAM:
+            return "IDENT_PARAM";
         }
     }
 }

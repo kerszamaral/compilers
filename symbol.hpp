@@ -45,6 +45,7 @@ enum IdentType : uint8_t
     IDENT_FUNC,
     IDENT_VECTOR,
     IDENT_VAR,
+    IDENT_PARAM,
     IDENT_LIT,
 };
 

@@ -73,7 +73,7 @@ ptrdiff_t declaration_checker(SemanticAnalyzer& analyzer, const NodeType node_ty
         set_if_unset(ident_type, IDENT_FUNC);
     case NODE_PARAM_DECL: // type: 0, symbol: 1
         set_if_unset(redec_of, "Parameter");
-        set_if_unset(ident_type, IDENT_VAR);
+        set_if_unset(ident_type, IDENT_PARAM);
         {
             const auto type = to_ast_node(children[0]);
             const auto data_type = type->kw_type();
