@@ -41,6 +41,38 @@ int get_data_type_size(const DataType data_type)
     }
 }
 
+std::string get_storage_type(const DataType data_type)
+{
+    switch (data_type)
+    {
+    case DataType::TYPE_INT:
+        return ".long";
+    case DataType::TYPE_CHAR:
+        return ".byte";
+    case DataType::TYPE_REAL:
+        return ".long";
+    default:
+        throw std::runtime_error("Unsupported data type for storage type.");
+    }
+}
+
+std::string get_label_type(const DataType data_type)
+{
+    switch (data_type)
+    {
+    case DataType::TYPE_INT:
+        return "int";
+    case DataType::TYPE_CHAR:
+        return "char";
+    case DataType::TYPE_REAL:
+        return "real";
+    case DataType::TYPE_STRING:
+        return "str";
+    default:
+        throw std::runtime_error("Unsupported data type for label type.");
+    }
+}
+
 // Function taken from https://stackoverflow.com/a/5100745
 template< typename T >
 std::string int_to_hex( T i )
@@ -131,20 +163,7 @@ std::string variables_asm(const TACList tac_list)
                 // Do not need to convert characters from ASCII
                 const auto init_value = tac->get_result();
                 // Need to determine the data type of the variable to emit the correct data type
-                switch (current_data_type)
-                {
-                case DataType::TYPE_INT:
-                    asm_stream << "    .long ";
-                    break;
-                case DataType::TYPE_CHAR:
-                    asm_stream << "    .byte ";
-                    break;
-                case DataType::TYPE_REAL:
-                    asm_stream << "    .long ";
-                    break;
-                default:
-                    throw std::runtime_error("Unsupported data type for variable initialization in assembly generation.");
-                }
+                asm_stream << "    " << get_storage_type(current_data_type) << " ";
                 asm_stream << value_representation(init_value->get_text(), current_data_type) << "\n";
                 break;
             }
@@ -195,6 +214,19 @@ std::string get_printf_label(const DataType data_type, const SymbolTableEntry sy
         }
     default:
         throw std::runtime_error("Unsupported data type for printf label.");
+    }
+}
+
+std::string get_label_or_text(const SymbolTableEntry &symbol)
+{
+    if (symbol->ident_type == IdentType::IDENT_LIT)
+    {
+        const auto text_label = std::hash<std::string>()(symbol->get_text());
+        return ".L." + get_label_type(symbol->get_data_type()) + "." + std::to_string(text_label);
+    }
+    else
+    {
+        return symbol->get_text();
     }
 }
 
@@ -274,7 +306,7 @@ std::string functions_asm(const TACList tac_list)
 }
 
 
-size_t get_processed_string_length(std::string_view s) {
+int get_processed_string_length(std::string_view s) {
     std::string_view content_view = s;
 
     // Remove leading and trailing quotes if present
@@ -284,7 +316,7 @@ size_t get_processed_string_length(std::string_view s) {
     }
 
     // Calculate length, accounting for escape sequences
-    size_t length = 0;
+    int length = 0;
     for (size_t i = 0; i < content_view.length(); ++i) {
         length++;
         if (content_view[i] == '\\' && i + 1 < content_view.length()) {
@@ -309,13 +341,24 @@ std::string literals_asm(const SymbolTable &symbol_table)
     for (const auto &entry : literals)
     {
         const auto &symbol = entry;
-        const auto text_label = std::hash<std::string>()(symbol->get_text());
+        const auto text = symbol->get_text();
+        const auto data_type = symbol->get_data_type();
+        const auto label = get_label_or_text(symbol);
+        const auto size_in_bytes = symbol->type == SymbolType::SYMBOL_STRING
+            ? get_processed_string_length(text) + 1 // +1 for null terminator
+            : get_data_type_size(data_type);
+
+        asm_stream << "\n" << label << ":\n";
         if (symbol->type == SymbolType::SYMBOL_STRING)
         {
-            asm_stream << "\n.L.str." << text_label << ":\n";
-            asm_stream << "    .asciz " << symbol->get_text() << "\n";
-            asm_stream << "    .size .L.str." << text_label << ", " << get_processed_string_length(symbol->get_text()) + 1 << "\n";
+            asm_stream << "    .asciz " << text << "\n";
         }
+        else if (symbol->type == SymbolType::SYMBOL_INT || symbol->type == SymbolType::SYMBOL_CHAR || symbol->type == SymbolType::SYMBOL_REAL)
+        {
+            asm_stream << "    " << get_storage_type(data_type) << " " << value_representation(text, data_type) << "\n";
+        }
+
+        asm_stream << "    .size " << label << ", " << size_in_bytes << "\n";
     }
 
     // return ".L.str.int";
