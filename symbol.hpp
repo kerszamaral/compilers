@@ -108,4 +108,4 @@ std::string generateSymbolTable(void);
 
 const SymbolTable &get_symbol_table(void);
 
-const std::vector<SymbolTableEntry> filtered_table_entries(const std::function<bool(const SymbolTableEntry &)> &filter);
+const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter);
