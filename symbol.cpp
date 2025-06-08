@@ -417,10 +417,10 @@ const SymbolTable &get_symbol_table(void)
     return symbolTable;
 }
 
-const std::vector<SymbolTableEntry> filtered_table_entries(const std::function<bool(const SymbolTableEntry &)> &filter)
+const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter)
 {
     std::vector<SymbolTableEntry> result;
-    for (const auto &entry : symbolTable)
+    for (const auto &entry : symbol_table)
     {
         if (filter(entry.second))
         {
