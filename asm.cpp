@@ -6,11 +6,16 @@
 
 std::string variables_asm(const TACList tac_list);
 
+std::string functions_asm(const TACList tac_list);
+
 std::string generate_asm(const TACList tac_list, const SymbolTable &symbol_table)
 {
     std::stringstream asm_stream;
     asm_stream << "\n\n## Variables\n";
     asm_stream << variables_asm(tac_list);
+
+    asm_stream << "\n\n## Functions\n";
+    asm_stream << functions_asm(tac_list);
 
     return asm_stream.str();
 }
@@ -166,3 +171,99 @@ std::string variables_asm(const TACList tac_list)
 
     return asm_stream.str();
 }
+
+std::string get_printf_label(const DataType data_type, const SymbolTableEntry symbol)
+{
+    switch (data_type)
+    {
+    case DataType::TYPE_INT:
+        return ".L.str.int";
+    case DataType::TYPE_CHAR:
+        return ".L.str.char";
+    case DataType::TYPE_REAL:
+        return ".L.str.real";
+    case DataType::TYPE_STRING:
+        {
+            const auto text_label = std::hash<std::string>()(symbol->get_text());
+            return ".L.str." + std::to_string(text_label);
+        }
+    default:
+        throw std::runtime_error("Unsupported data type for printf label.");
+    }
+}
+
+std::string functions_asm(const TACList tac_list)
+{
+    std::stringstream asm_stream;
+    asm_stream << "    .text\n";
+    asm_stream << "    .p2align 4\n";
+
+    for (const auto &tac : tac_list)
+    {
+        switch (tac->get_type())
+        {
+        case TacType::TAC_BEGINFUN:
+            {
+                const auto func_name = tac->get_result()->get_text();
+                asm_stream << "    .globl " << func_name << "\n";
+                asm_stream << func_name << ":\n";
+                if (func_name == "_main")
+                {
+                    asm_stream << "    .global main\n";
+                    asm_stream << "main:\n";
+                }
+
+                asm_stream << "    .cfi_startproc\n";
+                asm_stream << "    push rbp\n";
+                break;
+            }
+        case TacType::TAC_ENDFUN:
+            {
+                static size_t func_counter = 0;
+                const auto func_name = tac->get_result()->get_text();
+                asm_stream << "    pop rbp\n";
+                asm_stream << "    ret\n";
+                // asm_stream << ".Lfunc_end" << func_counter << ":\n";
+                // asm_stream << "    .size " << func_name << ", .Lfunc_end" << func_counter << " - " << func_name << "\n";
+                asm_stream << "    .cfi_endproc\n";
+                func_counter++;
+                break;
+            }
+        case TacType::TAC_PRINT:
+            {
+                // currently only supports printing strings
+                const auto print_var = tac->get_result();
+                const auto print_type = print_var->get_data_type();
+                switch (print_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov esi, dword ptr [rip + " << print_var->get_text() << "]\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movsx esi, byte ptr [rip + " << print_var->get_text() << "]\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rip + " << print_var->get_text() << "]\n";
+                    asm_stream << "    cvtss2sd xmm0, xmm0\n"; // Convert float to double for printf
+                    break;
+                case DataType::TYPE_STRING:
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for print operation.");
+                }
+
+                const auto label = get_printf_label(print_var->get_data_type(), print_var);
+                asm_stream << "    lea rdi, [rip + " << label << "]\n";
+
+                asm_stream << "    mov al, " << (print_type == DataType::TYPE_REAL ? '1' : '0') << "\n";
+                asm_stream << "    call printf@PLT\n";
+                break;
+            }
+        default:
+            break;
+        }
+    }
+
+    return asm_stream.str();
+}
+
