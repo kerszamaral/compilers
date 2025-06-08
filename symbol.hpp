@@ -8,6 +8,8 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <vector>
+#include <functional>
 
 #define REMOVE_LEADING_ZEROS
 
@@ -103,3 +105,7 @@ SymbolTableEntry register_temp(DataType data_type = TYPE_OTHER);
 SymbolTableEntry register_label();
 
 std::string generateSymbolTable(void);
+
+const SymbolTable &get_symbol_table(void);
+
+const std::vector<SymbolTableEntry> filtered_table_entries(const std::function<bool(const SymbolTableEntry &)> &filter);
