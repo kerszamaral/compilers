@@ -9,6 +9,7 @@ std::string variables_asm(const TACList tac_list);
 std::string generate_asm(const TACList tac_list, const SymbolTable &symbol_table)
 {
     std::stringstream asm_stream;
+    asm_stream << "\n\n## Variables\n";
     asm_stream << variables_asm(tac_list);
 
     return asm_stream.str();
@@ -71,7 +72,7 @@ std::string value_representation(const std::string &value, const DataType data_t
 std::string variables_asm(const TACList tac_list)
 {
     std::stringstream asm_stream;
-    asm_stream << ".data\n";
+    asm_stream << "    .data\n";
 
     DataType current_data_type = DataType::TYPE_INVALID;
 
