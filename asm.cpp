@@ -3,10 +3,13 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <string_view>
 
 std::string variables_asm(const TACList tac_list);
 
 std::string functions_asm(const TACList tac_list);
+
+std::string literals_asm(const SymbolTable &symbol_table);
 
 std::string generate_asm(const TACList tac_list, const SymbolTable &symbol_table)
 {
@@ -16,6 +19,9 @@ std::string generate_asm(const TACList tac_list, const SymbolTable &symbol_table
 
     asm_stream << "\n\n## Functions\n";
     asm_stream << functions_asm(tac_list);
+    
+    asm_stream << "\n\n## Literals\n";
+    asm_stream << literals_asm(symbol_table);
 
     return asm_stream.str();
 }
@@ -267,3 +273,66 @@ std::string functions_asm(const TACList tac_list)
     return asm_stream.str();
 }
 
+
+size_t get_processed_string_length(std::string_view s) {
+    std::string_view content_view = s;
+
+    // Remove leading and trailing quotes if present
+    if (content_view.length() >= 2 && content_view.front() == '"' && content_view.back() == '"') {
+        content_view.remove_prefix(1);
+        content_view.remove_suffix(1);
+    }
+
+    // Calculate length, accounting for escape sequences
+    size_t length = 0;
+    for (size_t i = 0; i < content_view.length(); ++i) {
+        length++;
+        if (content_view[i] == '\\' && i + 1 < content_view.length()) {
+            i++;
+        }
+    }
+    return length;
+}
+
+std::string literals_asm(const SymbolTable &symbol_table)
+{
+    std::stringstream asm_stream;
+    // asm_stream << ".data\n";
+    asm_stream << ".section .rodata\n"; // Read-only data section for literals
+
+    const auto literal_filter = [](const SymbolTableEntry &entry) {
+        return entry->ident_type == IdentType::IDENT_LIT;
+    };
+
+    const auto literals = filtered_table_entries(symbol_table, literal_filter);
+
+    for (const auto &entry : literals)
+    {
+        const auto &symbol = entry;
+        const auto text_label = std::hash<std::string>()(symbol->get_text());
+        if (symbol->type == SymbolType::SYMBOL_STRING)
+        {
+            asm_stream << "\n.L.str." << text_label << ":\n";
+            asm_stream << "    .asciz " << symbol->get_text() << "\n";
+            asm_stream << "    .size .L.str." << text_label << ", " << get_processed_string_length(symbol->get_text()) + 1 << "\n";
+        }
+    }
+
+    // return ".L.str.int";
+    // return ".L.str.char";
+    // return ".L.str.real";
+    // Always preload the printf strings
+    asm_stream << "\n.L.str.int:\n";
+    asm_stream << "    .asciz \"%d\"\n";
+    asm_stream << "    .size .L.str.int, 3\n";
+
+    asm_stream << "\n.L.str.char:\n";
+    asm_stream << "    .asciz \"%c\"\n";
+    asm_stream << "    .size .L.str.char, 3\n";
+
+    asm_stream << "\n.L.str.real:\n";
+    asm_stream << "    .asciz \"%f\"\n";
+    asm_stream << "    .size .L.str.real, 3\n\n";
+
+    return asm_stream.str();
+}
