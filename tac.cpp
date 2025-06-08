@@ -75,7 +75,7 @@ TACptr TAC::join(const TACptr &first, const TACptr &second)
     return second;
 }
 
-TACptr TAC::join(const std::vector<TACptr> &tac_list)
+TACptr TAC::join(const TACList &tac_list)
 {
     if (tac_list.empty())
     {
@@ -194,7 +194,7 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_FUN_CALL:
         {
-            std::vector<TACptr> call_seq_tacs;
+            TACList call_seq_tacs;
             const auto func_args = node->get_children()[1]->get_children();
             const auto func_name = to_symbol_node(node->get_children()[0]);
             const auto func_params = func_name->get_symbol()->get_node().value()->get_children();
@@ -234,7 +234,7 @@ TACptr TAC::generate_code(NodePtr node)
 
             const auto tac_ifz = make_tac(TAC_IFZ, else_label, condition);
 
-            std::vector<TACptr> if_sequence = {condition, tac_ifz, if_block};
+            TACList if_sequence = {condition, tac_ifz, if_block};
 
             if (else_block) {
                 const auto endif_jump = make_tac(TAC_JUMP, endif_label->get_result());
@@ -277,7 +277,7 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_PRINT:
         {
-            std::vector<TACptr> print_tacs;
+            TACList print_tacs;
             for (const auto &child : node->get_children())
             {
                 const auto child_tac = generate_code(child);
@@ -313,7 +313,7 @@ TACptr TAC::generate_code(NodePtr node)
     default:
         {
             // Generate code for all children
-            std::vector<TACptr> child_tacs;
+            TACList child_tacs;
             for (const auto &child : node->get_children())
             {
                 const auto child_tac = generate_code(child);
@@ -355,7 +355,7 @@ TACptr TAC::generate_vars(NodePtr node)
         }
     case NODE_VEC_DECL:
         {
-            std::vector<TACptr> vec_decl;
+            TACList vec_decl;
             const auto vec_def = node->get_children()[0];
             const auto vec_symb = generate_code(vec_def->get_children()[1]);
             const auto vec_size = generate_code(vec_def->get_children()[2]);
@@ -387,7 +387,7 @@ TACptr TAC::generate_vars(NodePtr node)
         }
     default:
         {
-            std::vector<TACptr> child_tacs;
+            TACList child_tacs;
             for (const auto &child : node->get_children())
             {
                 TACptr child_tac = generate_vars(child);
@@ -468,6 +468,11 @@ std::string TAC::tac_string(TACptr tac)
     return ss.str();
 }
 
+std::string TAC::tac_string(TACList tac_list)
+{
+    return tac_string(tac_list.empty() ? nullptr : tac_list[0]);
+}
+
 std::string TAC::tac_string_backwards(TACptr tac)
 {
     std::stringstream ss;
@@ -487,12 +492,12 @@ std::string TAC::tac_string_backwards(TACptr tac)
     return ss.str();
 }
 
-TACptr TAC::build_forward_links(TACptr tac) {
+TACList TAC::build_forward_links(TACptr tac) {
     if (!tac) {
-        return nullptr;
+        return {};
     }
 
-    std::vector<TACptr> tacs_in_execution_order;
+    TACList tacs_in_execution_order;
     TACptr current = tac;
 
     while (current) {
@@ -512,7 +517,7 @@ TACptr TAC::build_forward_links(TACptr tac) {
             tacs_in_execution_order[i]->next = nullptr; // Last TACs next is nullptr
         }
     }
-    return tacs_in_execution_order.front(); // Return the head of the list
+    return tacs_in_execution_order;
 }
 
 

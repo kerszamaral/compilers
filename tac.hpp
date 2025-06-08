@@ -56,6 +56,7 @@ typedef struct TAC
 {
 public:
     typedef std::shared_ptr<TAC> TACptr;
+    typedef std::vector<TACptr> TACList;
 
 private:
     TacType type;
@@ -106,7 +107,7 @@ public:
 
     static TACptr join(const TACptr &first, const TACptr &second);
 
-    static TACptr join(const std::vector<TACptr> &tac_list);
+    static TACptr join(const TACList &tac_list);
 
     template<typename... OtherTACs>
     static TACptr join(const OtherTACs&... others) {
@@ -127,13 +128,16 @@ public:
 
     static std::string tac_string(TACptr tac);
 
+    static std::string tac_string(TACList tac_list);
+
     static std::string tac_string_backwards(TACptr tac);
 
-    static TACptr build_forward_links(TACptr tac);
+    static TACList build_forward_links(TACptr tac);
 
 } TAC;
 
 typedef TAC::TACptr TACptr;
+typedef TAC::TACList TACList;
 
 TACptr make_tac_symbol(const SymbolTableEntry result);
 

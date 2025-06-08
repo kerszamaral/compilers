@@ -94,8 +94,8 @@ int main(int argc, char **argv)
     std::cerr << "TAC in backwards order: \n";
     std::cerr << TAC::tac_string_backwards(tac) << std::endl;
     std::cerr << "TAC in forward order: \n";
-    const auto last_tac = TAC::build_forward_links(tac);
-    std::cerr << TAC::tac_string(last_tac) << std::endl;
+    const auto tac_list = TAC::build_forward_links(tac);
+    std::cerr << TAC::tac_string(tac_list) << std::endl;
 
     std::ofstream outfile(args[1], std::ios::out);
     if (!outfile || !outfile.is_open() || outfile.bad())
