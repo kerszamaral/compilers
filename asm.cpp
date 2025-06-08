@@ -11,15 +11,21 @@ std::string functions_asm(const TACList tac_list);
 
 std::string literals_asm(const SymbolTable &symbol_table);
 
+std::string temporaries_asm(const SymbolTable &symbol_table);
+
 std::string generate_asm(const TACList tac_list, const SymbolTable &symbol_table)
 {
     std::stringstream asm_stream;
-    asm_stream << "\n\n## Variables\n";
-    asm_stream << variables_asm(tac_list);
-
+    
     asm_stream << "\n\n## Functions\n";
     asm_stream << functions_asm(tac_list);
     
+    asm_stream << "\n\n## Variables\n";
+    asm_stream << variables_asm(tac_list);
+
+    asm_stream << "\n\n## Temporary Variables\n";
+    asm_stream << temporaries_asm(symbol_table);
+
     asm_stream << "\n\n## Literals\n";
     asm_stream << literals_asm(symbol_table);
 
@@ -376,6 +382,31 @@ std::string literals_asm(const SymbolTable &symbol_table)
     asm_stream << "\n.L.str.real:\n";
     asm_stream << "    .asciz \"%f\"\n";
     asm_stream << "    .size .L.str.real, 3\n\n";
+
+    return asm_stream.str();
+}
+
+std::string temporaries_asm(const SymbolTable &symbol_table)
+{
+    std::stringstream asm_stream;
+    asm_stream << "    .bss\n"; // Uninitialized data section for temporaries
+
+    const auto temp_filter = [](const SymbolTableEntry &entry) {
+        return entry->ident_type == IdentType::IDENT_VAR && entry->type == SymbolType::SYMBOL_TEMP;
+    };
+
+    const auto temporaries = filtered_table_entries(symbol_table, temp_filter);
+
+    for (const auto &entry : temporaries)
+    {
+        const auto &symbol = entry;
+        const auto temp_name = symbol->get_text();
+        const auto temp_type = symbol->get_data_type();
+        const auto size_in_bytes = get_data_type_size(temp_type);
+        asm_stream << temp_name << ":\n";
+        asm_stream << "    " << get_storage_type(temp_type) << " 0\n"; // Initialize to zero
+        asm_stream << "    .size " << temp_name << ", " << size_in_bytes << "\n";
+    }
 
     return asm_stream.str();
 }
