@@ -236,6 +236,35 @@ std::string get_label_or_text(const SymbolTableEntry &symbol)
     }
 }
 
+std::string math_operation_on_datatype(const TacType operation, const DataType data_type)
+{
+    switch (data_type)
+    {
+    case DataType::TYPE_INT:
+    case DataType::TYPE_CHAR:
+        switch (operation)
+        {
+        case TacType::TAC_ADD: return "add";
+        case TacType::TAC_SUB: return "sub";
+        case TacType::TAC_MUL: return "imul";
+        case TacType::TAC_MOD: return "idiv";
+        case TacType::TAC_DIV: return "idiv";
+        default: throw std::runtime_error("Unsupported integer operation.");
+        }
+    case DataType::TYPE_REAL:
+        switch (operation)
+        {
+        case TacType::TAC_ADD: return "addss";
+        case TacType::TAC_SUB: return "subss";
+        case TacType::TAC_MUL: return "mulss";
+        case TacType::TAC_DIV: return "divss";
+        default: throw std::runtime_error("Unsupported real operation.");
+        }
+    default:
+        throw std::runtime_error("Unsupported data type for math operation.");
+    }
+}
+
 std::string functions_asm(const TACList tac_list)
 {
     std::stringstream asm_stream;
@@ -334,6 +363,49 @@ std::string functions_asm(const TACList tac_list)
                 break;
             }
         case TacType::TAC_ADD:
+        case TacType::TAC_SUB:
+        case TacType::TAC_MUL:
+        case TacType::TAC_DIV:
+        case TacType::TAC_MOD:
+            {
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto first_op = tac->get_first_operator();
+                const auto first_op_text = get_label_or_text(first_op);
+                const auto second_op = tac->get_second_operator();
+                const auto second_op_text = get_label_or_text(second_op);
+
+                const auto result_type = result_var->get_data_type();
+
+                const auto operation = math_operation_on_datatype(tac->get_type(), result_type);
+                switch (result_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov eax, dword ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    " << operation << " eax, dword ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    mov dword ptr [rip + " << result_text << "], ";
+                    asm_stream << (tac->get_type() != TacType::TAC_MOD ? "eax\n" : "edx\n");
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    " << operation << " al, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    mov byte ptr [rip + " << result_text << "], ";
+                    asm_stream << (tac->get_type() != TacType::TAC_MOD ? "al\n" : "dl\n");
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    " << operation << " xmm0, dword ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    movss dword ptr [rip + " << result_text << "], xmm0\n";
+                    if (tac->get_type() == TacType::TAC_MOD)
+                    {
+                        throw std::runtime_error("Real numbers do not support mod operation.");
+                    }
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for addition operation.");
+                }
+                break;
+            }
             {
                 const auto result_var = tac->get_result();
                 const auto result_text = get_label_or_text(result_var);
