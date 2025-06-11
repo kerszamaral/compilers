@@ -30,7 +30,7 @@ int main ()
   c = 7 - 1;
   c = 5;
   v[7] = 55;
-  print v[5] 7 c;
+  print v[5] 7 c "\n";
   number = 2;
 
   print "Digite um numero: \n";
@@ -41,6 +41,7 @@ int main ()
     x = x + 1;
     print ".";
     }
+  print "\n";
 
   x = 1;
   do
