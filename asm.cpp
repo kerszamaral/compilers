@@ -496,6 +496,12 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << label << ":\n";
                 break;
             }
+        case TacType::TAC_JUMP:
+            {
+                const auto jump_label = tac->get_result()->get_text();
+                asm_stream << "    jmp " << jump_label << "\n";
+                break;
+            }
         case TacType::TAC_RET:
             {
                 const auto ret_val = tac->get_result();
