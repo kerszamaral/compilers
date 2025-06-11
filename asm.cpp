@@ -507,6 +507,18 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
                 break;
             }
+        case TacType::TAC_NOT:
+            {
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto condition_var = tac->get_first_operator();
+                const auto condition_text = get_label_or_text(condition_var);
+            
+                asm_stream << "    movzx eax, byte ptr [rip + " << condition_text << "]\n";
+                asm_stream << "    xor eax, 1\n"; // The not instruction results in -1 or 0, but xor gives 1 or 0
+                asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
+                break;
+            }
         case TacType::TAC_LABEL:
             {
                 const auto label = tac->get_result()->get_text();
