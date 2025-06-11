@@ -490,6 +490,23 @@ std::string functions_asm(const TACList tac_list)
                 }
                 break;
             }
+        case TacType::TAC_AND:
+        case TacType::TAC_OR:
+            {
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto first_op = tac->get_first_operator();
+                const auto first_op_text = get_label_or_text(first_op);
+                const auto second_op = tac->get_second_operator();
+                const auto second_op_text = get_label_or_text(second_op);
+                const auto function = tac->get_type() == TacType::TAC_AND ? "and" : "or";
+
+                asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
+                asm_stream << "    movzx ebx, byte ptr [rip + " << second_op_text << "]\n";
+                asm_stream << "    " << function << " al, bl\n";
+                asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
+                break;
+            }
         case TacType::TAC_LABEL:
             {
                 const auto label = tac->get_result()->get_text();
