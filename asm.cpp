@@ -502,6 +502,17 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    jmp " << jump_label << "\n";
                 break;
             }
+        case TacType::TAC_IFZ:
+            {
+                const auto condition_var = tac->get_first_operator();
+                const auto condition_text = get_label_or_text(condition_var);
+                const auto jump_label = tac->get_result()->get_text();
+                // Conditions will always be of type bool (char)
+                asm_stream << "    movzx eax, byte ptr [rip + " << condition_text << "]\n";
+                asm_stream << "    cmp eax, 0\n";
+                asm_stream << "    je " << jump_label << "\n"; // Jump if zero
+                break;
+            }
         case TacType::TAC_RET:
             {
                 const auto ret_val = tac->get_result();
