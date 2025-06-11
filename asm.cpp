@@ -599,6 +599,51 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    call __isoc99_scanf@PLT\n";
                 break;
             }
+        case TacType::TAC_VECLOAD:
+            {
+                const auto result_var = tac->get_result();
+                const auto result_text = get_label_or_text(result_var);
+                const auto vec_var = tac->get_first_operator();
+                const auto vec_text = get_label_or_text(vec_var);
+
+                const auto index_var = tac->get_second_operator();
+                const auto index_text = get_label_or_text(index_var);
+                const auto index_type = index_var->get_data_type();
+
+                switch (index_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    movsxd rcx, dword ptr [rip + " << index_text << "]\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx rcx, byte ptr [rip + " << index_text << "]\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for vector index.");
+                }
+
+                asm_stream << "    lea rax, [rip + " << vec_text << "]\n";
+
+                const auto vec_type = vec_var->get_data_type();
+                switch (vec_type)
+                {
+                case DataType::TYPE_INT:
+                    asm_stream << "    mov eax, dword ptr [rax + rcx * " << get_data_type_size(vec_type) << "]\n";
+                    asm_stream << "    mov dword ptr [rip + " << result_text << "], eax\n";
+                    break;
+                case DataType::TYPE_CHAR:
+                    asm_stream << "    movzx eax, byte ptr [rax + rcx * " << get_data_type_size(vec_type) << "]\n";
+                    asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
+                    break;
+                case DataType::TYPE_REAL:
+                    asm_stream << "    movss xmm0, dword ptr [rax + rcx * " << get_data_type_size(vec_type) << "]\n";
+                    asm_stream << "    movss dword ptr [rip + " << result_text << "], xmm0\n";
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported data type for vector load operation.");
+                }
+                break;   
+            }
         default:
             break;
         }
