@@ -587,6 +587,18 @@ std::string functions_asm(const TACList tac_list)
                 }
                 break;
             }
+        case TacType::TAC_READ:
+            {
+                const auto read_var = tac->get_result();
+                const auto read_text = get_label_or_text(read_var);
+                const auto read_type = read_var->get_data_type();
+
+                asm_stream << "    lea rdi, [rip + " << get_printf_label(read_type, read_var) << "]\n";
+                asm_stream << "    lea rsi, [rip + " << read_text << "]\n";
+                asm_stream << "    mov al, 0\n";
+                asm_stream << "    call __isoc99_scanf@PLT\n";
+                break;
+            }
         default:
             break;
         }
