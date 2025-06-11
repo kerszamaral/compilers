@@ -490,6 +490,12 @@ std::string functions_asm(const TACList tac_list)
                 }
                 break;
             }
+        case TacType::TAC_LABEL:
+            {
+                const auto label = tac->get_result()->get_text();
+                asm_stream << label << ":\n";
+                break;
+            }
         case TacType::TAC_RET:
             {
                 const auto ret_val = tac->get_result();
