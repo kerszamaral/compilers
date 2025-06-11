@@ -39,6 +39,7 @@ int get_data_type_size(const DataType data_type)
     case DataType::TYPE_INT:
         return 4; // 4 bytes for int
     case DataType::TYPE_CHAR:
+    case DataType::TYPE_BOOL:
         return 1; // 1 byte for char
     case DataType::TYPE_REAL:
         return 4; // 4 bytes for real (float)
@@ -54,6 +55,7 @@ std::string get_storage_type(const DataType data_type)
     case DataType::TYPE_INT:
         return ".long";
     case DataType::TYPE_CHAR:
+    case DataType::TYPE_BOOL:
         return ".byte";
     case DataType::TYPE_REAL:
         return ".long";
@@ -208,6 +210,7 @@ std::string get_printf_label(const DataType data_type, const SymbolTableEntry sy
     switch (data_type)
     {
     case DataType::TYPE_INT:
+    case DataType::TYPE_BOOL:
         return ".L.str.int";
     case DataType::TYPE_CHAR:
         return ".L.str.char";
@@ -265,6 +268,44 @@ std::string math_operation_on_datatype(const TacType operation, const DataType d
     }
 }
 
+
+#include <iostream>
+
+std::string cmp_operation_on_datatype(const TacType operation, const DataType data_type)
+{
+
+    switch (data_type)
+    {
+    case DataType::TYPE_INT:
+    case DataType::TYPE_CHAR:
+        switch (operation)
+        {
+        case TacType::TAC_LT: return "setl";
+        case TacType::TAC_GT: return "setg";
+        case TacType::TAC_LE: return "setle";
+        case TacType::TAC_GE: return "setge";
+        case TacType::TAC_EQ: return "sete";
+        case TacType::TAC_DIF: return "setne";
+        default: throw std::runtime_error("Unsupported integer comparison operation.");
+        }
+        break;
+    case DataType::TYPE_REAL:
+        switch (operation)
+        {
+        case TacType::TAC_LT: return "setb"; // Below
+        case TacType::TAC_GT: return "seta"; // Above
+        case TacType::TAC_LE: return "setbe"; // Below or Equal
+        case TacType::TAC_GE: return "setae"; // Above or Equal
+        case TacType::TAC_EQ: return "sete";
+        case TacType::TAC_DIF: return "setne";
+        default: throw std::runtime_error("Unsupported real comparison operation.");
+        }
+        break;
+    default:
+        throw std::runtime_error("Unsupported data type for comparison operation.");
+    }
+}
+
 std::string functions_asm(const TACList tac_list)
 {
     std::stringstream asm_stream;
@@ -313,6 +354,7 @@ std::string functions_asm(const TACList tac_list)
                     asm_stream << "    mov esi, dword ptr [rip + " << print_var->get_text() << "]\n";
                     break;
                 case DataType::TYPE_CHAR:
+                case DataType::TYPE_BOOL:
                     asm_stream << "    movsx esi, byte ptr [rip + " << print_var->get_text() << "]\n";
                     break;
                 case DataType::TYPE_REAL:
@@ -406,35 +448,45 @@ std::string functions_asm(const TACList tac_list)
                 }
                 break;
             }
+        case TacType::TAC_LT:
+        case TacType::TAC_GT:
+        case TacType::TAC_LE:
+        case TacType::TAC_GE:
+        case TacType::TAC_EQ:
+        case TacType::TAC_DIF:
             {
                 const auto result_var = tac->get_result();
                 const auto result_text = get_label_or_text(result_var);
                 const auto first_op = tac->get_first_operator();
                 const auto first_op_text = get_label_or_text(first_op);
+                const auto first_type = first_op->get_data_type();
                 const auto second_op = tac->get_second_operator();
                 const auto second_op_text = get_label_or_text(second_op);
+                const auto second_type = second_op->get_data_type();
 
-                const auto result_type = result_var->get_data_type();
+                const auto first_load_type = first_type == DataType::TYPE_CHAR ? "byte" : "dword";
+                const auto second_load_type = second_type == DataType::TYPE_CHAR ? "byte" : "dword";
 
-                switch (result_type)
+                const auto first_op_data_type = first_op->get_data_type();
+
+                switch (first_op_data_type)
                 {
                 case DataType::TYPE_INT:
-                    asm_stream << "    mov eax, dword ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    add eax, dword ptr [rip + " << second_op_text << "]\n";
-                    asm_stream << "    mov dword ptr [rip + " << result_text << "], eax\n";
-                    break;
                 case DataType::TYPE_CHAR:
-                    asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    add al, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    mov eax, " << first_load_type <<" ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    cmp eax, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    " << cmp_operation_on_datatype(tac->get_type(), first_op_data_type) << " al\n";
+                    asm_stream << "    and al, 1\n";
                     asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
                     break;
                 case DataType::TYPE_REAL:
                     asm_stream << "    movss xmm0, dword ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    addss xmm0, dword ptr [rip + " << second_op_text << "]\n";
-                    asm_stream << "    movss dword ptr [rip + " << result_text << "], xmm0\n";
+                    asm_stream << "    ucomiss xmm0, dword ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    " << cmp_operation_on_datatype(tac->get_type(), first_op_data_type) << " al\n";
+                    asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
                     break;
                 default:
-                    throw std::runtime_error("Unsupported data type for addition operation.");
+                    throw std::runtime_error("Unsupported data type for comparison operation.");
                 }
                 break;
             }
