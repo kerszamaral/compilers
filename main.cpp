@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 #include "symbol.hpp"
 #include "ast.hpp"
@@ -125,6 +126,24 @@ int main(int argc, char **argv)
     asmfile << generated_assembly;
     asmfile.close();
     std::cerr << "Assembly code generated and saved to: " << assembly_file << std::endl;
+
+    std::cerr << "Trying to compile the assembly code..." << std::endl;
+    const std::string compiler = "g++";
+    const std::string compiler_flags = "-masm=intel -arch x86_64";
+    const std::string result_file = args[0].substr(0, args[0].find_last_of("."));
+    const std::string compile_command = compiler + " " + compiler_flags + " " + assembly_file + " -o " + result_file;
+
+    std::cerr << "Compilation command: " << compile_command << std::endl;
+    int compile_result = std::system(compile_command.c_str());
+    if (compile_result != 0)
+    {
+        std::cerr << "Compilation failed with error code: " << compile_result << std::endl;
+        std::cerr << "Please check the assembly code for errors." << std::endl;
+        std::exit(compile_result);
+    }
+    std::cerr << "Compilation command executed successfully!" << std::endl;
+    std::cerr << "Executable file created: " << result_file << std::endl;
+    std::cerr << "You can run the executable with: ./" << result_file << std::endl;
 
     return result;
 }
