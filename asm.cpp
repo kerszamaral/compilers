@@ -371,7 +371,7 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    lea rdi, [rip + " << label << "]\n";
 
                 asm_stream << "    mov al, " << (print_type == DataType::TYPE_REAL ? '1' : '0') << "\n";
-                asm_stream << "    call printf@PLT\n";
+                asm_stream << "    call printf\n";
                 break;
             }
         case TacType::TAC_MOVE:
@@ -597,7 +597,7 @@ std::string functions_asm(const TACList tac_list)
                 asm_stream << "    lea rdi, [rip + " << get_printf_label(read_type, read_var) << "]\n";
                 asm_stream << "    lea rsi, [rip + " << read_text << "]\n";
                 asm_stream << "    mov al, 0\n";
-                asm_stream << "    call __isoc99_scanf@PLT\n";
+                asm_stream << "    call scanf\n";
                 break;
             }
         case TacType::TAC_VECLOAD:
