@@ -11,12 +11,8 @@ RELEASE_FLAGS = -O2
 DEBUG_FLAGS = -g -DDEBUG
 current_dir = /${shell pwd}
 
-ASM_FLAGS = -masm=intel -x c
 ASM_COMP = $(CXX)
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    ASM_FLAGS += -arch x86_64
-endif
+ASM_FLAGS = -masm=intel -x c -arch x86_64 -Wno-unused-command-line-argument
 
 LEX = flex
 

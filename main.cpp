@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
     std::cerr << "Trying to compile the assembly code..." << std::endl;
     const std::string compiler = "g++";
-    const std::string compiler_flags = "-masm=intel -arch x86_64";
+    const std::string compiler_flags = "-masm=intel -arch x86_64 -Wno-unused-command-line-argument";
     const std::string result_file = args[0].substr(0, args[0].find_last_of("."));
     const std::string compile_command = compiler + " " + compiler_flags + " " + assembly_file + " -o " + result_file;
 
