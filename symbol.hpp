@@ -109,3 +109,7 @@ std::string generateSymbolTable(void);
 const SymbolTable &get_symbol_table(void);
 
 const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter);
+
+void erase_symbol(const Lexeme &symbol);
+
+void erase_symbol(const SymbolTableEntry &symbol);
