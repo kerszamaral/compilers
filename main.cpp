@@ -31,8 +31,8 @@ int main(int argc, char **argv)
     if (args.size() == 1)
     {
         std::cerr << "No output file provided. ";
-        std::cerr << "Using default output file: out.txt" << std::endl;
         const auto output_file = args[0].substr(0, args[0].find_last_of("."));
+        std::cerr << "Using default output file: " << output_file << std::endl;
         args.push_back(output_file);
     }
     else if (args.size() != 2)
