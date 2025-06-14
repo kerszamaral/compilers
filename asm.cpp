@@ -475,7 +475,8 @@ std::string functions_asm(const TACList tac_list)
                 case DataType::TYPE_INT:
                 case DataType::TYPE_CHAR:
                     asm_stream << "    " << mov_type << " eax, " << first_load_type <<" ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    cmp eax, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    " << mov_type << " ebx, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    cmp eax, ebx\n";
                     asm_stream << "    " << cmp_operation_on_datatype(tac->get_type(), first_op_data_type) << " al\n";
                     asm_stream << "    and al, 1\n";
                     asm_stream << "    mov byte ptr [rip + " << result_text << "], al\n";
