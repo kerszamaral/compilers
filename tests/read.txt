@@ -1,7 +1,7 @@
 
 int a = 1;
 
-byte b = 2;
+byte b = 'a';
 
 real c = 51/5;
 
