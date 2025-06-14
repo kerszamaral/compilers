@@ -148,6 +148,7 @@ vec_decl
 
 vec_def
     : var_type TK_IDENTIFIER '[' LIT_INT ']'            { $$ = make_node(NODE_VEC_DEF, {$1, make_node($2), make_node($4)}); }
+    | var_type TK_IDENTIFIER '[' error ']'              { $$ = nullptr; add_error(@4, "Error parsing vector size, are you certain it is an integer?"); }
     ;
 
 vec_init
@@ -157,8 +158,8 @@ vec_init
 
 fun_decl
     : var_type TK_IDENTIFIER '(' params ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), $4, $6}); }
-    | var_type TK_IDENTIFIER '(' error  ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), make_node(NODE_PARAM_LIST), $6});  add_error(@4, "Error parsing function parameters"); }
-    | error TK_IDENTIFIER '(' params ')' fun_body       { $$ = make_node(NODE_FUN_DECL, {make_node(NODE_KW_INT), make_node($2), $4, $6}); add_error(@1, "Error parsing function declaration, using int as return type"); }
+    | var_type TK_IDENTIFIER '(' error  ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), make_node(NODE_PARAM_LIST), $6});  add_error(@4, "Error parsing function parameters, are they correctly typed?"); }
+    | error TK_IDENTIFIER '(' params ')' fun_body       { $$ = make_node(NODE_FUN_DECL, {make_node(NODE_KW_INT), make_node($2), $4, $6}); add_error(@1, "Error parsing function return type, did you type it correctly?"); }
     ;
 
 params
@@ -187,7 +188,7 @@ cmd_block
 cmd_list
     : cmd cmd_list                                      { $2->add_child($1); $$ = $2; }
     | %empty                                            { $$ = make_node(NODE_CMD_LIST); }
-    | error ';' cmd_list                                { $$ = $3; add_error(@1, "Error parsing command list inside function"); }
+    | error ';' cmd_list                                { $$ = $3; add_error(@1, "Error parsing command inside function"); }
     ;
 
 cmd
@@ -249,15 +250,19 @@ flux_ctrl
 
 if_cmd
     : KW_IF '(' expr ')' cmd %prec then                 { $$ = make_node(NODE_IF, {$3, $5}); }
+    | KW_IF '(' error ')' cmd %prec then                { $$ = nullptr; add_error(@3, "Error parsing if condition, is the expression correct?"); }
     | KW_IF '(' expr ')' cmd KW_ELSE cmd                { $$ = make_node(NODE_IF, {$3, $5, $7}); }
+    | KW_IF '(' error ')' cmd KW_ELSE cmd               { $$ = nullptr; add_error(@3, "Error parsing if condition, is the expression correct?"); }
     ;
 
 while_cmd
     : KW_WHILE expr KW_DO cmd                           { $$ = make_node(NODE_WHILE, {$2, $4}); }
+    | KW_WHILE error KW_DO cmd                          { $$ = nullptr; add_error(@2, "Error parsing while condition, is the expression correct?"); }
     ;
 
 do_while_cmd
     : KW_DO cmd KW_WHILE expr ';'                       { $$ = make_node(NODE_DO_WHILE, {$2, $4}); }
+    | KW_DO cmd KW_WHILE error ';'                      { $$ = nullptr; add_error(@4, "Error parsing do-while condition, is the expression correct?"); }
     ;
 
 read_cmd
