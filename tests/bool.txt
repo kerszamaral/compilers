@@ -1,0 +1,22 @@
+
+int a = 51;
+int b = 61;
+
+int main()
+{
+    print "Initial: a " a " b " b "\n";
+    print "Less: " (a < b) "\n";
+    print "Greater: " (a > b) "\n";
+    print "Less or Equal: " (a <= b) "\n";
+    print "Greater or Equal: " (a >= b) "\n";
+    print "Equal: " (a == b) "\n";
+    print "Not Equal: " (a != b) "\n";
+
+    // Boolean operations
+    // Logical AND
+    print "Logical AND: " (a < b & a != b) "\n";
+    // Logical OR
+    print "Logical OR: " (a < b | a == b) "\n";
+    // Logical NOT
+    print "Logical NOT: " ~(a < b) "\n";
+}

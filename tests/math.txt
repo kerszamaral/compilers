@@ -1,0 +1,49 @@
+
+int a = 51;
+int b = 1;
+int c = 2;
+int d = 4;
+
+char ac = 51;
+char bc = 1;
+char cc = 2;
+char dc = 4;
+
+int af = 51/1;
+int bf = 1/1;
+int cf = 2/1;
+int df = 4/1;
+
+int main()
+{
+    print "Initial: " a "\n";
+    a = a + b;
+    print "iAdd: " a "\n";
+    a = a - b;
+    print "iSub: " a "\n";
+    a = a * c;
+    print "iMul: " a "\n";
+    a = a / c;
+    print "iDiv: " a "\n";
+    a = a % d;
+    print "iMod: " a "\n";
+    print "Initial: " ac "\n";
+    ac = ac + bc;
+    print "cAdd: " ac "\n";
+    ac = ac - bc;
+    print "cSub: " ac "\n";
+    ac = ac * cc;
+    print "cMul: " ac "\n";
+    ac = ac / cc;
+    print "cDiv: " ac "\n";
+    ac = ac % dc;
+    print "cMod: " ac "\n";
+    print "Initial: " af "\n";
+    af = af + bf;
+    print "fAdd: " af "\n";
+    af = af - bf;
+    print "fSub: " af "\n";
+    af = af * cf;
+    print "fMul: " af "\n";
+    af = af / cf;
+}

@@ -1,0 +1,11 @@
+
+int a = 51;
+int b = 15;
+
+int main()
+{
+    if (a > b)
+        print "Greater: \n";
+    else
+        print "Not Greater: \n";
+}

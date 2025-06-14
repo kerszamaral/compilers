@@ -1,0 +1,16 @@
+
+int a[51] = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14;
+int b = 4;
+int c = 51;
+
+int main()
+{
+    print "Before modification: a[4] " a[b] "\n";
+    a[b] = c;
+    print "After modification: a[4] " a[b] "\n";
+
+    if (a[b] > 01)
+        print "Greater than 10: \n";
+    else
+        print "Not Greater than 10: \n";
+}
