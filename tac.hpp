@@ -63,11 +63,10 @@ private:
     SymbolTableEntry result;
     SymbolTableEntry first_operator;
     SymbolTableEntry second_operator;
-    TACptr next;
     TACptr prev;
 
 public:
-    TAC(TacType type, SymbolTableEntry result, const DataType data_type = DataType::TYPE_OTHER) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), next(nullptr), prev(nullptr)
+    TAC(TacType type, SymbolTableEntry result, const DataType data_type = DataType::TYPE_OTHER) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), prev(nullptr)
     {
         if (!result)
         {
@@ -75,7 +74,7 @@ public:
         }
     }
 
-    TAC(TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr, const DataType data_type = DataType::TYPE_OTHER) : type(type), next(nullptr), prev(nullptr)
+    TAC(TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr, const DataType data_type = DataType::TYPE_OTHER) : type(type), prev(nullptr)
     {
         if (!result)
         {
@@ -125,8 +124,6 @@ public:
     TacType get_type() const { return this->type; }
 
     std::string to_string() const;
-
-    static std::string tac_string(TACptr tac);
 
     static std::string tac_string(TACList tac_list);
 

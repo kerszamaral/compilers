@@ -444,33 +444,20 @@ std::string TAC::to_string() const
         + (second_operator ? second_operator->get_text() : "null") + ")";
 }
 
-std::string TAC::tac_string(TACptr tac)
+std::string TAC::tac_string(TACList tac_list)
 {
     std::stringstream ss;
-    while (tac && tac->next)
+    for (const auto &tac : tac_list)
     {
 #ifndef SHOW_TAC_SYMBOL
         if (tac->get_type() == TAC_SYMBOL)
         {
-            tac = tac->next; // Skip symbol TACs
-            continue;
+            continue; // Skip symbol TACs
         }
 #endif
         ss << tac->to_string() << "\n";
-        tac = tac->next; // Traverse to the first TAC in the list
     }
-
-    if (tac)
-    {
-        ss << tac->to_string(); // Add the last TAC
-    }
-
     return ss.str();
-}
-
-std::string TAC::tac_string(TACList tac_list)
-{
-    return tac_string(tac_list.empty() ? nullptr : tac_list[0]);
 }
 
 std::string TAC::tac_string_backwards(TACptr tac)
@@ -510,13 +497,6 @@ TACList TAC::build_forward_links(TACptr tac) {
 
     std::reverse(tacs_in_execution_order.begin(), tacs_in_execution_order.end());
 
-    for (size_t i = 0; i < tacs_in_execution_order.size(); ++i) {
-        if (i + 1 < tacs_in_execution_order.size()) {
-            tacs_in_execution_order[i]->next = tacs_in_execution_order[i+1];
-        } else {
-            tacs_in_execution_order[i]->next = nullptr; // Last TACs next is nullptr
-        }
-    }
     return tacs_in_execution_order;
 }
 
