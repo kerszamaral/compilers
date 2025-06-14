@@ -57,20 +57,20 @@ parser.tab.o: CXXFLAGS += -Wno-sign-conversion -Wno-implicit-int-conversion
 %.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $< -c
 
-lex.yy.cpp: scanner.l parser.tab.hpp ast.hpp
+lex.yy.cpp: scanner.l parser.tab.hpp ast.hpp location.hh
 	$(LEX) -o lex.yy.cpp scanner.l 
 
 .PHONY: visualize
 visualize: BISONFLAGS = -g --html -v
 visualize: parser.tab.cpp parser.tab.hpp
 
-parser.tab.cpp parser.tab.hpp: parser.ypp ast.hpp analyzers.hpp
+parser.tab.cpp parser.tab.hpp location.hh: parser.ypp ast.hpp analyzers.hpp
 	$(BISON) -H -k $(BISONFLAGS) parser.ypp
 # -H = Generate Header file, -k = generate symbol_name function
 
 .PHONY: clean
 clean:
-	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv parser.output tests/*.out tests/*.err tests/*.S tests/*.ast $(shell find ./tests -type f  ! -name "*.?*")
+	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv parser.output *.hh tests/*.out tests/*.err tests/*.S tests/*.ast $(shell find ./tests -type f  ! -name "*.?*")
 
 # Automatically generates the .tgz file with the current directory name
 .PHONY: tgz
