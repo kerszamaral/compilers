@@ -1,8 +1,8 @@
 
-int a = 51;
-int b = 1;
-int c = 2;
-int d = 4;
+int ai = 51;
+int bi = 1;
+int ci = 2;
+int di = 4;
 
 char ac = 51;
 char bc = 1;
@@ -16,18 +16,19 @@ int df = 4/1;
 
 int main()
 {
-    print "Initial: " a "\n";
-    a = a + b;
-    print "iAdd: " a "\n";
-    a = a - b;
-    print "iSub: " a "\n";
-    a = a * c;
-    print "iMul: " a "\n";
-    a = a / c;
-    print "iDiv: " a "\n";
-    a = a % d;
-    print "iMod: " a "\n";
-    print "Initial: " ac "\n";
+    print "Initial int: " ai "\n";
+    ai = ai + bi;
+    print "iAdd: " ai "\n";
+    ai = ai - bi;
+    print "iSub: " ai "\n";
+    ai = ai * ci;
+    print "iMul: " ai "\n";
+    ai = ai / ci;
+    print "iDiv: " ai "\n";
+    ai = ai % di;
+    print "iMod: " ai "\n";
+
+    print "Initial char: " ac "\n";
     ac = ac + bc;
     print "cAdd: " ac "\n";
     ac = ac - bc;
@@ -38,7 +39,8 @@ int main()
     print "cDiv: " ac "\n";
     ac = ac % dc;
     print "cMod: " ac "\n";
-    print "Initial: " af "\n";
+
+    print "Initial Real: " af "\n";
     af = af + bf;
     print "fAdd: " af "\n";
     af = af - bf;

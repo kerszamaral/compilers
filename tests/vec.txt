@@ -3,14 +3,40 @@ int a[51] = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14;
 int b = 4;
 int c = 51;
 
+char d[5] = 'a', 'b', 'c', 'd', 'e';
+char e = 3;
+char f = 001;
+
+real g[5] = 1/1, 2/1, 3/1, 4/1, 5/1;
+real i = 05/5;
+
 int main()
 {
-    print "Before modification: a[4] " a[b] "\n";
+    print "Int Before modification: a[4] " a[b] "\n";
     a[b] = c;
-    print "After modification: a[4] " a[b] "\n";
+    print "Int After modification: a[4] " a[b] "\n";
 
     if (a[b] > 01)
-        print "Greater than 10: \n";
+        print a[b] " Greater than 10: \n";
     else
-        print "Not Greater than 10: \n";
+        print a[b] " Not Greater than 10: \n";
+
+    print "Char Before modification: d[2] " d[e] "\n";
+    d[e] = f;
+    print "Char After modification: d[2] " d[e] "\n";
+
+    if (d[e] > 'b')
+        print d[e] " Greater than 'b': \n";
+    else
+        print d[e] " Not Greater than 'b': \n";
+
+    print "Real Before modification: g[2] " g[2] "\n";
+    g[2] = i;
+    print "Real After modification: g[2] " g[2] "\n";
+    if (g[2] > 0.5)
+        print g[2] " Greater than 0.5: \n";
+    else
+        print g[2] " Not Greater than 0.5: \n";
+    print "End of test.\n";
+    return 0;
 }

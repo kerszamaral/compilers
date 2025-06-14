@@ -2,9 +2,15 @@
 int a = 51;
 int b = 61;
 
+char c = 51;
+char d = 61;
+
+real e = 51/1;
+real f = 1/1;
+
 int main()
 {
-    print "Initial: a " a " b " b "\n";
+    print "Initial Ints: a " a " b " b "\n";
     print "Less: " (a < b) "\n";
     print "Greater: " (a > b) "\n";
     print "Less or Equal: " (a <= b) "\n";
@@ -19,4 +25,35 @@ int main()
     print "Logical OR: " (a < b | a == b) "\n";
     // Logical NOT
     print "Logical NOT: " ~(a < b) "\n";
+
+    print "Initial Chars: c " c " d " d "\n";
+    print "Less: " (c < d) "\n";
+    print "Greater: " (c > d) "\n";
+    print "Less or Equal: " (c <= d) "\n";
+    print "Greater or Equal: " (c >= d) "\n";
+    print "Equal: " (c == d) "\n";
+    print "Not Equal: " (c != d) "\n";
+    // Boolean operations
+    // Logical AND
+    print "Logical AND: " (c < d & c != d) "\n";
+    // Logical OR
+    print "Logical OR: " (c < d | c == d) "\n";
+    // Logical NOT
+    print "Logical NOT: " ~(c < d) "\n";
+
+    print "Initial Reals: e " e " f " f "\n";
+    print "Less: " (e < f) "\n";
+    print "Greater: " (e > f) "\n";
+    print "Less or Equal: " (e <= f) "\n";
+    print "Greater or Equal: " (e >= f) "\n";
+    print "Equal: " (e == f) "\n";
+    print "Not Equal: " (e != f) "\n";
+    // Boolean operations
+    // Logical AND
+    print "Logical AND: " (e < f & e != f) "\n";
+    // Logical OR
+    print "Logical OR: " (e < f | e == f) "\n";
+    // Logical NOT
+    print "Logical NOT: " ~(e < f) "\n";
+    return 0;
 }
