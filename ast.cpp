@@ -511,7 +511,7 @@ DataType ASTNode::check_expr_type() const
             }
             if (left_type == right_type)
             {
-                return left_type;
+                return left_type; // TODO: if left_type == TYPE_FLOAT and node_type == NODE_MOD, return TYPE_INVALID
             }
 
             // Mixed Cases
