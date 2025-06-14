@@ -1,7 +1,4 @@
-%{
 // parser.ypp file made by Ian Kersz - 2025/1
-static constexpr auto EXIT_SYNTAX_ERROR = 3;
-%}
 
 // C++ parser
 %language "c++"
@@ -23,6 +20,7 @@ static constexpr auto EXIT_SYNTAX_ERROR = 3;
     using node = std::shared_ptr<Node>;
 
 extern node g_AST;
+extern size_t g_syntaxErrors;
 }
 
 %code {
@@ -283,5 +281,10 @@ empty_cmd
 
 void yy::parser::error(const std::string& msg) {
     std::cerr << "Syntax Error at line " << getLineNumber() << ": " << msg << std::endl;
+#ifdef EXIT_ON_SYNTAX_ERROR
+    static constexpr auto EXIT_SYNTAX_ERROR = 3;
     std::exit(EXIT_SYNTAX_ERROR);
+#else
+    g_syntaxErrors++;
+#endif
 }

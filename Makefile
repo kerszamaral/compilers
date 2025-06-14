@@ -53,7 +53,7 @@ tac.cpp: set_once.hpp
 asm.hpp: symbol.hpp tac.hpp
 
 main.o: parser.tab.hpp checkers.hpp tac.hpp
-parser.tab.o: CXXFLAGS += -Wno-sign-conversion
+parser.tab.o: CXXFLAGS += -Wno-sign-conversion -Wno-implicit-int-conversion
 %.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $< -c
 
