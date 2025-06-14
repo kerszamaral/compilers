@@ -2,52 +2,17 @@
 
 // semantic.hpp file made by Ian Kersz Amaral - 2025/1
 
-#include <cstdint>
-#include <vector>
-#include <string>
-#include <sstream>
+#include "analyzers.hpp"
+#include "ast.hpp"
 
-#include "symbol.hpp"
+SemanticAnalyzer check_declarations(NodePtr node);
 
-struct SemanticError
-{
-    LineNumber line_number;
-    std::string message;
+SemanticAnalyzer check_uses(NodePtr node);
 
-    std::string to_string() const
-    {
-        return "Error at line " + std::to_string(line_number) + ": " + message;
-    }
-};
+SemanticAnalyzer check_types(NodePtr node);
 
-class SemanticAnalyzer
-{
-private:
-    std::vector<SemanticError> errors;
+SemanticAnalyzer check_arguments(NodePtr node);
 
-public:
-    void add_error(LineNumber line_number, const std::string &message)
-    {
-        errors.push_back({line_number, message});
-    }
+SemanticAnalyzer check_return(NodePtr node);
 
-    std::string generate_error_messages() const
-    {
-        std::stringstream ss;
-        for (const auto &error : errors)
-        {
-            ss << error.to_string() << "\n";
-        }
-        return ss.str();
-    }
-
-    bool has_errors() const
-    {
-        return !errors.empty();
-    }
-
-    size_t error_count() const
-    {
-        return errors.size();
-    }
-};
+std::pair<size_t, std::string> run_semantic_analysis(NodePtr node);

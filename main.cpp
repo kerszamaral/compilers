@@ -10,7 +10,7 @@
 #include "symbol.hpp"
 #include "ast.hpp"
 #include "parser.tab.hpp"
-#include "checkers.hpp"
+#include "semantic.hpp"
 #include "tac.hpp"
 #include "asm.hpp"
 

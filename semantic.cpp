@@ -1,6 +1,6 @@
-#include "checkers.hpp"
+#include "semantic.hpp"
 
-// checkers.cpp file made by Ian Kersz Amaral - 2025/1
+// semantic.cpp file made by Ian Kersz Amaral - 2025/1
 
 #include <sstream>
 #include <iostream>
