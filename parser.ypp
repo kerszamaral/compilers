@@ -127,6 +127,8 @@ decl
 
 var_decl
     : var_type TK_IDENTIFIER '='  init_val ';'          { $$ = make_node(NODE_VAR_DECL, {$1, make_node($2), $4}); }
+    | error TK_IDENTIFIER '=' init_val ';'          { $$ = nullptr; add_error(@1, "Error parsing variable declaration, did you forget the type?"); }
+    | var_type TK_IDENTIFIER error ';'                        { $$ = nullptr; add_error(@3, "Error parsing variable declaration, did you forget the initialization value?"); }
     ;
 
 var_type
