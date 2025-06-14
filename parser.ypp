@@ -109,6 +109,7 @@ program
 decl_list
     : decl decl_list                                    { $2->add_child($1); $$ = $2; }
     | %empty                                            { $$ = make_node(NODE_PROGRAM); }
+    | error ';' decl_list                               { $$ = $3; } // Ignore the error, continue parsing the next declarations
     ;
 
 decl
@@ -176,6 +177,7 @@ cmd_block
 cmd_list
     : cmd cmd_list                                      { $2->add_child($1); $$ = $2; }
     | %empty                                            { $$ = make_node(NODE_CMD_LIST); }
+    | error ';' cmd_list                                { $$ = $3; } // Ignore the error, continue parsing the next commands
     ;
 
 cmd
