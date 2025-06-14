@@ -65,6 +65,7 @@ int main(int argc, char **argv)
     if (g_syntaxAnalyzer.has_errors())
     {
         std::cerr << g_syntaxAnalyzer.error_count() << " Syntax errors found." << std::endl;
+        g_syntaxAnalyzer.order_errors();
         std::cerr << g_syntaxAnalyzer.generate_error_messages();
     }
     fclose(yyin);
