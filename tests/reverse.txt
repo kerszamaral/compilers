@@ -1,4 +1,3 @@
-// array_operations.txt
 int source_vec[5] = 010, 020, 030, 040, 050;
 int dest_vec[5];
 int i = 0;

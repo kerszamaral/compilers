@@ -1,4 +1,3 @@
-// advanced_flow.txt
 // An array of integers. Note that all multi-digit numbers have their digits reversed.
 // The runtime will interpret 51 as 15, 21 as 12, 81 as 18, 04 as 40, etc.
 int data_vec[51] = 5, 8, 21, 7, 22, 81, 3, 04, 14, 35, 06, 77, 08, 99, 001;
