@@ -141,6 +141,19 @@ public:
         return this->second_operator;
     }
 
+    static size_t tac_size(const TACList &tac_list)
+    {
+        size_t size = 0;
+        for (const auto &tac : tac_list)
+        {
+            if (tac->get_type() != TAC_SYMBOL) // Skip symbol TACs
+            {
+                size++;
+            }
+        }
+        return size;
+    }
+
 } TAC;
 
 typedef TAC::TACptr TACptr;
