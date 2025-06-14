@@ -48,4 +48,5 @@ int main()
     af = af * cf;
     print "fMul: " af "\n";
     af = af / cf;
+    print "fDiv: " af "\n";
 }
