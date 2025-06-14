@@ -2,8 +2,8 @@
 int a = 51;
 int b = 61;
 
-char c = 51;
-char d = 61;
+byte c = 51;
+byte d = 61;
 
 real e = 51/1;
 real f = 1/1;
@@ -26,7 +26,7 @@ int main()
     // Logical NOT
     print "Logical NOT: " ~(a < b) "\n";
 
-    print "Initial Chars: c " c " d " d "\n";
+    print "Initial byte: c " c " d " d "\n";
     print "Less: " (c < d) "\n";
     print "Greater: " (c > d) "\n";
     print "Less or Equal: " (c <= d) "\n";

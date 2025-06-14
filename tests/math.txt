@@ -4,15 +4,15 @@ int bi = 1;
 int ci = 2;
 int di = 4;
 
-char ac = 51;
-char bc = 1;
-char cc = 2;
-char dc = 4;
+byte ac = 51;
+byte bc = 1;
+byte cc = 2;
+byte dc = 4;
 
-int af = 51/1;
-int bf = 1/1;
-int cf = 2/1;
-int df = 4/1;
+real af = 51/1;
+real bf = 1/1;
+real cf = 2/1;
+real df = 4/1;
 
 int main()
 {
@@ -28,7 +28,7 @@ int main()
     ai = ai % di;
     print "iMod: " ai "\n";
 
-    print "Initial char: " ac "\n";
+    print "Initial byte: " ac "\n";
     ac = ac + bc;
     print "cAdd: " ac "\n";
     ac = ac - bc;

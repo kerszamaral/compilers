@@ -1,7 +1,7 @@
 
 int a = 1;
 
-char b = 2;
+byte b = 2;
 
 real c = 51/5;
 
@@ -11,9 +11,9 @@ int main()
     read a;
     print "Int a after modification: " a "\n";
 
-    print "char b before modification: " b "\n";
+    print "byte b before modification: " b "\n";
     read b;
-    print "char b after modification: " b "\n";
+    print "byte b after modification: " b "\n";
 
     print "real (float) c before modification: " c "\n";
     read c;
