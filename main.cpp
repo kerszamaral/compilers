@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     {
         std::cerr << "No output file provided. ";
         std::cerr << "Using default output file: out.txt" << std::endl;
-        const auto output_file = args[0].substr(0, args[0].find_last_of(".")) + ".out";
+        const auto output_file = args[0].substr(0, args[0].find_last_of("."));
         args.push_back(output_file);
     }
     else if (args.size() != 2)
@@ -94,27 +94,28 @@ int main(int argc, char **argv)
     const auto tac_list = TAC::build_forward_links(tac);
     std::cerr << TAC::tac_string(tac_list) << std::endl;
 
-    std::ofstream outfile(args[1], std::ios::out);
-    if (!outfile || !outfile.is_open() || outfile.bad())
+    const auto ast_export_file = args[1] + ".ast";
+    std::ofstream ast_file(ast_export_file, std::ios::out);
+    if (!ast_file || !ast_file.is_open() || ast_file.bad())
     {
-        std::cerr << "Error opening file " << args[1] << std::endl;
+        std::cerr << "Error opening file " << ast_export_file << std::endl;
         std::cerr << "Please check if the file exists and is writable." << std::endl;
         std::exit(NO_FILE_ERROR);
     }
     if (g_AST != nullptr && result == 0)
     {
-        outfile << "// Exported AST -- Ian Kersz - 2025/1 \n";
-        outfile << g_AST->export_tree();
+        ast_file << "// Exported AST -- Ian Kersz - 2025/1 \n";
+        ast_file << g_AST->export_tree();
     }
-    outfile.close();
-    
-    std::cerr << "Exported AST to file: " << args[1] << std::endl;
+    ast_file.close();
+
+    std::cerr << "Exported AST to file: " << ast_export_file << std::endl;
 
     std::cerr << "Generating assembly code..." << std::endl;
 
     const auto generated_assembly = generate_asm(tac_list, get_symbol_table());
 
-    const auto assembly_file = args[0].substr(0, args[0].find_last_of(".")) + ".S";
+    const auto assembly_file = args[1] + ".S";
     std::ofstream asmfile(assembly_file, std::ios::out);
     if (!asmfile || !asmfile.is_open() || asmfile.bad())
     {
@@ -130,8 +131,8 @@ int main(int argc, char **argv)
     std::cerr << "Trying to compile the assembly code..." << std::endl;
     const std::string compiler = "g++";
     const std::string compiler_flags = "-masm=intel -arch x86_64 -Wno-unused-command-line-argument";
-    const std::string result_file = args[0].substr(0, args[0].find_last_of("."));
-    const std::string compile_command = compiler + " " + compiler_flags + " " + assembly_file + " -o " + result_file;
+    const std::string executable_file = args[1];
+    const std::string compile_command = compiler + " " + compiler_flags + " " + assembly_file + " -o " + executable_file;
 
     std::cerr << "Compilation command: " << compile_command << std::endl;
     int compile_result = std::system(compile_command.c_str());
@@ -142,8 +143,8 @@ int main(int argc, char **argv)
         std::exit(compile_result);
     }
     std::cerr << "Compilation command executed successfully!" << std::endl;
-    std::cerr << "Executable file created: " << result_file << std::endl;
-    std::cerr << "You can run the executable with: ./" << result_file << std::endl;
+    std::cerr << "Executable file created: " << executable_file << std::endl;
+    std::cerr << "You can run the executable with: ./" << executable_file << std::endl;
 
     return result;
 }
