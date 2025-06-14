@@ -37,6 +37,7 @@
 # Others
 .docker-build
 *.yy*
+*.hh
 etapa*
 *.pdf
 *.tab*

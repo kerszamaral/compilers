@@ -8,6 +8,10 @@
 // Use constructor for token type
 %define api.token.constructor
 
+// Location tracking
+%locations
+%lex-param { yy::parser::location_type & yylloc }
+
 %require "3.8" // Minimum version, disables generation of stack.hh file
 
 %code requires {
@@ -22,11 +26,13 @@
 
 extern node g_AST;
 extern SyntaxAnalyzer g_syntaxAnalyzer;
+#define CUSTOM_ERROR_MESSAGES
 }
 
 %code {
-    // Declaration of the yylex function from lexer, correctly typed
-    yy::parser::symbol_type yylex();
+    yy::parser::location_type yylloc; // Location for the lexer
+    yy::parser::symbol_type yylex(yy::parser::location_type& yylloc);
+    void add_error(const yy::parser::location_type & l, const std::string& msg);
 }
 
 // Removes the warning about exactly one conflict still existing
@@ -110,7 +116,7 @@ program
 decl_list
     : decl decl_list                                    { $2->add_child($1); $$ = $2; }
     | %empty                                            { $$ = make_node(NODE_PROGRAM); }
-    | error ';' decl_list                               { $$ = $3; } // Ignore the error, continue parsing the next declarations
+    | error ';' decl_list                               { $$ = $3; add_error(@1, "Error parsing declaration."); }
     ;
 
 decl
@@ -151,7 +157,8 @@ vec_init
 
 fun_decl
     : var_type TK_IDENTIFIER '(' params ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), $4, $6}); }
-    | var_type TK_IDENTIFIER '(' error  ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), make_node(NODE_PARAM_LIST), $6}); } // Ignore the error, continue parsing the function body
+    | var_type TK_IDENTIFIER '(' error  ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), make_node(NODE_PARAM_LIST), $6});  add_error(@4, "Error parsing function parameters"); }
+    | error TK_IDENTIFIER '(' params ')' fun_body       { $$ = make_node(NODE_FUN_DECL, {make_node(NODE_KW_INT), make_node($2), $4, $6}); add_error(@1, "Error parsing function declaration, using int as return type"); }
     ;
 
 params
@@ -174,13 +181,13 @@ fun_body
 
 cmd_block
     : '{' cmd_list '}'                                  { $$ = make_node(NODE_CMD_BLOCK, {$2}); }
-    | '{' error '}'                                     { $$ = make_node(NODE_CMD_BLOCK, {make_node(NODE_CMD_LIST)}); }
+    | '{' error '}'                                     { $$ = make_node(NODE_CMD_BLOCK, {make_node(NODE_CMD_LIST)}); add_error(@2, "Error parsing command block inside function"); }
     ;
 
 cmd_list
     : cmd cmd_list                                      { $2->add_child($1); $$ = $2; }
     | %empty                                            { $$ = make_node(NODE_CMD_LIST); }
-    | error ';' cmd_list                                { $$ = $3; } // Ignore the error, continue parsing the next commands
+    | error ';' cmd_list                                { $$ = $3; add_error(@1, "Error parsing command list inside function"); }
     ;
 
 cmd
@@ -284,9 +291,9 @@ empty_cmd
 
 %%
 
-void yy::parser::error([[maybe_unused]] const std::string& msg) {
+void yy::parser::error(const location_type& l, [[maybe_unused]] const std::string& msg) {
 #ifdef EXIT_ON_SYNTAX_ERROR
-    std::cerr << "Syntax Error at line " << getLineNumber() << ": " << msg << std::endl;
+    std::cerr << "Syntax Error at line " << l.begin.line << ": " << msg << std::endl;
     static constexpr auto EXIT_SYNTAX_ERROR = 3;
     std::exit(EXIT_SYNTAX_ERROR);
 #else
@@ -295,6 +302,10 @@ void yy::parser::error([[maybe_unused]] const std::string& msg) {
 #else
     const bool discard = false;
 #endif
-    g_syntaxAnalyzer.add_error(getLineNumber(), msg, discard);
+    g_syntaxAnalyzer.add_error(l.begin.line, msg, discard);
 #endif
+}
+
+void add_error(const yy::parser::location_type& l, const std::string& msg) {
+    g_syntaxAnalyzer.add_error(l.begin.line, msg);
 }
