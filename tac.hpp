@@ -141,6 +141,8 @@ public:
         return this->second_operator;
     }
 
+    static TACList optimize(TACList tac_list);
+
     static size_t tac_size(const TACList &tac_list)
     {
         size_t size = 0;
