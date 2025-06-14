@@ -150,6 +150,7 @@ vec_init
 
 fun_decl
     : var_type TK_IDENTIFIER '(' params ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), $4, $6}); }
+    | var_type TK_IDENTIFIER '(' error  ')' fun_body    { $$ = make_node(NODE_FUN_DECL, {$1, make_node($2), make_node(NODE_PARAM_LIST), $6}); } // Ignore the error, continue parsing the function body
     ;
 
 params
