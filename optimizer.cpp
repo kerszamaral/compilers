@@ -5,9 +5,13 @@
 
 TACList constant_folding(TACList tac_list);
 
+TACList constant_propagation(TACList tac_list);
+
 TACList TAC::optimize(TACList tac_list)
 {
     tac_list = constant_folding(tac_list);
+
+    tac_list = constant_propagation(tac_list);
     return tac_list;
 
 }
@@ -92,6 +96,8 @@ TACList constant_folding(TACList tac_list)
     };
 
     TACList new_tac_list;
+    new_tac_list.reserve(tac_list.size()); // Reserve space for efficiency
+
     for (const auto& tac : tac_list)
     {
         const bool is_optimizable_op = std::find(optimizable_ops.begin(), optimizable_ops.end(), tac->get_type()) != optimizable_ops.end();
@@ -152,6 +158,69 @@ TACList constant_folding(TACList tac_list)
         auto move_tac = make_tac(TAC_MOVE, tac->get_result(), source_tac);
         new_tac_list.push_back(source_tac);
         new_tac_list.push_back(move_tac);
+    }
+
+    return new_tac_list;
+}
+
+TACList constant_propagation(TACList tac_list) {
+    // A map from a temporary variable to the literal constant it holds
+    std::map<SymbolTableEntry, SymbolTableEntry> temp_to_literal_map;
+    TACList new_tac_list;
+    new_tac_list.reserve(tac_list.size()); // Reserve space for efficiency
+
+    for (const auto& tac : tac_list) {
+        // Check if this TAC redefines (writes to) a temporary that we are tracking.
+        // If so, that temporary's value is no longer constant.
+        // This shouldn't happen, but we handle it just in case we add another optimization later that might change the value of a temporary.
+        if (temp_to_literal_map.count(tac->get_result())) {
+            temp_to_literal_map.erase(tac->get_result());
+        }
+
+        // Check if this is a MOVE from a literal to a temporary. This is an opportunity.
+        if (tac->get_type() == TAC_MOVE) {
+            auto dest = tac->get_result();
+            auto source = tac->get_first_operator();
+
+            if (dest && source && dest->type == SYMBOL_TEMP && source->ident_type == IDENT_LIT) {
+                temp_to_literal_map[dest] = source;
+                // Since we will propagate this, we can eliminate the MOVE instruction itself.
+                // do NOT add this TAC to our new_tac_list.
+                continue;
+            }
+        }
+
+        // Propagate constants into the operands of the current TAC.
+        auto op1 = tac->get_first_operator();
+        auto op2 = tac->get_second_operator();
+        bool an_operand_was_changed = false;
+
+        if (op1 && temp_to_literal_map.count(op1)) {
+            op1 = temp_to_literal_map.at(op1); // Replace temp with literal
+            an_operand_was_changed = true;
+        }
+        if (op2 && temp_to_literal_map.count(op2)) {
+            op2 = temp_to_literal_map.at(op2); // Replace temp with literal
+            an_operand_was_changed = true;
+        }
+
+        // Add the modified TAC to the new list.
+        if (an_operand_was_changed) {
+            // Recreate the TAC with the new, propagated operands.
+            // We need TACs for the operands, not just symbols.
+            auto op1_tac = op1 ? make_tac_symbol(op1) : nullptr;
+            auto op2_tac = op2 ? make_tac_symbol(op2) : nullptr;
+            auto new_tac = make_tac(tac->get_type(), tac->get_result(), op1_tac, op2_tac);
+            
+            // We must also include the new operand TACs in the stream if they weren't there before
+            if (op1_tac) new_tac_list.push_back(op1_tac);
+            if (op2_tac) new_tac_list.push_back(op2_tac);
+            new_tac_list.push_back(new_tac);
+
+        } else {
+            // No changes, just add the original tac.
+            new_tac_list.push_back(tac);
+        }
     }
 
     return new_tac_list;
