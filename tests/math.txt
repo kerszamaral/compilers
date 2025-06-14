@@ -4,10 +4,10 @@ int bi = 1;
 int ci = 2;
 int di = 4;
 
-byte ac = 51;
+byte ac = '?';
 byte bc = 1;
 byte cc = 2;
-byte dc = 4;
+byte dc = 3;
 
 real af = 51/1;
 real bf = 1/1;
