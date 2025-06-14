@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     if (args.size() == 1)
     {
         std::cerr << "No output file provided. ";
-        const auto output_file = args[0].substr(0, args[0].find_last_of("."));
+        const auto output_file = args[0].substr(0, args[0].find_last_of(".")) + ".out";
         std::cerr << "Using default output file: " << output_file << std::endl;
         args.push_back(output_file);
     }
