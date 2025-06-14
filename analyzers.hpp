@@ -28,8 +28,10 @@ private:
     std::vector<Error> errors;
 
 public:
-    void add_error(LineNumber line_number, const std::string &message)
+    void add_error(LineNumber line_number, const std::string &message, const bool discard = false)
     {
+        if (discard)
+            return; // If discard is true, do not add the error
         errors.push_back({get_error_type(), line_number, message});
     }
 
