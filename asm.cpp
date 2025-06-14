@@ -205,7 +205,7 @@ std::string variables_asm(const TACList tac_list)
     return asm_stream.str();
 }
 
-std::string get_printf_label(const DataType data_type, const SymbolTableEntry symbol)
+std::string get_printf_label(const DataType data_type, const SymbolTableEntry symbol, const bool is_scanf = false)
 {
     switch (data_type)
     {
@@ -213,7 +213,7 @@ std::string get_printf_label(const DataType data_type, const SymbolTableEntry sy
     case DataType::TYPE_BOOL:
         return ".L.str.int";
     case DataType::TYPE_CHAR:
-        return ".L.str.char";
+        return is_scanf ? ".L.str.scanf_char" : ".L.str.char";
     case DataType::TYPE_REAL:
         return ".L.str.real";
     case DataType::TYPE_STRING:
@@ -596,7 +596,7 @@ std::string functions_asm(const TACList tac_list)
                 const auto read_text = get_label_or_text(read_var);
                 const auto read_type = read_var->get_data_type();
 
-                asm_stream << "    lea rdi, [rip + " << get_printf_label(read_type, read_var) << "]\n";
+                asm_stream << "    lea rdi, [rip + " << get_printf_label(read_type, read_var, true) << "]\n";
                 asm_stream << "    lea rsi, [rip + " << read_text << "]\n";
                 asm_stream << "    mov al, 0\n";
                 asm_stream << "    call scanf\n";
@@ -768,6 +768,10 @@ std::string literals_asm(const SymbolTable &symbol_table)
     asm_stream << "\n.L.str.char:\n";
     asm_stream << "    .asciz \"%c\"\n";
     asm_stream << "    .size .L.str.char, 3\n";
+
+    asm_stream << "\n.L.str.scanf_char:\n";
+    asm_stream << "    .asciz \" %c\"\n";
+    asm_stream << "    .size .L.str.scanf_char, 3\n";
 
     asm_stream << "\n.L.str.real:\n";
     asm_stream << "    .asciz \"%f\"\n";
