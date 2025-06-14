@@ -79,8 +79,8 @@ tgz:
 	tar cvzf $(PROJECT).tgz --exclude=$(PROJECT).tgz --exclude-vcs-ignores --exclude=.git . || rm $(PROJECT).tgz
 
 # Automatically invokes the command two times to check for differences
-DIFF_FILE1 = diff1.txt
-DIFF_FILE2 = diff2.txt
+DIFF_FILE1 = diff1
+DIFF_FILE2 = diff2
 DIFF_FILE ?= tests/sample.txt
 .PHONY: diff
 diff: $(DIFF_FILE) $(PROJECT)
@@ -88,8 +88,8 @@ diff: $(DIFF_FILE) $(PROJECT)
 	@echo "First run:"
 	@./$(PROJECT) $(DIFF_FILE) $(DIFF_FILE1)
 	@echo "Second run:"
-	@./$(PROJECT) $(DIFF_FILE1) $(DIFF_FILE2)
-	@if diff $(DIFF_FILE1) $(DIFF_FILE2) > /dev/null; then \
+	@./$(PROJECT) $(DIFF_FILE1).ast $(DIFF_FILE2)
+	@if diff $(DIFF_FILE1).ast $(DIFF_FILE2).ast > /dev/null; then \
 		echo "\nDifferences not found!"; \
 	else \
 		echo "\nDifferences found!!"; \
