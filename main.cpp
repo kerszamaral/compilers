@@ -126,9 +126,19 @@ int main(int argc, char **argv)
     std::cerr << TAC::tac_string(tac_list);
     std::cerr << "TAC size: " << TAC::tac_size(tac_list) << std::endl << std::endl;
 
+
+    std::cerr << "Optimizing TAC..." << std::endl;
+    const auto optimized_tac_list = TAC::optimize(tac_list);
+    std::cerr << "Optimized TAC: \n";
+    std::cerr << TAC::tac_string(optimized_tac_list);
+    std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl << std::endl;
+
     std::cerr << "Generating assembly code..." << std::endl;
 
-    const auto generated_assembly = generate_asm(tac_list, get_symbol_table());
+    constexpr auto SHOULD_OPTIMIZE = true;
+    const auto& tac_to_use = SHOULD_OPTIMIZE ? optimized_tac_list : tac_list;
+
+    const auto generated_assembly = generate_asm(tac_to_use, get_symbol_table());
 
     const auto assembly_file = args[1] + ".S";
     std::ofstream asmfile(assembly_file, std::ios::out);
