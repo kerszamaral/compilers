@@ -18,9 +18,11 @@ extern int yylex_destroy(void);
 extern FILE *yyin;
 
 node g_AST = nullptr;
+size_t g_syntaxErrors = 0;
 
 static constexpr auto WRONG_ARGS_ERROR = 1;
 static constexpr auto NO_FILE_ERROR = 2;
+static constexpr auto EXIT_SYNTAX_ERROR = 3;
 static constexpr auto SEMANTIC_ERROR = 4;
 
 int main(int argc, char **argv)
@@ -56,8 +58,12 @@ int main(int argc, char **argv)
     const auto num_lines = getLineNumber();
     if (result != 0)
     {
-        std::cerr << "Error parsing the file. Please check the syntax." << std::endl;
-        std::exit(result);
+        std::cerr << "Found unrecoverable syntax error(s) in the input file. Check syntax errors. Exiting." << std::endl;
+        std::exit(EXIT_SYNTAX_ERROR);
+    }
+    if (g_syntaxErrors < 0)
+    {
+        std::cerr << "Syntax errors found while parsing the file. Please check the syntax." << std::endl;
     }
     fclose(yyin);
     yylex_destroy();
@@ -69,16 +75,23 @@ int main(int argc, char **argv)
     }
 
     const auto [number_of_errors, error_messages] = run_semantic_analysis(g_AST);
+#ifdef SHOW_AST
     std::cerr << "Generated the AST: \n";
     std::cerr << print_tree(g_AST);
     std::cerr << "Generated Symbol Table: \n";
     std::cerr << generateSymbolTable();
+#endif
     std::cerr << "Lines: " << num_lines << std::endl;
     if (number_of_errors != 0)
     {
         std::cerr << "\n" << std::to_string(number_of_errors) << " Semantic Errors found:\n";
         std::cerr << error_messages;
         std::exit(SEMANTIC_ERROR);
+    }
+    if (g_syntaxErrors != 0)
+    {
+        std::cerr << "\n" << std::to_string(g_syntaxErrors) << " Syntax Errors found.\n";
+        std::exit(EXIT_SYNTAX_ERROR);
     }
 
     const auto tac = TAC::generate_tacs(g_AST);
@@ -102,7 +115,7 @@ int main(int argc, char **argv)
         std::cerr << "Please check if the file exists and is writable." << std::endl;
         std::exit(NO_FILE_ERROR);
     }
-    if (g_AST != nullptr && result == 0)
+    if (g_AST != nullptr)
     {
         ast_file << "// Exported AST -- Ian Kersz - 2025/1 \n";
         ast_file << g_AST->export_tree();
@@ -146,5 +159,5 @@ int main(int argc, char **argv)
     std::cerr << "Executable file created: " << executable_file << std::endl;
     std::cerr << "You can run the executable with: ./" << executable_file << std::endl;
 
-    return result;
+    return 0;
 }
