@@ -48,7 +48,12 @@ etapa*
 out.txt
 
 # Folders
-tests
+# tests
 specs
 .vscode
 asm
+
+tests/*.ast
+tests/*.S
+tests/*.err
+tests/*.out
