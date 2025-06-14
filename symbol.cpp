@@ -429,3 +429,20 @@ const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &sy
     }
     return result;
 }
+
+void erase_symbol(const Lexeme &lexeme)
+{
+    auto it = symbolTable.find(lexeme);
+    if (it != symbolTable.end())
+    {
+        symbolTable.erase(it);
+    }
+}
+
+void erase_symbol(const SymbolTableEntry &symbol)
+{
+    if (symbol)
+    {
+        erase_symbol(symbol->lexeme);
+    }
+}
