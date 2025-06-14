@@ -74,7 +74,7 @@ parser.tab.cpp parser.tab.hpp: parser.ypp ast.hpp
 
 .PHONY: clean
 clean:
-	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv parser.output
+	rm -f $(PROJECT) lex.yy.cpp *.o .docker-build $(PROJECT).tgz *.tab.* *.html *.xml *.gv parser.output test/*.out test/*.err test/*.S
 
 # Automatically generates the .tgz file with the current directory name
 .PHONY: tgz
