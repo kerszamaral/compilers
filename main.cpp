@@ -96,19 +96,6 @@ int main(int argc, char **argv)
         std::exit(EXIT_SYNTAX_ERROR);
     }
 
-    const auto tac = TAC::generate_tacs(g_AST);
-    if (tac == nullptr)
-    {
-        std::cerr << "Error generating TAC from AST." << std::endl;
-        std::exit(-1);
-    }
-    std::cerr << "Generated TAC: \n";
-    std::cerr << "TAC in backwards order: \n";
-    std::cerr << TAC::tac_string_backwards(tac) << std::endl;
-    std::cerr << "TAC in forward order: \n";
-    const auto tac_list = TAC::build_forward_links(tac);
-    std::cerr << TAC::tac_string(tac_list) << std::endl;
-
     const auto ast_export_file = args[1] + ".ast";
     std::ofstream ast_file(ast_export_file, std::ios::out);
     if (!ast_file || !ast_file.is_open() || ast_file.bad())
@@ -123,8 +110,21 @@ int main(int argc, char **argv)
         ast_file << g_AST->export_tree();
     }
     ast_file.close();
-
     std::cerr << "Exported AST to file: " << ast_export_file << std::endl;
+
+    const auto tac = TAC::generate_tacs(g_AST);
+    if (tac == nullptr)
+    {
+        std::cerr << "Error generating TAC from AST." << std::endl;
+        std::exit(-1);
+    }
+    std::cerr << "Generated TAC: \n";
+    std::cerr << "TAC in backwards order: \n";
+    std::cerr << TAC::tac_string_backwards(tac) << std::endl;
+    std::cerr << "TAC in forward order: \n";
+    const auto tac_list = TAC::build_forward_links(tac);
+    std::cerr << TAC::tac_string(tac_list);
+    std::cerr << "TAC size: " << TAC::tac_size(tac_list) << std::endl << std::endl;
 
     std::cerr << "Generating assembly code..." << std::endl;
 
