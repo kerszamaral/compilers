@@ -1,0 +1,28 @@
+// array_operations.txt
+int source_vec[5] = 010, 020, 030, 040, 050;
+int dest_vec[5];
+int i = 0;
+int temp = 0;
+
+int main() {
+    // Test 1: Copy an array
+    print "Copying array...\n";
+    while (i < 5) do {
+        dest_vec[i] = source_vec[i];
+        i = i + 1;
+    }
+
+    // Test 2: Reverse the copied array in-place
+    print "Reversing copied array...\n";
+    i = 0;
+    while (i < 2) do { // Loop half the length
+        temp = dest_vec[i];
+        dest_vec[i] = dest_vec[4 - i];
+        dest_vec[4 - i] = temp;
+        i = i + 1;
+    }
+
+    print "Reversed array: " dest_vec[0] " " dest_vec[1] " " dest_vec[2] " " dest_vec[3] " " dest_vec[4] "\n";
+    // Expected output: 50 40 30 20 10
+    return 0;
+}

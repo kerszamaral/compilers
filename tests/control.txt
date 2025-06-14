@@ -1,0 +1,50 @@
+// advanced_flow.txt
+// An array of integers. Note that all multi-digit numbers have their digits reversed.
+// The runtime will interpret 51 as 15, 21 as 12, 81 as 18, 04 as 40, etc.
+int data_vec[51] = 5, 8, 21, 7, 22, 81, 3, 04, 14, 35, 06, 77, 08, 99, 001;
+
+// --- Control Variables ---
+int idx = 0;          // Loop counter and array index.
+int found_flag = 0;   // Flag to signal when we've found our number. 0=false, 1=true.
+int found_val = 7463847412;   // Will hold the number we find. -1 means not found.
+int threshold = 01;   // We only want numbers > 10 (written as 01).
+int current_num = 0;
+
+int main() {
+    print "Searching for the first even number > " threshold "\n";
+
+    // Loop while we are within the first 10 elements (written as 01)
+    // AND we haven't found our number yet.
+    // The language uses 'while condition do' syntax.
+    while idx < 01 & found_flag == 0 do
+    {
+        current_num = data_vec[idx]; // Access an array element.
+        print "Checking index " idx ", value is " current_num ".\n";
+
+        // First condition: is the number above our threshold?
+        if (current_num > threshold)
+        {
+            // Second, nested condition: is the number even? 
+            if ((current_num % 2) == 0)
+            {
+                print "Found a match!\n";
+                found_flag = 1;      // Set the flag to terminate the loop.
+                found_val = current_num; // Store the value we found.
+            };
+        };
+
+        idx = idx + 1; // 
+    }
+
+    // After the loop, check the flag to see how it ended.
+    if (found_flag == 1)
+    {
+        print "Search successful. Found value: " found_val " at index " idx-1 ".\n";
+    }
+    else
+    {
+        print "Search ended. No matching number found within the first 10 elements.\n";
+    }
+
+    return 0; // 
+}
