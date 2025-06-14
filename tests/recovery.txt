@@ -1,0 +1,31 @@
+// test_errors.mylang
+int x = 10;
+
+// Error 1: missing '=' in declaration
+int y 20;
+int z;
+
+float f = 5/5;
+
+int a[10/10];
+
+int main() {
+    // Error 2: malformed if statement
+    if (x > ) {
+        print "hello";
+    }
+
+    y = 5; // This should be parsed correctly after recovering
+
+    // Error 3: missing semicolon
+    x = 15
+    y = 20;
+    print y; // This should also be parsed correctly
+
+    my_func(5, 10); // This should be parsed correctly after recovery
+}
+
+// Error 4: bad function declaration
+real my_func(int a, int) {
+    return 1/1;
+}
