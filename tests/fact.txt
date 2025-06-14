@@ -1,0 +1,44 @@
+
+// The recursive factorial function.
+// The manual stack to save the argument 'n' for each recursive call. Size 100.
+int arg_stack[00001];
+int sp = 0; // Stack pointer for our manual stack.
+int factorial_result = 0;
+int factorial(int n)
+{
+    arg_stack[sp] = n;
+    sp = sp + 1;
+
+    // Base Case: If n is 1, we stop.
+    if (n <= 1)
+    {
+        // We are at the bottom. Before returning, we must pop our saved argument from the stack to clean it up for the caller.
+        sp = sp - 1;
+        return 1;
+    }
+    else
+    {
+        // 1. Make the recursive call.
+        factorial_result = factorial(n - 1);
+
+        // 2. After the call returns, we MUST restore our original 'n'.
+        //    We pop it from our manual stack.
+        sp = sp - 1;
+        n = arg_stack[sp];
+
+        // 3. Perform the multiplication and return.
+        return n * factorial_result;
+    }
+}
+
+int num = 01;
+int main()
+{
+
+    print "Calculating factorial of " num "...\n";
+
+    // Call the recursive function.
+    print "The result is: " factorial(num) "\n"; // Expected: 3628800
+
+    return 0;
+}
