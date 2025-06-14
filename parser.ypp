@@ -15,12 +15,13 @@
     #include <memory>
     #include "symbol.hpp"
     #include "ast.hpp"
+    #include "analyzers.hpp"
 
     using symbol = std::shared_ptr<Symbol>;
     using node = std::shared_ptr<Node>;
 
 extern node g_AST;
-extern size_t g_syntaxErrors;
+extern SyntaxAnalyzer g_syntaxAnalyzer;
 }
 
 %code {
@@ -282,12 +283,12 @@ empty_cmd
 
 %%
 
-void yy::parser::error(const std::string& msg) {
-    std::cerr << "Syntax Error at line " << getLineNumber() << ": " << msg << std::endl;
+void yy::parser::error([[maybe_unused]] const std::string& msg) {
 #ifdef EXIT_ON_SYNTAX_ERROR
+    std::cerr << "Syntax Error at line " << getLineNumber() << ": " << msg << std::endl;
     static constexpr auto EXIT_SYNTAX_ERROR = 3;
     std::exit(EXIT_SYNTAX_ERROR);
 #else
-    g_syntaxErrors++;
+    g_syntaxAnalyzer.add_error(getLineNumber(), msg);
 #endif
 }
