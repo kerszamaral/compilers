@@ -771,8 +771,8 @@ std::string literals_asm(const SymbolTable &symbol_table)
     asm_stream << "    .size .L.str.char, 3\n";
 
     asm_stream << "\n.L.str.scanf_char:\n";
-    asm_stream << "    .asciz \" %c\"\n";
-    asm_stream << "    .size .L.str.scanf_char, 3\n";
+    asm_stream << "    .asciz \" %c\"\n"; // Space before %c to skip whitespace
+    asm_stream << "    .size .L.str.scanf_char, 4\n";
 
     asm_stream << "\n.L.str.real:\n";
     asm_stream << "    .asciz \"%f\"\n";
