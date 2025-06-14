@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "symbol.hpp"
 
@@ -53,6 +54,13 @@ public:
     size_t error_count() const
     {
         return errors.size();
+    }
+
+    void order_errors()
+    {
+        std::sort(errors.begin(), errors.end(), [](const Error &a, const Error &b) {
+            return a.line_number < b.line_number;
+        });
     }
 };
 
