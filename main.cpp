@@ -61,9 +61,9 @@ int main(int argc, char **argv)
         std::cerr << "Found unrecoverable syntax error(s) in the input file. Check syntax errors. Exiting." << std::endl;
         std::exit(EXIT_SYNTAX_ERROR);
     }
-    if (g_syntaxErrors < 0)
+    if (g_syntaxErrors > 0)
     {
-        std::cerr << "Syntax errors found while parsing the file. Please check the syntax." << std::endl;
+        std::cerr << g_syntaxErrors << " Syntax errors found." << std::endl;
     }
     fclose(yyin);
     yylex_destroy();
