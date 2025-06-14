@@ -430,7 +430,8 @@ std::string functions_asm(const TACList tac_list)
                     break;
                 case DataType::TYPE_CHAR:
                     asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    " << operation << " al, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    movzx ebx, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    " << operation << " eax, ebx\n";
                     asm_stream << "    mov byte ptr [rip + " << result_text << "], ";
                     asm_stream << (tac->get_type() != TacType::TAC_MOD ? "al\n" : "dl\n");
                     break;
