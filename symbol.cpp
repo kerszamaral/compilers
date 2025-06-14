@@ -34,7 +34,7 @@ extern "C" int yywrap(void)
     stopRunning();
     if (encounteredError.size() > 0)
     {
-        std::cerr << "\n!!Errors in the input file found in lines: ";
+        std::cerr << "Found unexpected token(s) at line(s): ";
         for (const auto &line : encounteredError)
         {
             std::cerr << line;
@@ -43,7 +43,7 @@ extern "C" int yywrap(void)
                 std::cerr << ", ";
             }
         }
-        std::cerr << "!!\n";
+        std::cerr << "\n";
     }
 
     return 1;
