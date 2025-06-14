@@ -13,12 +13,13 @@
 #include "semantic.hpp"
 #include "tac.hpp"
 #include "asm.hpp"
+#include "analyzers.hpp"
 
 extern int yylex_destroy(void);
 extern FILE *yyin;
 
 node g_AST = nullptr;
-size_t g_syntaxErrors = 0;
+SyntaxAnalyzer g_syntaxAnalyzer;
 
 static constexpr auto WRONG_ARGS_ERROR = 1;
 static constexpr auto NO_FILE_ERROR = 2;
@@ -61,9 +62,10 @@ int main(int argc, char **argv)
         std::cerr << "Found unrecoverable syntax error(s) in the input file. Check syntax errors. Exiting." << std::endl;
         std::exit(EXIT_SYNTAX_ERROR);
     }
-    if (g_syntaxErrors > 0)
+    if (g_syntaxAnalyzer.has_errors())
     {
-        std::cerr << g_syntaxErrors << " Syntax errors found." << std::endl;
+        std::cerr << g_syntaxAnalyzer.error_count() << " Syntax errors found." << std::endl;
+        std::cerr << g_syntaxAnalyzer.generate_error_messages();
     }
     fclose(yyin);
     yylex_destroy();
@@ -88,9 +90,8 @@ int main(int argc, char **argv)
         std::cerr << error_messages;
         std::exit(SEMANTIC_ERROR);
     }
-    if (g_syntaxErrors != 0)
+    if (g_syntaxAnalyzer.has_errors())
     {
-        std::cerr << "\n" << std::to_string(g_syntaxErrors) << " Syntax Errors found.\n";
         std::exit(EXIT_SYNTAX_ERROR);
     }
 

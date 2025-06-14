@@ -64,7 +64,7 @@ lex.yy.cpp: scanner.l parser.tab.hpp ast.hpp
 visualize: BISONFLAGS = -g --html -v
 visualize: parser.tab.cpp parser.tab.hpp
 
-parser.tab.cpp parser.tab.hpp: parser.ypp ast.hpp
+parser.tab.cpp parser.tab.hpp: parser.ypp ast.hpp analyzers.hpp
 	$(BISON) -H -k $(BISONFLAGS) parser.ypp
 # -H = Generate Header file, -k = generate symbol_name function
 
