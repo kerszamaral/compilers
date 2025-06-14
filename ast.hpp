@@ -9,7 +9,7 @@
 #include <functional>
 
 #include "symbol.hpp"
-#include "semantic.hpp"
+#include "analyzers.hpp"
 
 enum NodeType
 {
