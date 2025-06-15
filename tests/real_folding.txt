@@ -1,0 +1,68 @@
+real x = 0/1;
+real y = 0/1;
+
+// --- Runtime check variables ---
+real runtime_x = 0/1;
+real runtime_y = 0/1;
+real r_one_half = 1/2;
+real r_seven = 7/1;
+real r_ten_thirds = 01/3;
+real r_one_third = 1/3;
+real r_two = 2/1;
+
+int main()
+{
+    // ===================================================================
+    // Test 1: Compile-time constant folding (original test)
+    // The entire 'if' condition should be resolved by the optimizer.
+    // ===================================================================
+    if ((1/2 + 1/2) == 1/1) {
+        print "Test 1 (Compile-time): Basic real folding SUCCESS\n";
+    } else {
+        print "Test 1 (Compile-time): Basic real folding FAILED\n";
+    }
+
+    // ===================================================================
+    // Test 2 & 3: Compile-time folding with assignment
+    // The expression is folded, and the result is assigned to x.
+    // ===================================================================
+    x = (7/2 * 2/1) + 1/2;
+    if (x > 7/1) {
+        print "Test 2 (Compile-time): Mixed-type folding SUCCESS. Result: " x "\n";
+    } else {
+        print "Test 2 (Compile-time): Mixed-type folding FAILED. Result: " x "\n";
+    }
+    
+    // ===================================================================
+    // Test 4: Complex compile-time folding
+    // The entire expression is folded, and the result assigned to y.
+    // ===================================================================
+    y = ((01/3 - 1/3) * (1/3)) / (1/2);
+    print "Test 3 (Compile-time): Complex expression result: " y " (expected 2/1)\n\n";
+
+
+    // ===================================================================
+    // --- Runtime Verification Section ---
+    // Here we break the expressions to force runtime calculation and
+    // compare against the compile-time results.
+    // ===================================================================
+    print "--- Verifying results with runtime calculations ---\n";
+
+    // Runtime check for Test 2
+    runtime_x = (r_seven/r_two * 2/1) + r_one_half;
+    print "Runtime check for Test 2 result: " runtime_x "\n";
+    if(x == runtime_x) {
+        print "VERIFICATION PASSED: Compile-time and runtime results for Test 2 match.\n\n";
+    } else {
+        print "VERIFICATION FAILED: Results for Test 2 DO NOT MATCH.\n\n";
+    }
+
+    // Runtime check for Test 4
+    runtime_y = ((r_ten_thirds - r_one_third) * r_one_third) / r_one_half;
+    print "Runtime check for Test 3 result: " runtime_y "\n";
+    if(y == runtime_y) {
+        print "VERIFICATION PASSED: Compile-time and runtime results for Test 3 match.\n";
+    } else {
+        print "VERIFICATION FAILED: Results for Test 3 DO NOT MATCH.\n";
+    }
+}
