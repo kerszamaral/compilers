@@ -7,13 +7,18 @@ TACList constant_folding(TACList tac_list, SymbolTable& symbol_table);
 
 TACList constant_propagation(TACList tac_list, SymbolTable& symbol_table);
 
+SymbolTable remove_unused_symbols(const TACList& final_tacs, const SymbolTable& current_table);
+
 std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable& original_symbol_table)
 {
     auto optimized_symbol_table = original_symbol_table;
+    auto optimized_tac_list = tac_list;
 
-    auto optimized_tac_list = constant_folding(tac_list, optimized_symbol_table);
+    optimized_tac_list = constant_folding(optimized_tac_list, optimized_symbol_table);
 
     optimized_tac_list = constant_propagation(optimized_tac_list, optimized_symbol_table);
+
+    optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
 
     return {optimized_tac_list, optimized_symbol_table};
 }
@@ -226,4 +231,42 @@ TACList constant_propagation(TACList tac_list, SymbolTable& symbol_table) {
     }
 
     return new_tac_list;
+}
+
+SymbolTable remove_unused_symbols(const TACList& final_tacs, const SymbolTable& current_table)
+{
+    std::set<SymbolTableEntry> used_symbols;
+    for (const auto& tac : final_tacs) {
+        auto op1 = tac->get_first_operator();
+        if (op1) used_symbols.insert(op1);
+
+        auto op2 = tac->get_second_operator();
+        if (op2) used_symbols.insert(op2);
+
+        switch(tac->get_type()) {
+            case TAC_PRINT:
+            case TAC_RET:
+            case TAC_VECSTORE:
+                if (tac->get_result()) used_symbols.insert(tac->get_result());
+                break;
+            default:
+                break;
+        }
+    }
+
+    SymbolTable new_symbol_table;
+    for (const auto& [lexeme, symbol] : current_table)
+    {
+        // A symbol is kept if it's NOT a temporary or a literal,
+        // OR if it IS a temporary or literal, it MUST be in the 'used_symbols' set.
+        const bool is_optimizable = (symbol->type == SYMBOL_TEMP || symbol->ident_type == IDENT_LIT);
+
+        if (!is_optimizable || used_symbols.count(symbol))
+        {
+            new_symbol_table[lexeme] = symbol;
+        }
+        // Otherwise, the symbol is an unused temporary or an unused literal and is discarded.
+    }
+
+    return new_symbol_table;
 }
