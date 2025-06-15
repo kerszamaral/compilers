@@ -51,7 +51,7 @@ semantic.hpp: analyzers.hpp ast.hpp
 tac.hpp: symbol.hpp ast.hpp
 tac.cpp: set_once.hpp
 asm.hpp: symbol.hpp tac.hpp
-optimizer.cpp: tac.hpp
+optimizer.hpp: tac.hpp symbol.hpp
 
 main.o: parser.tab.hpp semantic.hpp tac.hpp analyzers.hpp
 parser.tab.o: CXXFLAGS += -Wno-sign-conversion -Wno-implicit-int-conversion

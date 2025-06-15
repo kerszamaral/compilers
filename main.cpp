@@ -14,6 +14,7 @@
 #include "tac.hpp"
 #include "asm.hpp"
 #include "analyzers.hpp"
+#include "optimizer.hpp"
 
 extern int yylex_destroy(void);
 extern FILE *yyin;
@@ -141,7 +142,8 @@ int main(int argc, char **argv)
     if (optimizations_enabled)
     {
         std::cerr << "Optimizing TAC..." << std::endl;
-        const auto [optimized_tac_list, optimized_symbol_table] = TAC::optimize(tac_list, g_symbolTable);
+        const auto [optimized_tac_list, optimized_symbol_table, optimization_log] = optimize(tac_list, g_symbolTable);
+        std::cerr << "Optimization log: \n" << optimization_log << std::endl;
         std::cerr << "Optimized TAC: \n";
         std::cerr << TAC::tac_string(optimized_tac_list);
         std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
