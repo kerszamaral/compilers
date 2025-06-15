@@ -393,6 +393,7 @@ std::string functions_asm(const TACList tac_list)
                     asm_stream << "    mov dword ptr [rip + " << move_to_text << "], eax\n";
                     break;
                 case DataType::TYPE_CHAR:
+                case DataType::TYPE_BOOL:
                     asm_stream << "    movzx eax, byte ptr [rip + " << moved_text << "]\n";
                     asm_stream << "    mov byte ptr [rip + " << move_to_text << "], al\n";
                     break;
@@ -401,7 +402,7 @@ std::string functions_asm(const TACList tac_list)
                     asm_stream << "    movss dword ptr [rip + " << move_to_text << "], xmm0\n";
                     break;
                 default:
-                    throw std::runtime_error("Unsupported data type for assignment operation.");
+                    throw std::runtime_error("Unsupported data type for assignment operation. " + tac->to_string());
                 }
                 break;
             }
