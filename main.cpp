@@ -130,7 +130,10 @@ int main(int argc, char **argv)
     const auto [optimized_tac_list, optimized_symbol_table] = TAC::optimize(tac_list, g_symbolTable);
     std::cerr << "Optimized TAC: \n";
     std::cerr << TAC::tac_string(optimized_tac_list);
-    std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl << std::endl;
+    std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
+
+    std::cerr << "Original TAC size: " << TAC::tac_size(tac_list) << " vs Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
+    std::cerr << "Reducing TAC size by " << (TAC::tac_size(tac_list) - TAC::tac_size(optimized_tac_list)) << " instructions." << std::endl << std::endl;
 
     std::cerr << "Generating assembly code..." << std::endl;
 
