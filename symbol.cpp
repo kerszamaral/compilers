@@ -402,3 +402,9 @@ const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &sy
     }
     return result;
 }
+
+size_t count_temps(const SymbolTable &symbol_table)
+{
+    return static_cast<size_t>(std::count_if(symbol_table.begin(), symbol_table.end(),
+                         [](const auto &entry) { return entry.second->type == SYMBOL_TEMP; }));
+}

@@ -103,3 +103,5 @@ SymbolTableEntry register_label(SymbolTable &symbol_table);
 std::string symbol_table_to_string(const SymbolTable &symbol_table);
 
 const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter);
+
+size_t count_temps(const SymbolTable &symbol_table);

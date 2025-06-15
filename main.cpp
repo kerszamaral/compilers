@@ -144,6 +144,8 @@ int main(int argc, char **argv)
 
     std::cerr << "Original TAC size: " << TAC::tac_size(tac_list) << " vs Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
     std::cerr << "Reducing TAC size by " << (TAC::tac_size(tac_list) - TAC::tac_size(optimized_tac_list)) << " instructions." << std::endl << std::endl;
+    std::cerr << "Original Number of Temps: " << count_temps(g_symbolTable) << " vs Optimized Number of Temps: " << count_temps(optimized_symbol_table) << std::endl;
+    std::cerr << "Reducing Temps by " << (count_temps(g_symbolTable) - count_temps(optimized_symbol_table)) << " temps." << std::endl;
 
     std::cerr << "Generating assembly code..." << std::endl;
 
