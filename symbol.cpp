@@ -12,8 +12,6 @@ bool running = true;
 
 std::vector<LineNumber> encounteredError;
 
-SymbolTable symbolTable;
-
 void stopRunning(void)
 {
     running = false;
@@ -51,7 +49,6 @@ extern "C" int yywrap(void)
 
 void initMe(void)
 {
-    symbolTable = SymbolTable();
     encounteredError.clear();
 }
 
@@ -82,7 +79,7 @@ std::pair<DataType, IdentType> symbol_to_data_type(const SymbolType symbol_type)
 }
 #pragma clang diagnostic pop
 
-SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number)
+SymbolTableEntry register_symbol(SymbolTable &symbol_table, const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number)
 {   
 
     if (symbol_type == SymbolType::SYMBOL_IDENTIFIER)
@@ -117,16 +114,16 @@ SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, Li
 
     const auto [data_type, ident_type] = symbol_to_data_type(symbol_type);
 
-    return symbolTable.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type, std::nullopt}).first->second; // We dereference the iterator to get the value as a reference
+    return symbol_table.emplace(lexeme, new Symbol{symbol_type, lexeme, line_number, data_type, ident_type, std::nullopt}).first->second; // We dereference the iterator to get the value as a reference
 }
 
-SymbolTableEntry register_temp(DataType data_type)
+SymbolTableEntry register_temp(SymbolTable &symbol_table, DataType data_type)
 {
     static size_t temp_count = 0;
 
     std::string lexeme = "temp" + std::to_string(temp_count++);
 
-    return symbolTable.emplace(
+    return symbol_table.emplace(
                           lexeme,
                           new Symbol{
                               SYMBOL_TEMP,
@@ -138,13 +135,13 @@ SymbolTableEntry register_temp(DataType data_type)
         .first->second;
 }
 
-SymbolTableEntry register_label()
+SymbolTableEntry register_label(SymbolTable &symbol_table)
 {
     static size_t label_count = 0;
 
     std::string lexeme = "label" + std::to_string(label_count++);
 
-    return symbolTable.emplace(
+    return symbol_table.emplace(
                           lexeme,
                           new Symbol{
                               SYMBOL_LABEL,
@@ -259,10 +256,10 @@ std::string Symbol::get_type() const
 }
 #pragma clang diagnostic pop
 
-std::string generateSymbolTable(void)
+std::string symbol_table_to_string(const SymbolTable &symbol_table)
 {
     std::stringstream ss;
-    for (auto &entry : symbolTable)
+    for (auto &entry : symbol_table)
     {
         ss << entry.second->to_string() << std::endl;
     }
@@ -412,11 +409,6 @@ bool Symbol::is_valid() const
     return this->type != SYMBOL_INVALID && this->data_type != TYPE_INVALID && this->data_type != TYPE_UNINITIALIZED;
 }
 
-const SymbolTable &get_symbol_table(void)
-{
-    return symbolTable;
-}
-
 const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter)
 {
     std::vector<SymbolTableEntry> result;
@@ -428,21 +420,4 @@ const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &sy
         }
     }
     return result;
-}
-
-void erase_symbol(const Lexeme &lexeme)
-{
-    auto it = symbolTable.find(lexeme);
-    if (it != symbolTable.end())
-    {
-        symbolTable.erase(it);
-    }
-}
-
-void erase_symbol(const SymbolTableEntry &symbol)
-{
-    if (symbol)
-    {
-        erase_symbol(symbol->lexeme);
-    }
 }

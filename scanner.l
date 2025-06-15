@@ -17,6 +17,8 @@ typedef yy::parser::token_type TokenType;
     yylloc.step(); \
     yylloc.columns(yyleng);
 
+extern SymbolTable g_symbolTable;
+
 %}
 
 /* Activates Automatic Line Counting */
@@ -59,12 +61,12 @@ string \"([^\n\r"]|(\\\"))*\"
 "!="                    { return yy::parser::make_OPERATOR_DIF(yylloc); }
 {special_chars}         { return yy::parser::symbol_type(yytext[0], yylloc); }
 
-{identif}               { return yy::parser::make_TK_IDENTIFIER(register_symbol(SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber()), yylloc); }
+{identif}               { return yy::parser::make_TK_IDENTIFIER(register_symbol(g_symbolTable, SymbolType::SYMBOL_IDENTIFIER, yytext, getLineNumber()), yylloc); }
 
-{real}                  { return yy::parser::make_LIT_REAL(register_symbol(SymbolType::SYMBOL_REAL, yytext, getLineNumber()), yylloc); }
-{integer}               { return yy::parser::make_LIT_INT(register_symbol(SymbolType::SYMBOL_INT, yytext, getLineNumber()), yylloc); }
-{char}                  { return yy::parser::make_LIT_CHAR(register_symbol(SymbolType::SYMBOL_CHAR, yytext, getLineNumber()), yylloc); }
-{string}                { return yy::parser::make_LIT_STRING(register_symbol(SymbolType::SYMBOL_STRING, yytext, getLineNumber()), yylloc); }
+{real}                  { return yy::parser::make_LIT_REAL(register_symbol(g_symbolTable, SymbolType::SYMBOL_REAL, yytext, getLineNumber()), yylloc); }
+{integer}               { return yy::parser::make_LIT_INT(register_symbol(g_symbolTable, SymbolType::SYMBOL_INT, yytext, getLineNumber()), yylloc); }
+{char}                  { return yy::parser::make_LIT_CHAR(register_symbol(g_symbolTable, SymbolType::SYMBOL_CHAR, yytext, getLineNumber()), yylloc); }
+{string}                { return yy::parser::make_LIT_STRING(register_symbol(g_symbolTable, SymbolType::SYMBOL_STRING, yytext, getLineNumber()), yylloc); }
 
 "\/--"                  { BEGIN(COMMENT); }
 {single_line_comment}   { }

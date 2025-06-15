@@ -20,6 +20,7 @@ extern FILE *yyin;
 
 node g_AST = nullptr;
 SyntaxAnalyzer g_syntaxAnalyzer;
+SymbolTable g_symbolTable;
 
 static constexpr auto WRONG_ARGS_ERROR = 1;
 static constexpr auto NO_FILE_ERROR = 2;
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
     std::cerr << "Generated the AST: \n";
     std::cerr << print_tree(g_AST);
     std::cerr << "Generated Symbol Table: \n";
-    std::cerr << generateSymbolTable();
+    std::cerr << symbol_table_to_string();
 #endif
     std::cerr << "Lines: " << num_lines << std::endl;
     if (number_of_errors != 0)
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
     ast_file.close();
     std::cerr << "Exported AST to file: " << ast_export_file << std::endl;
 
-    const auto tac = TAC::generate_tacs(g_AST);
+    const auto tac = TAC::generate_tacs(g_AST, g_symbolTable);
     if (tac == nullptr)
     {
         std::cerr << "Error generating TAC from AST." << std::endl;
@@ -126,9 +127,8 @@ int main(int argc, char **argv)
     std::cerr << TAC::tac_string(tac_list);
     std::cerr << "TAC size: " << TAC::tac_size(tac_list) << std::endl << std::endl;
 
-
     std::cerr << "Optimizing TAC..." << std::endl;
-    const auto optimized_tac_list = TAC::optimize(tac_list);
+    const auto [optimized_tac_list, optimized_symbol_table] = TAC::optimize(tac_list, g_symbolTable);
     std::cerr << "Optimized TAC: \n";
     std::cerr << TAC::tac_string(optimized_tac_list);
     std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl << std::endl;
@@ -137,8 +137,9 @@ int main(int argc, char **argv)
 
     constexpr auto SHOULD_OPTIMIZE = true;
     const auto& tac_to_use = SHOULD_OPTIMIZE ? optimized_tac_list : tac_list;
+    const auto& symbol_table_to_use = SHOULD_OPTIMIZE ? optimized_symbol_table : g_symbolTable;
 
-    const auto generated_assembly = generate_asm(tac_to_use, get_symbol_table());
+    const auto generated_assembly = generate_asm(tac_to_use, symbol_table_to_use);
 
     const auto assembly_file = args[1] + ".S";
     std::ofstream asmfile(assembly_file, std::ios::out);
