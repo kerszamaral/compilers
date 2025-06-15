@@ -100,16 +100,10 @@ std::string symbolName(SymbolType symbol);
 std::string data_type_to_str(const DataType data_type, bool user_friendly = false);
 std::string ident_type_to_str(const IdentType ident_type, bool user_friendly = false);
 
-SymbolTableEntry register_symbol(const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
-SymbolTableEntry register_temp(DataType data_type = TYPE_OTHER);
-SymbolTableEntry register_label();
+SymbolTableEntry register_symbol(SymbolTable &symbol_table, const SymbolType symbol_type, Lexeme lexeme, LineNumber line_number);
+SymbolTableEntry register_temp(SymbolTable &symbol_table, DataType data_type = TYPE_OTHER);
+SymbolTableEntry register_label(SymbolTable &symbol_table);
 
-std::string generateSymbolTable(void);
-
-const SymbolTable &get_symbol_table(void);
+std::string symbol_table_to_string(const SymbolTable &symbol_table);
 
 const std::vector<SymbolTableEntry> filtered_table_entries(const SymbolTable &symbol_table, const std::function<bool(const SymbolTableEntry &)> &filter);
-
-void erase_symbol(const Lexeme &symbol);
-
-void erase_symbol(const SymbolTableEntry &symbol);

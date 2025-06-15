@@ -112,7 +112,7 @@ auto zip(Container&... containers) noexcept {
     return result;
 }
 
-TACptr TAC::generate_code(NodePtr node)
+TACptr TAC::generate_code(NodePtr node, SymbolTable &symbol_table)
 {
     if (node == nullptr)
     {
@@ -124,7 +124,7 @@ TACptr TAC::generate_code(NodePtr node)
     switch (node->get_node_type())
     {
     case NodeType::NODE_SYMBOL:
-        return make_tac_symbol(to_symbol_node(node)->get_symbol());
+        return make_tac_symbol(symbol_table, to_symbol_node(node)->get_symbol());
     case NodeType::NODE_ADD:
         tac_type = TacType::TAC_ADD;
     case NodeType::NODE_SUB:
@@ -152,17 +152,17 @@ TACptr TAC::generate_code(NodePtr node)
     case NodeType::NODE_OR:
         tac_type = TacType::TAC_OR;
         {
-            const auto first_op = generate_code(node->get_children()[0]);
-            const auto second_op = generate_code(node->get_children()[1]);
+            const auto first_op = generate_code(node->get_children()[0], symbol_table);
+            const auto second_op = generate_code(node->get_children()[1], symbol_table);
             const auto result_data_type = node->check_expr_type();
-            const auto math_tac = make_tac_temp(tac_type.value(), result_data_type, first_op, second_op);
+            const auto math_tac = make_tac_temp(symbol_table, tac_type.value(), result_data_type, first_op, second_op);
             return TAC::join(first_op, second_op, math_tac);
         }
     case NodeType::NODE_NOT:
         {
-            const auto first_op = generate_code(node->get_children()[0]);
+            const auto first_op = generate_code(node->get_children()[0], symbol_table);
             const auto result_data_type = node->check_expr_type();
-            const auto not_tac = make_tac_temp(TacType::TAC_NOT, result_data_type, first_op);
+            const auto not_tac = make_tac_temp(symbol_table, TacType::TAC_NOT, result_data_type, first_op);
             return TAC::join(first_op, not_tac);
         }
     case NodeType::NODE_ATRIB:
@@ -172,23 +172,23 @@ TACptr TAC::generate_code(NodePtr node)
             const auto &move = is_vec ? maybe_vec : node;
             const auto tac_should_be = is_vec ? TAC_VECSTORE : TAC_MOVE;
 
-            const auto move_to = generate_code(move->get_children()[0]);
-            const auto offset = is_vec ? generate_code(move->get_children()[1]) : nullptr;
+            const auto move_to = generate_code(move->get_children()[0], symbol_table);
+            const auto offset = is_vec ? generate_code(move->get_children()[1], symbol_table) : nullptr;
 
-            const auto moved_from = generate_code(node->get_children()[1]);
-            const auto move_tac = make_tac(tac_should_be, move_to, moved_from, offset);
+            const auto moved_from = generate_code(node->get_children()[1], symbol_table);
+            const auto move_tac = make_tac(symbol_table, tac_should_be, move_to, moved_from, offset);
 
             return TAC::join(move_to, moved_from, offset, move_tac);
         }
     case NodeType::NODE_FUN_DECL:
         {
             const auto func_name = to_symbol_node(node->get_children()[1])->get_symbol();
-            
-            const auto begin_func_tac = make_tac(TAC_BEGINFUN, func_name);
 
-            const auto func_body = generate_code(node->get_children()[3]);
+            const auto begin_func_tac = make_tac(symbol_table, TAC_BEGINFUN, func_name);
 
-            const auto end_func_tac = make_tac(TAC_ENDFUN, func_name);
+            const auto func_body = generate_code(node->get_children()[3], symbol_table);
+
+            const auto end_func_tac = make_tac(symbol_table, TAC_ENDFUN, func_name);
 
             return TAC::join(begin_func_tac, func_body, end_func_tac);
         }
@@ -199,24 +199,24 @@ TACptr TAC::generate_code(NodePtr node)
             const auto func_name = to_symbol_node(node->get_children()[0]);
             const auto func_params = func_name->get_symbol()->get_node().value()->get_children();
 
-            const auto func_name_tac = generate_code(func_name);
+            const auto func_name_tac = generate_code(func_name, symbol_table);
 
             // call_seq_tacs.push_back(func_name_tac);
 
             for (const auto &[param, arg] : zip(func_params, func_args))
             {
-                const auto param_tac = generate_code(param);
+                const auto param_tac = generate_code(param, symbol_table);
                 call_seq_tacs.push_back(param_tac);
 
-                const auto arg_tac = generate_code(arg);
+                const auto arg_tac = generate_code(arg, symbol_table);
                 call_seq_tacs.push_back(arg_tac);
 
-                const auto tac_arg = make_tac(TAC_ARG, param_tac, arg_tac);
+                const auto tac_arg = make_tac(symbol_table, TAC_ARG, param_tac, arg_tac);
                 call_seq_tacs.push_back(tac_arg);
             }
 
             const auto func_return_type = node->check_expr_type();
-            const auto call_tac = make_tac_temp(TAC_CALL, func_return_type, func_name_tac);
+            const auto call_tac = make_tac_temp(symbol_table, TAC_CALL, func_return_type, func_name_tac);
 
             call_seq_tacs.push_back(call_tac);
 
@@ -224,20 +224,20 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_IF:
         {
-            const auto condition = generate_code(node->get_children()[0]);
+            const auto condition = generate_code(node->get_children()[0], symbol_table);
 
-            const auto if_block = generate_code(node->get_children()[1]);
-            const auto else_block = node->get_children().size() > 2 ? generate_code(node->get_children()[2]) : nullptr;
+            const auto if_block = generate_code(node->get_children()[1], symbol_table);
+            const auto else_block = node->get_children().size() > 2 ? generate_code(node->get_children()[2], symbol_table) : nullptr;
 
-            const auto else_label = make_tac_label();
-            const auto endif_label = else_block ? make_tac_label() : else_label; // If no else, IFZ jumps to endif
+            const auto else_label = make_tac_label(symbol_table);
+            const auto endif_label = else_block ? make_tac_label(symbol_table) : else_label; // If no else, IFZ jumps to endif
 
-            const auto tac_ifz = make_tac(TAC_IFZ, else_label, condition);
+            const auto tac_ifz = make_tac(symbol_table, TAC_IFZ, else_label, condition);
 
             TACList if_sequence = {condition, tac_ifz, if_block};
 
             if (else_block) {
-                const auto endif_jump = make_tac(TAC_JUMP, endif_label->get_result());
+                const auto endif_jump = make_tac(symbol_table, TAC_JUMP, endif_label->get_result());
                 if_sequence.push_back(endif_jump);
                 if_sequence.push_back(else_label);
                 if_sequence.push_back(else_block);
@@ -248,30 +248,30 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_WHILE:
         {
-            const auto end_while_label = make_tac_label();
+            const auto end_while_label = make_tac_label(symbol_table);
 
-            const auto condition_label = make_tac_label();
-            const auto jump_to_condition = make_tac(TAC_JUMP, condition_label->get_result());
+            const auto condition_label = make_tac_label(symbol_table);
+            const auto jump_to_condition = make_tac(symbol_table, TAC_JUMP, condition_label->get_result());
 
-            const auto condition = generate_code(node->get_children()[0]);
+            const auto condition = generate_code(node->get_children()[0], symbol_table);
 
-            const auto tac_ifz = make_tac(TAC_IFZ, end_while_label->get_result(), condition);
+            const auto tac_ifz = make_tac(symbol_table, TAC_IFZ, end_while_label->get_result(), condition);
 
-            const auto while_block = generate_code(node->get_children()[1]);
+            const auto while_block = generate_code(node->get_children()[1], symbol_table);
 
             return TAC::join(condition_label, condition, tac_ifz, while_block, jump_to_condition, end_while_label);
         }
     case NodeType::NODE_DO_WHILE:
         {
-            const auto loop_start_label = make_tac_label();
-            const auto after_loop_label = make_tac_label();
+            const auto loop_start_label = make_tac_label(symbol_table);
+            const auto after_loop_label = make_tac_label(symbol_table);
 
-            const auto do_block = generate_code(node->get_children()[0]);
-            const auto condition = generate_code(node->get_children()[1]);
+            const auto do_block = generate_code(node->get_children()[0], symbol_table);
+            const auto condition = generate_code(node->get_children()[1], symbol_table);
 
-            const auto ifz = make_tac(TAC_IFZ, after_loop_label->get_result(), condition);
-            
-            const auto jump_to_start = make_tac(TAC_JUMP, loop_start_label->get_result());
+            const auto ifz = make_tac(symbol_table, TAC_IFZ, after_loop_label->get_result(), condition);
+
+            const auto jump_to_start = make_tac(symbol_table, TAC_JUMP, loop_start_label->get_result());
 
             return TAC::join(loop_start_label, do_block, condition, ifz, jump_to_start, after_loop_label);
         }
@@ -280,9 +280,9 @@ TACptr TAC::generate_code(NodePtr node)
             TACList print_tacs;
             for (const auto &child : node->get_children())
             {
-                const auto child_tac = generate_code(child);
+                const auto child_tac = generate_code(child, symbol_table);
                 print_tacs.push_back(child_tac);
-                const auto print_tac = make_tac(TAC_PRINT, child_tac->get_result());
+                const auto print_tac = make_tac(symbol_table, TAC_PRINT, child_tac->get_result());
                 print_tacs.push_back(print_tac);
             }
 
@@ -290,22 +290,22 @@ TACptr TAC::generate_code(NodePtr node)
         }
     case NodeType::NODE_READ:
         {
-            const auto dest_var_symbol = generate_code(node->get_children()[0]);
-            const auto read_tac = make_tac(TAC_READ, dest_var_symbol->get_result());
+            const auto dest_var_symbol = generate_code(node->get_children()[0], symbol_table);
+            const auto read_tac = make_tac(symbol_table, TAC_READ, dest_var_symbol->get_result());
             return TAC::join(dest_var_symbol, read_tac);
         }
     case NodeType::NODE_RETURN:
         {
-            const auto return_value = generate_code(node->get_children()[0]);
-            const auto return_tac = make_tac(TAC_RET, return_value->get_result());
+            const auto return_value = generate_code(node->get_children()[0], symbol_table);
+            const auto return_tac = make_tac(symbol_table, TAC_RET, return_value->get_result());
             return TAC::join(return_value, return_tac);
         }
     case NodeType::NODE_VEC:
         {
-            const auto symbol_tac = generate_code(node->get_children()[0]);
-            const auto offset_tac = generate_code(node->get_children()[1]);
+            const auto symbol_tac = generate_code(node->get_children()[0], symbol_table);
+            const auto offset_tac = generate_code(node->get_children()[1], symbol_table);
             const auto vec_data_type = node->check_expr_type();
-            const auto vec_tac = make_tac_temp(TAC_VECLOAD, vec_data_type, symbol_tac, offset_tac);
+            const auto vec_tac = make_tac_temp(symbol_table, TAC_VECLOAD, vec_data_type, symbol_tac, offset_tac);
             return TAC::join(symbol_tac, offset_tac, vec_tac);
         }
 
@@ -316,7 +316,7 @@ TACptr TAC::generate_code(NodePtr node)
             TACList child_tacs;
             for (const auto &child : node->get_children())
             {
-                const auto child_tac = generate_code(child);
+                const auto child_tac = generate_code(child, symbol_table);
                 if (child_tac)
                 {
                     child_tacs.push_back(child_tac);
@@ -335,7 +335,7 @@ TACptr TAC::generate_code(NodePtr node)
     }
 }
 
-TACptr TAC::generate_vars(NodePtr node)
+TACptr TAC::generate_vars(NodePtr node, SymbolTable &symbol_table)
 {
     if (node == nullptr)
     {
@@ -346,39 +346,38 @@ TACptr TAC::generate_vars(NodePtr node)
     {
     case NODE_VAR_DECL:
         {
-            const auto var = generate_code(node->get_children()[1]);
-            const auto var_begin = make_tac(TAC_VARBEGIN, var->get_result());
-            const auto init = generate_code(node->get_children()[2]);
-            const auto init_tac = make_tac(TAC_VARINIT, init->get_result());
-            const auto var_end = make_tac(TAC_VAREND, var->get_result());
+            const auto var = generate_code(node->get_children()[1], symbol_table);
+            const auto var_begin = make_tac(symbol_table, TAC_VARBEGIN, var->get_result());
+            const auto init = generate_code(node->get_children()[2], symbol_table);
+            const auto init_tac = make_tac(symbol_table, TAC_VARINIT, init->get_result());
+            const auto var_end = make_tac(symbol_table, TAC_VAREND, var->get_result());
             return TAC::join(var_begin, init_tac, var_end);
         }
     case NODE_VEC_DECL:
         {
             TACList vec_decl;
             const auto vec_def = node->get_children()[0];
-            const auto vec_symb = generate_code(vec_def->get_children()[1]);
-            const auto vec_size = generate_code(vec_def->get_children()[2]);
+            const auto vec_symb = generate_code(vec_def->get_children()[1], symbol_table);
+            const auto vec_size = generate_code(vec_def->get_children()[2], symbol_table);
 
-            const auto vec_begin = make_tac(TAC_VECBEGIN, vec_symb->get_result());
+            const auto vec_begin = make_tac(symbol_table, TAC_VECBEGIN, vec_symb->get_result());
 
             vec_decl.push_back(vec_begin);
-            
-            const auto vec_end = make_tac(TAC_VECEND, vec_symb->get_result(), vec_size);
+            const auto vec_end = make_tac(symbol_table, TAC_VECEND, vec_symb->get_result(), vec_size);
 
             if (node->get_children().size() > 1)
             {
                 const auto &inits = node->get_children()[1];
                 for (const auto &init_val : inits->get_children())
                 {
-                        const auto init_val_tac = generate_code(init_val);
-                        const auto init_tac = make_tac(TAC_VECINIT, init_val_tac->get_result());
-                        vec_decl.push_back(init_tac);
+                    const auto init_val_tac = generate_code(init_val, symbol_table);
+                    const auto init_tac = make_tac(symbol_table, TAC_VECINIT, init_val_tac->get_result());
+                    vec_decl.push_back(init_tac);
                 }
             }
             else
             {
-                const auto zeros = make_tac(TAC_VECZEROS, vec_size->get_result());
+                const auto zeros = make_tac(symbol_table, TAC_VECZEROS, vec_size->get_result());
                 vec_decl.push_back(zeros);
             }
 
@@ -390,7 +389,7 @@ TACptr TAC::generate_vars(NodePtr node)
             TACList child_tacs;
             for (const auto &child : node->get_children())
             {
-                TACptr child_tac = generate_vars(child);
+                TACptr child_tac = generate_vars(child, symbol_table);
                 if (child_tac)
                 {
                     child_tacs.push_back(child_tac);
@@ -403,7 +402,7 @@ TACptr TAC::generate_vars(NodePtr node)
     }
 }
 
-TACptr TAC::generate_tacs(NodePtr node)
+TACptr TAC::generate_tacs(NodePtr node, SymbolTable &symbol_table)
 {
     if (node == nullptr)
     {
@@ -411,18 +410,11 @@ TACptr TAC::generate_tacs(NodePtr node)
     }
 
     // Generate variable declarations first
-    const auto begin_vars = std::make_shared<TAC>(
-        TAC_BEGINVARS,
-        register_label()
-    );
+    const auto begin_vars = make_tac(symbol_table, TAC_BEGINVARS, register_label(symbol_table));
+    const auto vars = generate_vars(node, symbol_table);
 
-    const auto vars = generate_vars(node);
-
-    const auto begin_code = std::make_shared<TAC>(
-        TAC_BEGINCODE,
-        register_label()
-    );
-    const auto code = generate_code(node);
+    const auto begin_code = make_tac(symbol_table, TAC_BEGINCODE, register_label(symbol_table));
+    const auto code = generate_code(node, symbol_table);
 
     return TAC::join(begin_vars, vars, begin_code, code);
 }
@@ -501,38 +493,38 @@ TACList TAC::build_forward_links(TACptr tac) {
 }
 
 
-TACptr make_tac_symbol(const SymbolTableEntry result)
+TACptr make_tac_symbol(SymbolTable& symbol_table, const SymbolTableEntry result)
 {    
     if (!result)
     {
         throw std::runtime_error("Cannot create TAC with null symbol");
     }
-    return std::make_shared<TAC>(TAC_SYMBOL, result);
+    return std::make_shared<TAC>(symbol_table, TAC_SYMBOL, result);
 }
 
-TACptr make_tac_temp(const TacType type, const DataType data_type, const TACptr first, const TACptr second)
+TACptr make_tac_temp(SymbolTable& symbol_table, const TacType type, const DataType data_type, const TACptr first, const TACptr second)
 {
-    return std::make_shared<TAC>(type, nullptr, first, second, data_type);
+    return std::make_shared<TAC>(symbol_table, type, nullptr, first, second, data_type);
 }
 
-TACptr make_tac(const TacType type, const TACptr result, const TACptr first, const TACptr second)
+TACptr make_tac(SymbolTable& symbol_table, const TacType type, const TACptr result, const TACptr first, const TACptr second)
 {
-    return std::make_shared<TAC>(type, result, first, second);
+    return std::make_shared<TAC>(symbol_table, type, result, first, second);
 }
 
-TACptr make_tac(const TacType type, const SymbolTableEntry result, const TACptr first, const TACptr second)
+TACptr make_tac(SymbolTable &symbol_table, const TacType type, const SymbolTableEntry result, const TACptr first, const TACptr second)
 {
-    const auto result_tac = make_tac_symbol(result);
-    const auto ret_tac = std::make_shared<TAC>(type, result_tac, first, second);
+    const auto result_tac = make_tac_symbol(symbol_table, result);
+    const auto ret_tac = std::make_shared<TAC>(symbol_table, type, result_tac, first, second);
     return TAC::join(result_tac, ret_tac);
 }
 
-TACptr make_tac(const TacType type, const SymbolTableEntry symbol)
+TACptr make_tac(SymbolTable &symbol_table, const TacType type, const SymbolTableEntry symbol)
 {
-    return std::make_shared<TAC>(type, symbol);
+    return std::make_shared<TAC>(symbol_table, type, symbol);
 }
 
-TACptr make_tac_label()
+TACptr make_tac_label(SymbolTable &symbol_table)
 {
-    return std::make_shared<TAC>(TAC_LABEL, register_label());
+    return std::make_shared<TAC>(symbol_table, TAC_LABEL, register_label(symbol_table));
 }

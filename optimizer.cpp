@@ -3,17 +3,19 @@
 #include <variant>
 #include <algorithm>
 
-TACList constant_folding(TACList tac_list);
+TACList constant_folding(TACList tac_list, SymbolTable& symbol_table);
 
-TACList constant_propagation(TACList tac_list);
+TACList constant_propagation(TACList tac_list, SymbolTable& symbol_table);
 
-TACList TAC::optimize(TACList tac_list)
+std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable& original_symbol_table)
 {
-    tac_list = constant_folding(tac_list);
+    auto optimized_symbol_table = original_symbol_table;
 
-    tac_list = constant_propagation(tac_list);
-    return tac_list;
+    auto optimized_tac_list = constant_folding(tac_list, optimized_symbol_table);
 
+    optimized_tac_list = constant_propagation(optimized_tac_list, optimized_symbol_table);
+
+    return {optimized_tac_list, optimized_symbol_table};
 }
 
 using LiteralValue = std::variant<int, float>;
@@ -84,7 +86,7 @@ struct OperationVisitor {
     }
 };
 
-TACList constant_folding(TACList tac_list)
+TACList constant_folding(TACList tac_list, SymbolTable& symbol_table)
 {
     const std::vector<TacType> optimizable_ops = {
         TAC_ADD, TAC_SUB, TAC_MUL, TAC_DIV, TAC_MOD,
@@ -151,11 +153,11 @@ TACList constant_folding(TACList tac_list)
             result_data_type = TYPE_BOOL;
         }
 
-        auto new_literal_symbol = register_symbol(result_symbol_type, result_str, 0);
+        auto new_literal_symbol = register_symbol(symbol_table, result_symbol_type, result_str, 0);
         new_literal_symbol->set_types(result_data_type, IDENT_LIT);
 
-        auto source_tac = make_tac_symbol(new_literal_symbol);
-        auto move_tac = make_tac(TAC_MOVE, tac->get_result(), source_tac);
+        auto source_tac = make_tac_symbol(symbol_table, new_literal_symbol);
+        auto move_tac = make_tac(symbol_table, TAC_MOVE, tac->get_result(), source_tac);
         new_tac_list.push_back(source_tac);
         new_tac_list.push_back(move_tac);
     }
@@ -163,7 +165,7 @@ TACList constant_folding(TACList tac_list)
     return new_tac_list;
 }
 
-TACList constant_propagation(TACList tac_list) {
+TACList constant_propagation(TACList tac_list, SymbolTable& symbol_table) {
     // A map from a temporary variable to the literal constant it holds
     std::map<SymbolTableEntry, SymbolTableEntry> temp_to_literal_map;
     TACList new_tac_list;
@@ -208,9 +210,9 @@ TACList constant_propagation(TACList tac_list) {
         if (an_operand_was_changed) {
             // Recreate the TAC with the new, propagated operands.
             // We need TACs for the operands, not just symbols.
-            auto op1_tac = op1 ? make_tac_symbol(op1) : nullptr;
-            auto op2_tac = op2 ? make_tac_symbol(op2) : nullptr;
-            auto new_tac = make_tac(tac->get_type(), tac->get_result(), op1_tac, op2_tac);
+            auto op1_tac = op1 ? make_tac_symbol(symbol_table, op1) : nullptr;
+            auto op2_tac = op2 ? make_tac_symbol(symbol_table, op2) : nullptr;
+            auto new_tac = make_tac(symbol_table, tac->get_type(), tac->get_result(), op1_tac, op2_tac);
             
             // We must also include the new operand TACs in the stream if they weren't there before
             if (op1_tac) new_tac_list.push_back(op1_tac);

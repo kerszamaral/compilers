@@ -66,19 +66,19 @@ private:
     TACptr prev;
 
 public:
-    TAC(TacType type, SymbolTableEntry result, const DataType data_type = DataType::TYPE_OTHER) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), prev(nullptr)
+    TAC(SymbolTable& symbol_table, TacType type, SymbolTableEntry result, const DataType data_type = DataType::TYPE_OTHER) : type(type), result(result), first_operator(nullptr), second_operator(nullptr), prev(nullptr)
     {
         if (!result)
         {
-            this->result = register_temp(data_type);
+            this->result = register_temp(symbol_table, data_type);
         }
     }
 
-    TAC(TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr, const DataType data_type = DataType::TYPE_OTHER) : type(type), prev(nullptr)
+    TAC(SymbolTable& symbol_table, TacType type, const TACptr result = nullptr, const TACptr first = nullptr, const TACptr second = nullptr, const DataType data_type = DataType::TYPE_OTHER) : type(type), prev(nullptr)
     {
         if (!result)
         {
-            this->result = register_temp(data_type);
+            this->result = register_temp(symbol_table, data_type);
         }
         else
         {
@@ -98,11 +98,11 @@ public:
 
     SymbolTableEntry get_result() const { return this->result; }
 
-    static TACptr generate_code(NodePtr node);
+    static TACptr generate_code(NodePtr node, SymbolTable &symbol_table);
 
-    static TACptr generate_vars(NodePtr node);
+    static TACptr generate_vars(NodePtr node, SymbolTable &symbol_table);
 
-    static TACptr generate_tacs(NodePtr node);
+    static TACptr generate_tacs(NodePtr node, SymbolTable &symbol_table);
 
     static TACptr join(const TACptr &first, const TACptr &second);
 
@@ -141,7 +141,7 @@ public:
         return this->second_operator;
     }
 
-    static TACList optimize(TACList tac_list);
+    static std::pair<TACList, SymbolTable> optimize(TACList tac_list, const SymbolTable& original_symbol_table);
 
     static size_t tac_size(const TACList &tac_list)
     {
@@ -161,14 +161,14 @@ public:
 typedef TAC::TACptr TACptr;
 typedef TAC::TACList TACList;
 
-TACptr make_tac_symbol(const SymbolTableEntry result);
+TACptr make_tac_symbol(SymbolTable &symbol_table, const SymbolTableEntry result);
 
-TACptr make_tac_temp(const TacType type, const DataType data_type, const TACptr first, const TACptr second = nullptr);
+TACptr make_tac_temp(SymbolTable &symbol_table, const TacType type, const DataType data_type, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(const TacType type,  const TACptr result, const TACptr first, const TACptr second = nullptr);
+TACptr make_tac(SymbolTable &symbol_table, const TacType type, const TACptr result, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(const TacType type, const SymbolTableEntry result, const TACptr first, const TACptr second = nullptr);
+TACptr make_tac(SymbolTable &symbol_table, const TacType type, const SymbolTableEntry result, const TACptr first, const TACptr second = nullptr);
 
-TACptr make_tac(const TacType type, const SymbolTableEntry symbol);
+TACptr make_tac(SymbolTable &symbol_table, const TacType type, const SymbolTableEntry symbol);
 
-TACptr make_tac_label();
+TACptr make_tac_label(SymbolTable &symbol_table);
