@@ -31,6 +31,16 @@ static constexpr auto SEMANTIC_ERROR = 4;
 int main(int argc, char **argv)
 {
     std::vector<std::string> args(argv + 1, argv + argc);
+
+    // Find '-o' if the user provided it
+    constexpr auto OPTIMIZATION_FLAG = "-O";
+    const auto optimizations_enabled = std::find(args.begin(), args.end(), OPTIMIZATION_FLAG) != args.end();
+    if (optimizations_enabled)
+    {
+        std::cerr << "Optimizations enabled." << std::endl;
+        args.erase(std::find(args.begin(), args.end(), OPTIMIZATION_FLAG));
+    }
+
     if (args.size() == 1)
     {
         std::cerr << "No output file provided. ";
@@ -137,9 +147,9 @@ int main(int argc, char **argv)
 
     std::cerr << "Generating assembly code..." << std::endl;
 
-    constexpr auto SHOULD_OPTIMIZE = true;
-    const auto& tac_to_use = SHOULD_OPTIMIZE ? optimized_tac_list : tac_list;
-    const auto& symbol_table_to_use = SHOULD_OPTIMIZE ? optimized_symbol_table : g_symbolTable;
+    const auto& tac_to_use = optimizations_enabled ? optimized_tac_list : tac_list;
+    const auto& symbol_table_to_use = optimizations_enabled ? optimized_symbol_table : g_symbolTable;
+    std::cerr << "Using " << (optimizations_enabled ? "optimized" : "original") << " TAC for assembly generation." << std::endl;
 
     const auto generated_assembly = generate_asm(tac_to_use, symbol_table_to_use);
 
