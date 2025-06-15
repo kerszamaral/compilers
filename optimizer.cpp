@@ -3,6 +3,7 @@
 #include <variant>
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 
 std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_table);
 
@@ -12,6 +13,8 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
 
 SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table);
 
+TACList dead_instruction_elimination(const TACList &tac_list, const SymbolTable &symbol_table);
+
 std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable &original_symbol_table)
 {
     auto optimized_symbol_table = original_symbol_table;
@@ -19,8 +22,9 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
 
     bool changed_in_pass = true;
     size_t attempts = 0;
-    constexpr size_t max_attempts = 10;
-    while (changed_in_pass && attempts < max_attempts)
+    constexpr size_t max_attempts = 100;
+    constexpr size_t min_attempts = 10;
+    while (attempts < min_attempts || (changed_in_pass && attempts < max_attempts))
     {
         const auto [fold_result, fold_changed] = constant_folding(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = fold_result;
@@ -36,6 +40,10 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
     }
 
     optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
+
+    optimized_tac_list = dead_instruction_elimination(optimized_tac_list, optimized_symbol_table);
+
+    std::cerr << "Optimizer completed after " << attempts << " attempts." << std::endl;
 
     return {optimized_tac_list, optimized_symbol_table};
 }
@@ -329,7 +337,7 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
                 temp_to_literal_map[dest] = source;
                 // Since we will propagate this, we can eliminate the MOVE instruction itself.
                 // do NOT add this TAC to our new_tac_list.
-                continue;
+                // continue;
             }
         }
 
@@ -484,6 +492,46 @@ SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &
     }
 
     return new_symbol_table;
+}
+
+TACList dead_instruction_elimination(const TACList& tac_list, const SymbolTable& symbol_table)
+{
+    TACList new_tac_list;
+    new_tac_list.reserve(tac_list.size());
+
+    for (const auto& tac : tac_list) {
+        bool has_side_effects = false;
+        switch (tac->get_type()) {
+            case TAC_VECINIT: case TAC_VECBEGIN: case TAC_VECEND:
+            case TAC_VARINIT: case TAC_VARBEGIN: case TAC_VAREND:
+            case TAC_BEGINVARS: case TAC_BEGINCODE:
+            case TAC_PRINT: case TAC_READ: case TAC_JUMP: case TAC_IFZ: case TAC_LABEL:
+            case TAC_BEGINFUN: case TAC_ENDFUN: case TAC_CALL: case TAC_ARG: case TAC_RET:
+            case TAC_VECSTORE:
+                has_side_effects = true;
+                break;
+            default:
+                break;
+        }
+
+        auto result = tac->get_result();
+        bool result_is_live = false;
+        if (result) {
+            // A symbol is "live" if it exists in the final, cleaned symbol table.
+            if (symbol_table.count(result->get_text())) {
+                result_is_live = true;
+            }
+        }
+
+        // Keep instruction if it has side-effects, its result is live, or it's a needed operand symbol.
+        if (has_side_effects || result_is_live || tac->get_type() == TAC_SYMBOL) {
+            new_tac_list.push_back(tac);
+        } else {
+            // This instruction is dead (e.g., a MOVE to an unused temporary).
+            // std::cerr << "Dead Instruction Elimination: Removing " << tac->to_string() << std::endl;
+        }
+    }
+    return new_tac_list;
 }
 
 void Fraction::simplify()
