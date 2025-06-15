@@ -5,15 +5,15 @@
 #include <numeric>
 #include <sstream>
 
-std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_table);
+std::tuple<TACList, bool, size_t> constant_folding(TACList tac_list, SymbolTable &symbol_table);
 
-std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &symbol_table);
+std::tuple<TACList, bool, size_t> constant_propagation(TACList tac_list, SymbolTable &symbol_table);
 
-std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table);
+std::tuple<TACList, bool, size_t> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table);
 
-SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table);
+std::pair<SymbolTable, size_t> remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table);
 
-TACList dead_instruction_elimination(const TACList &tac_list, const SymbolTable &symbol_table);
+std::pair<TACList, size_t> dead_instruction_elimination(const TACList &tac_list, const SymbolTable &symbol_table);
 
 std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const SymbolTable &original_symbol_table)
 {
@@ -26,29 +26,44 @@ std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const S
     bool changed_in_pass = true;
     size_t iterations_with_change = 0;
     size_t attempts = 0;
+    size_t folding_opts = 0;
+    size_t prop_opts = 0;
+    size_t peep_opts = 0;
     while (attempts < MIN_ATTEMPTS || (changed_in_pass && attempts < MAX_ATTEMPTS))
     {
-        const auto [fold_result, fold_changed] = constant_folding(optimized_tac_list, optimized_symbol_table);
+        changed_in_pass = false;
+
+        const auto [fold_result, fold_changed, fold_changes] = constant_folding(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = fold_result;
         if (fold_changed) changed_in_pass = true;
+        folding_opts += fold_changes;
 
-        const auto [prop_result, prop_changed] = constant_propagation(optimized_tac_list, optimized_symbol_table);
+        const auto [prop_result, prop_changed, prop_changes] = constant_propagation(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = prop_result;
         if (prop_changed) changed_in_pass = true;
+        prop_opts += prop_changes;
 
-        const auto [peep_result, peep_changed] = peephole_opt(optimized_tac_list, optimized_symbol_table);
+        const auto [peep_result, peep_changed, peep_changes] = peephole_opt(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = peep_result;
         if (peep_changed) changed_in_pass = true;
+        peep_opts += peep_changes;
         attempts++;
         if (changed_in_pass) iterations_with_change++;
     }
 
-    optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
+    const auto [unused_symbol_table, unused_opts] = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
+    optimized_symbol_table = unused_symbol_table;
 
-    optimized_tac_list = dead_instruction_elimination(optimized_tac_list, optimized_symbol_table);
+    const auto [dead_tac_list, dead_opts] = dead_instruction_elimination(optimized_tac_list, optimized_symbol_table);
+    optimized_tac_list = dead_tac_list;
 
     log_stream << "Optimizer completed after " << attempts << " attempts." << std::endl;
     log_stream << "Iterations with changes: " << iterations_with_change << std::endl;
+    log_stream << "Folding optimizations applied: " << folding_opts << std::endl;
+    log_stream << "Propagation optimizations applied: " << prop_opts << std::endl;
+    log_stream << "Peephole optimizations applied: " << peep_opts << std::endl;
+    log_stream << "Unused symbols removed: " << unused_opts << std::endl;
+    log_stream << "Dead instruction elimination optimizations applied: " << dead_opts << std::endl;
 
     return {optimized_tac_list, optimized_symbol_table, log_stream.str()};
 }
@@ -226,9 +241,10 @@ std::string reverse_type(const SymbolType type, std::string &result_str)
     }
 }
 
-std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_table)
+std::tuple<TACList, bool, size_t> constant_folding(TACList tac_list, SymbolTable &symbol_table)
 {
     bool changed = false;
+    size_t folding_count = 0;
     const std::vector<TacType> optimizable_ops = {
         TAC_ADD, TAC_SUB, TAC_MUL, TAC_DIV, TAC_MOD,
         TAC_LT, TAC_GT, TAC_LE, TAC_GE, TAC_EQ, TAC_DIF,
@@ -308,14 +324,16 @@ std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_
         new_tac_list.push_back(source_tac);
         new_tac_list.push_back(move_tac);
         changed = true;
+        folding_count++;
     }
 
-    return {new_tac_list, changed};
+    return {new_tac_list, changed, folding_count};
 }
 
-std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &symbol_table)
+std::tuple<TACList, bool, size_t> constant_propagation(TACList tac_list, SymbolTable &symbol_table)
 {
     bool changed = false;
+    size_t prop_count = 0;
     // A map from a temporary variable to the literal constant it holds
     std::map<SymbolTableEntry, SymbolTableEntry> temp_to_literal_map;
     TACList new_tac_list;
@@ -378,6 +396,7 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
                 new_tac_list.push_back(op2_tac);
             new_tac_list.push_back(new_tac);
             changed = true;
+            prop_count++;
         }
         else
         {
@@ -386,14 +405,15 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
         }
     }
 
-    return {new_tac_list, changed};
+    return {new_tac_list, changed, prop_count};
 }
 
-std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table)
+std::tuple<TACList, bool, size_t> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table)
 {
     bool changed = false;
     TACList new_tac_list;
     new_tac_list.reserve(tac_list.size());
+    size_t peephole_count = 0;
 
     for (const auto &tac : tac_list)
     {
@@ -435,6 +455,7 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
             new_tac_list.push_back(source_tac);
             new_tac_list.push_back(move_tac);
             changed = true;
+            peephole_count++;
         }
         else if (tac->get_type() == TAC_MUL && lit_val == 0) // Check for nullifying operation: x * 0
         {
@@ -446,6 +467,7 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
             new_tac_list.push_back(source_tac);
             new_tac_list.push_back(move_tac);
             changed = true;
+            peephole_count++;
         }
         else
         {
@@ -453,12 +475,13 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
             new_tac_list.push_back(tac);
         }
     }
-    return {new_tac_list, changed};
+    return {new_tac_list, changed, peephole_count};
 }
 
-SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table)
+std::pair<SymbolTable, size_t> remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table)
 {
     std::set<SymbolTableEntry> used_symbols;
+    size_t unused_count = 0;
     for (const auto &tac : final_tacs)
     {
         auto op1 = tac->get_first_operator();
@@ -494,15 +517,20 @@ SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &
             new_symbol_table[lexeme] = symbol;
         }
         // Otherwise, the symbol is an unused temporary or an unused literal and is discarded.
+        else
+        {
+            unused_count++;
+        }
     }
 
-    return new_symbol_table;
+    return {new_symbol_table, unused_count};
 }
 
-TACList dead_instruction_elimination(const TACList& tac_list, const SymbolTable& symbol_table)
+std::pair<TACList, size_t> dead_instruction_elimination(const TACList& tac_list, const SymbolTable& symbol_table)
 {
     TACList new_tac_list;
     new_tac_list.reserve(tac_list.size());
+    size_t dead_count = 0;
 
     for (const auto& tac : tac_list) {
         bool has_side_effects = false;
@@ -533,10 +561,10 @@ TACList dead_instruction_elimination(const TACList& tac_list, const SymbolTable&
             new_tac_list.push_back(tac);
         } else {
             // This instruction is dead (e.g., a MOVE to an unused temporary).
-            // std::cerr << "Dead Instruction Elimination: Removing " << tac->to_string() << std::endl;
+            dead_count++;
         }
     }
-    return new_tac_list;
+    return {new_tac_list, dead_count};
 }
 
 void Fraction::simplify()
