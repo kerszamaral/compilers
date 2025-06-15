@@ -18,7 +18,9 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
     auto optimized_tac_list = tac_list;
 
     bool changed_in_pass = true;
-    while (changed_in_pass)
+    size_t attempts = 0;
+    constexpr size_t max_attempts = 10;
+    while (changed_in_pass && attempts < max_attempts)
     {
         const auto [fold_result, fold_changed] = constant_folding(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = fold_result;
@@ -30,6 +32,7 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
         optimized_tac_list = peep_result;
 
         changed_in_pass = fold_changed || prop_changed || peep_changed;
+        attempts++;
     }
 
     optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
@@ -124,6 +127,12 @@ struct OperationVisitor
                 return static_cast<int>(val1 == val2);
             case TAC_DIF:
                 return static_cast<int>(val1 != val2);
+            case TAC_AND:
+                return static_cast<int>(val1 && val2);
+            case TAC_OR:
+                return static_cast<int>(val1 || val2);
+            case TAC_NOT:
+                return val1 == 0 ? 1 : 0;
             default:
                 throw std::invalid_argument("Unsupported operation for integer operands: " + std::to_string(op));
             }
@@ -209,10 +218,14 @@ std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_
     bool changed = false;
     const std::vector<TacType> optimizable_ops = {
         TAC_ADD, TAC_SUB, TAC_MUL, TAC_DIV, TAC_MOD,
-        TAC_LT, TAC_GT, TAC_LE, TAC_GE, TAC_EQ, TAC_DIF};
+        TAC_LT, TAC_GT, TAC_LE, TAC_GE, TAC_EQ, TAC_DIF,
+        TAC_AND, TAC_OR, TAC_NOT
+    };
 
     const std::vector<TacType> comparison_ops = {
-        TAC_LT, TAC_GT, TAC_LE, TAC_GE, TAC_EQ, TAC_DIF};
+        TAC_LT, TAC_GT, TAC_LE, TAC_GE, TAC_EQ, TAC_DIF,
+        TAC_AND, TAC_OR, TAC_NOT
+    };
 
     TACList new_tac_list;
     new_tac_list.reserve(tac_list.size()); // Reserve space for efficiency
@@ -300,7 +313,7 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
         // Check if this TAC redefines (writes to) a temporary that we are tracking.
         // If so, that temporary's value is no longer constant.
         // This shouldn't happen, but we handle it just in case we add another optimization later that might change the value of a temporary.
-        if (temp_to_literal_map.count(tac->get_result()))
+        if (tac->get_type() != TAC_SYMBOL && temp_to_literal_map.count(tac->get_result()))
         {
             temp_to_literal_map.erase(tac->get_result());
         }
