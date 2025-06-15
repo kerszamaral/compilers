@@ -18,6 +18,7 @@
 extern int yylex_destroy(void);
 extern FILE *yyin;
 
+std::vector<LineNumber> g_syntaxErrors;
 node g_AST = nullptr;
 SyntaxAnalyzer g_syntaxAnalyzer;
 SymbolTable g_symbolTable;
@@ -53,8 +54,6 @@ int main(int argc, char **argv)
     }
     
     yyin = infile;
-    
-    initMe();
     
     const auto result = yy::parser().parse();
     const auto num_lines = getLineNumber();

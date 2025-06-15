@@ -88,10 +88,6 @@ typedef struct Symbol
 typedef std::shared_ptr<Symbol> SymbolTableEntry;
 typedef std::map<Lexeme, SymbolTableEntry> SymbolTable;
 
-void initMe(void);
-
-void stopRunning(void);
-
 void setError(void);
 
 LineNumber getLineNumber(void);
