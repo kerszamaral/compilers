@@ -8,6 +8,8 @@ std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_
 
 std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &symbol_table);
 
+std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table);
+
 SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &current_table);
 
 std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable &original_symbol_table)
@@ -24,7 +26,10 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
         const auto [prop_result, prop_changed] = constant_propagation(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = prop_result;
 
-        changed_in_pass = fold_changed || prop_changed;
+        const auto [peep_result, peep_changed] = peephole_opt(optimized_tac_list, optimized_symbol_table);
+        optimized_tac_list = peep_result;
+
+        changed_in_pass = fold_changed || prop_changed || peep_changed;
     }
 
     optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
@@ -176,7 +181,6 @@ struct OperationVisitor
         return 0; // Should not be reached
     }
 };
-
 
 std::string reverse_type(const SymbolType type, std::string &result_str)
 {
@@ -356,6 +360,70 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
         }
     }
 
+    return {new_tac_list, changed};
+}
+
+std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table)
+{
+    bool changed = false;
+    TACList new_tac_list;
+    new_tac_list.reserve(tac_list.size());
+
+    for (const auto &tac : tac_list)
+    {
+        // Algebraic Simplification (x + 0, x * 1, x - 0, x * 0)
+        if (!(tac->get_type() == TAC_ADD || tac->get_type() == TAC_SUB || tac->get_type() == TAC_MUL))
+        {
+            new_tac_list.push_back(tac); // Keep the original TAC if it's not an algebraic operation
+            continue;
+        }
+        auto op1 = tac->get_first_operator();
+        auto op2 = tac->get_second_operator();
+
+        // Check if one operand is a literal and the other is not.
+        if (!(op1 && op2 && (op1->ident_type == IDENT_LIT) != (op2->ident_type == IDENT_LIT)))
+        {
+            new_tac_list.push_back(tac); // Keep the original TAC if the operands are not one literal and one variable
+            continue;
+        }
+        SymbolTableEntry literal_op = (op1->ident_type == IDENT_LIT) ? op1 : op2;
+        SymbolTableEntry var_op = (op1->ident_type == IDENT_LIT) ? op2 : op1;
+
+        // We only handle integer identities 0 and 1 for simplicity here.
+        if (literal_op->get_data_type() != TYPE_INT)
+        {
+            new_tac_list.push_back(tac); // Keep the original TAC if the literal is not an integer
+            continue;
+        }
+
+        int lit_val = std::stoi(literal_op->get_text());
+
+        // Check for identity operations: x + 0, x - 0, x * 1
+        if ((tac->get_type() == TAC_ADD && lit_val == 0) ||
+            (tac->get_type() == TAC_SUB && lit_val == 0 && op2 == literal_op) || // Ensure it's x - 0, not 0 - x
+            (tac->get_type() == TAC_MUL && lit_val == 1))
+        {
+            // Replace the operation with: MOVE result, var_op
+            auto source_tac = make_tac_symbol(symbol_table, var_op);
+            auto move_tac = make_tac(symbol_table, TAC_MOVE, tac->get_result(), source_tac);
+            new_tac_list.push_back(source_tac);
+            new_tac_list.push_back(move_tac);
+            changed = true;
+        }
+
+        // Check for nullifying operation: x * 0
+        if (tac->get_type() == TAC_MUL && lit_val == 0)
+        {
+            // Replace with: MOVE result, 0
+            auto zero_symbol = register_symbol(symbol_table, SYMBOL_INT, "0", 0);
+            zero_symbol->set_types(TYPE_INT, IDENT_LIT);
+            auto source_tac = make_tac_symbol(symbol_table, zero_symbol);
+            auto move_tac = make_tac(symbol_table, TAC_MOVE, tac->get_result(), source_tac);
+            new_tac_list.push_back(source_tac);
+            new_tac_list.push_back(move_tac);
+            changed = true;
+        }
+    }
     return {new_tac_list, changed};
 }
 
