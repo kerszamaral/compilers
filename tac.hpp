@@ -141,8 +141,6 @@ public:
         return this->second_operator;
     }
 
-    static std::pair<TACList, SymbolTable> optimize(TACList tac_list, const SymbolTable& original_symbol_table);
-
     static size_t tac_size(const TACList &tac_list)
     {
         size_t size = 0;

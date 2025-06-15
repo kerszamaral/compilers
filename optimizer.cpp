@@ -3,7 +3,7 @@
 #include <variant>
 #include <algorithm>
 #include <numeric>
-#include <iostream>
+#include <sstream>
 
 std::pair<TACList, bool> constant_folding(TACList tac_list, SymbolTable &symbol_table);
 
@@ -15,8 +15,9 @@ SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &
 
 TACList dead_instruction_elimination(const TACList &tac_list, const SymbolTable &symbol_table);
 
-std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable &original_symbol_table)
+std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const SymbolTable &original_symbol_table)
 {
+    std::stringstream log_stream;
     auto optimized_symbol_table = original_symbol_table;
     auto optimized_tac_list = tac_list;
 
@@ -43,9 +44,9 @@ std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTabl
 
     optimized_tac_list = dead_instruction_elimination(optimized_tac_list, optimized_symbol_table);
 
-    std::cerr << "Optimizer completed after " << attempts << " attempts." << std::endl;
+    log_stream << "Optimizer completed after " << attempts << " attempts." << std::endl;
 
-    return {optimized_tac_list, optimized_symbol_table};
+    return {optimized_tac_list, optimized_symbol_table, log_stream.str()};
 }
 
 struct Fraction
