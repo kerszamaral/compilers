@@ -129,9 +129,9 @@ int main(int argc, char **argv)
         std::exit(-1);
     }
     std::cerr << "Generated TAC: \n";
-    std::cerr << "TAC in backwards order: \n";
-    std::cerr << TAC::tac_string_backwards(tac) << std::endl;
-    std::cerr << "TAC in forward order: \n";
+    // std::cerr << "TAC in backwards order: \n";
+    // std::cerr << TAC::tac_string_backwards(tac) << std::endl;
+    // std::cerr << "TAC in forward order: \n";
     const auto tac_list = TAC::build_forward_links(tac);
     std::cerr << TAC::tac_string(tac_list);
     std::cerr << "TAC size: " << TAC::tac_size(tac_list) << std::endl << std::endl;
