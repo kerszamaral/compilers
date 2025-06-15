@@ -427,7 +427,6 @@ std::string functions_asm(const TACList tac_list)
 
                 const auto mov_type_first= first_type == DataType::TYPE_CHAR ? "movzx" : "mov";
                 const auto mov_type_second = second_type == DataType::TYPE_CHAR ? "movzx" : "mov";
-                const auto mov_type_result = result_type == DataType::TYPE_CHAR ? "movzx" : "mov";
                 const auto operation = math_operation_on_datatype(tac->get_type(), result_type);
                 const auto result_load_type = result_type == DataType::TYPE_CHAR ? "byte" : "dword";
                 std::string result_register;
@@ -447,7 +446,7 @@ std::string functions_asm(const TACList tac_list)
                     asm_stream << "    " << mov_type_first << " eax, " << first_load_type <<" ptr [rip + " << first_op_text << "]\n";
                     asm_stream << "    " << mov_type_second << " ebx, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
                     asm_stream << "    " << operation << " eax, ebx\n";
-                    asm_stream << "    " << mov_type_result << " " << result_load_type << " ptr [rip + " << result_text << "], ";
+                    asm_stream << "    mov " << result_load_type << " ptr [rip + " << result_text << "], ";
                     asm_stream << result_register << "\n";
                     break;
                 case DataType::TYPE_REAL:
