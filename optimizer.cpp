@@ -10,7 +10,7 @@ std::pair<TACList, bool> constant_propagation(TACList tac_list, SymbolTable &sym
 
 std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table);
 
-SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &current_table);
+SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table);
 
 std::pair<TACList, SymbolTable> TAC::optimize(TACList tac_list, const SymbolTable &original_symbol_table)
 {
@@ -423,9 +423,7 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
             new_tac_list.push_back(move_tac);
             changed = true;
         }
-
-        // Check for nullifying operation: x * 0
-        if (tac->get_type() == TAC_MUL && lit_val == 0)
+        else if (tac->get_type() == TAC_MUL && lit_val == 0) // Check for nullifying operation: x * 0
         {
             // Replace with: MOVE result, 0
             auto zero_symbol = register_symbol(symbol_table, SYMBOL_INT, "0", 0);
@@ -436,11 +434,16 @@ std::pair<TACList, bool> peephole_opt(const TACList &tac_list, SymbolTable &symb
             new_tac_list.push_back(move_tac);
             changed = true;
         }
+        else
+        {
+            // No optimization was applied, keep the original TAC.
+            new_tac_list.push_back(tac);
+        }
     }
     return {new_tac_list, changed};
 }
 
-SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &current_table)
+SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table)
 {
     std::set<SymbolTableEntry> used_symbols;
     for (const auto &tac : final_tacs)
@@ -467,7 +470,7 @@ SymbolTable remove_unused_symbols(const TACList &final_tacs, const SymbolTable &
     }
 
     SymbolTable new_symbol_table;
-    for (const auto &[lexeme, symbol] : current_table)
+    for (const auto &[lexeme, symbol] : symbol_table)
     {
         // A symbol is kept if it's NOT a temporary or a literal,
         // OR if it IS a temporary or literal, it MUST be in the 'used_symbols' set.
