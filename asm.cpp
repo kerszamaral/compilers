@@ -415,26 +415,39 @@ std::string functions_asm(const TACList tac_list)
                 const auto result_text = get_label_or_text(result_var);
                 const auto first_op = tac->get_first_operator();
                 const auto first_op_text = get_label_or_text(first_op);
+                const auto first_type = first_op->get_data_type();
                 const auto second_op = tac->get_second_operator();
                 const auto second_op_text = get_label_or_text(second_op);
-
+                const auto second_type = second_op->get_data_type();
                 const auto result_type = result_var->get_data_type();
 
+                const auto first_load_type = first_type == DataType::TYPE_CHAR ? "byte" : "dword";
+                const auto second_load_type = second_type == DataType::TYPE_CHAR ? "byte" : "dword";
+
+                const auto mov_type_first= first_type == DataType::TYPE_CHAR ? "movzx" : "mov";
+                const auto mov_type_second = second_type == DataType::TYPE_CHAR ? "movzx" : "mov";
+                const auto mov_type_result = result_type == DataType::TYPE_CHAR ? "movzx" : "mov";
                 const auto operation = math_operation_on_datatype(tac->get_type(), result_type);
+                const auto result_load_type = result_type == DataType::TYPE_CHAR ? "byte" : "dword";
+                std::string result_register;
+                if (tac->get_type() == TacType::TAC_MOD)
+                {
+                    result_register = result_type == DataType::TYPE_CHAR ? "dl" : "edx";
+                }
+                else
+                {
+                    result_register = result_type == DataType::TYPE_CHAR ? "al" : "eax";
+                }
+
                 switch (result_type)
                 {
                 case DataType::TYPE_INT:
-                    asm_stream << "    mov eax, dword ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    " << operation << " eax, dword ptr [rip + " << second_op_text << "]\n";
-                    asm_stream << "    mov dword ptr [rip + " << result_text << "], ";
-                    asm_stream << (tac->get_type() != TacType::TAC_MOD ? "eax\n" : "edx\n");
-                    break;
                 case DataType::TYPE_CHAR:
-                    asm_stream << "    movzx eax, byte ptr [rip + " << first_op_text << "]\n";
-                    asm_stream << "    movzx ebx, byte ptr [rip + " << second_op_text << "]\n";
+                    asm_stream << "    " << mov_type_first << " eax, " << first_load_type <<" ptr [rip + " << first_op_text << "]\n";
+                    asm_stream << "    " << mov_type_second << " ebx, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
                     asm_stream << "    " << operation << " eax, ebx\n";
-                    asm_stream << "    mov byte ptr [rip + " << result_text << "], ";
-                    asm_stream << (tac->get_type() != TacType::TAC_MOD ? "al\n" : "dl\n");
+                    asm_stream << "    " << mov_type_result << " " << result_load_type << " ptr [rip + " << result_text << "], ";
+                    asm_stream << result_register << "\n";
                     break;
                 case DataType::TYPE_REAL:
                     asm_stream << "    movss xmm0, dword ptr [rip + " << first_op_text << "]\n";
