@@ -33,12 +33,12 @@ int main(int argc, char **argv)
     std::vector<std::string> args(argv + 1, argv + argc);
 
     // Find '-o' if the user provided it
-    constexpr auto OPTIMIZATION_FLAG = "-O";
-    const auto optimizations_enabled = std::find(args.begin(), args.end(), OPTIMIZATION_FLAG) != args.end();
+    const auto OPTIMIZATION_FLAG = {"-O", "-o"};
+    const auto optimizations_enabled = std::find_first_of(args.begin(), args.end(), OPTIMIZATION_FLAG.begin(), OPTIMIZATION_FLAG.end()) != args.end();
     if (optimizations_enabled)
     {
         std::cerr << "Optimizations enabled." << std::endl;
-        args.erase(std::find(args.begin(), args.end(), OPTIMIZATION_FLAG));
+        args.erase(std::find_first_of(args.begin(), args.end(), OPTIMIZATION_FLAG.begin(), OPTIMIZATION_FLAG.end()));
     }
 
     if (args.size() == 1)
@@ -136,21 +136,26 @@ int main(int argc, char **argv)
     std::cerr << TAC::tac_string(tac_list);
     std::cerr << "TAC size: " << TAC::tac_size(tac_list) << std::endl << std::endl;
 
-    std::cerr << "Optimizing TAC..." << std::endl;
-    const auto [optimized_tac_list, optimized_symbol_table] = TAC::optimize(tac_list, g_symbolTable);
-    std::cerr << "Optimized TAC: \n";
-    std::cerr << TAC::tac_string(optimized_tac_list);
-    std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
+    auto& symbol_table_to_use = g_symbolTable;
+    auto tac_to_use = tac_list;
+    if (optimizations_enabled)
+    {
+        std::cerr << "Optimizing TAC..." << std::endl;
+        const auto [optimized_tac_list, optimized_symbol_table] = TAC::optimize(tac_list, g_symbolTable);
+        std::cerr << "Optimized TAC: \n";
+        std::cerr << TAC::tac_string(optimized_tac_list);
+        std::cerr << "Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
 
-    std::cerr << "Original TAC size: " << TAC::tac_size(tac_list) << " vs Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
-    std::cerr << "Reducing TAC size by " << (TAC::tac_size(tac_list) - TAC::tac_size(optimized_tac_list)) << " instructions." << std::endl << std::endl;
-    std::cerr << "Original Number of Temps: " << count_temps(g_symbolTable) << " vs Optimized Number of Temps: " << count_temps(optimized_symbol_table) << std::endl;
-    std::cerr << "Reducing Temps by " << (count_temps(g_symbolTable) - count_temps(optimized_symbol_table)) << " temps." << std::endl;
+        std::cerr << "Original TAC size: " << TAC::tac_size(tac_list) << " vs Optimized TAC size: " << TAC::tac_size(optimized_tac_list) << std::endl;
+        std::cerr << "Reducing TAC size by " << (TAC::tac_size(tac_list) - TAC::tac_size(optimized_tac_list)) << " instructions." << std::endl << std::endl;
+        std::cerr << "Original Number of Temps: " << count_temps(g_symbolTable) << " vs Optimized Number of Temps: " << count_temps(optimized_symbol_table) << std::endl;
+        std::cerr << "Reducing Temps by " << (count_temps(g_symbolTable) - count_temps(optimized_symbol_table)) << " temps." << std::endl; 
+
+        tac_to_use = optimized_tac_list;
+        symbol_table_to_use = optimized_symbol_table;
+    }
 
     std::cerr << "Generating assembly code..." << std::endl;
-
-    const auto& tac_to_use = optimizations_enabled ? optimized_tac_list : tac_list;
-    const auto& symbol_table_to_use = optimizations_enabled ? optimized_symbol_table : g_symbolTable;
     std::cerr << "Using " << (optimizations_enabled ? "optimized" : "original") << " TAC for assembly generation." << std::endl;
 
     const auto generated_assembly = generate_asm(tac_to_use, symbol_table_to_use);
