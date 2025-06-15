@@ -1,4 +1,4 @@
-#include "tac.hpp"
+#include "optimizer.hpp"
 
 #include <variant>
 #include <algorithm>
@@ -21,23 +21,26 @@ std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const S
     auto optimized_symbol_table = original_symbol_table;
     auto optimized_tac_list = tac_list;
 
+    constexpr size_t MAX_ATTEMPTS = 100;
+    constexpr size_t MIN_ATTEMPTS = 10;
     bool changed_in_pass = true;
+    size_t iterations_with_change = 0;
     size_t attempts = 0;
-    constexpr size_t max_attempts = 100;
-    constexpr size_t min_attempts = 10;
-    while (attempts < min_attempts || (changed_in_pass && attempts < max_attempts))
+    while (attempts < MIN_ATTEMPTS || (changed_in_pass && attempts < MAX_ATTEMPTS))
     {
         const auto [fold_result, fold_changed] = constant_folding(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = fold_result;
+        if (fold_changed) changed_in_pass = true;
 
         const auto [prop_result, prop_changed] = constant_propagation(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = prop_result;
+        if (prop_changed) changed_in_pass = true;
 
         const auto [peep_result, peep_changed] = peephole_opt(optimized_tac_list, optimized_symbol_table);
         optimized_tac_list = peep_result;
-
-        changed_in_pass = fold_changed || prop_changed || peep_changed;
+        if (peep_changed) changed_in_pass = true;
         attempts++;
+        if (changed_in_pass) iterations_with_change++;
     }
 
     optimized_symbol_table = remove_unused_symbols(optimized_tac_list, optimized_symbol_table);
@@ -45,6 +48,7 @@ std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const S
     optimized_tac_list = dead_instruction_elimination(optimized_tac_list, optimized_symbol_table);
 
     log_stream << "Optimizer completed after " << attempts << " attempts." << std::endl;
+    log_stream << "Iterations with changes: " << iterations_with_change << std::endl;
 
     return {optimized_tac_list, optimized_symbol_table, log_stream.str()};
 }
