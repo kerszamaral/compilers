@@ -7,36 +7,22 @@
 
 // symbol.cpp file made by Ian Kersz Amaral - 2025/1
 
-
-bool running = true;
-
-std::vector<LineNumber> encounteredError;
-
-void stopRunning(void)
-{
-    running = false;
-}
-
-int isRunning(void)
-{
-    return running;
-}
+extern std::vector<LineNumber> g_syntaxErrors;
 
 void setError(void)
 {
-    encounteredError.push_back(getLineNumber());
+    g_syntaxErrors.push_back(getLineNumber());
 }
 
 extern "C" int yywrap(void)
 {
-    stopRunning();
-    if (encounteredError.size() > 0)
+    if (g_syntaxErrors.size() > 0)
     {
         std::cerr << "Found unexpected token(s) at line(s): ";
-        for (const auto &line : encounteredError)
+        for (const auto &line : g_syntaxErrors)
         {
             std::cerr << line;
-            if (line != encounteredError.back())
+            if (line != g_syntaxErrors.back())
             {
                 std::cerr << ", ";
             }
@@ -45,11 +31,6 @@ extern "C" int yywrap(void)
     }
 
     return 1;
-}
-
-void initMe(void)
-{
-    encounteredError.clear();
 }
 
 #pragma clang diagnostic push
