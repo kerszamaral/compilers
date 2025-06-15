@@ -158,6 +158,7 @@ TACList constant_folding(TACList tac_list, SymbolTable& symbol_table)
             result_data_type = TYPE_BOOL;
         }
 
+        std::reverse(result_str.begin(), result_str.end()); // Reverse the string to get the original number
         auto new_literal_symbol = register_symbol(symbol_table, result_symbol_type, result_str, 0);
         new_literal_symbol->set_types(result_data_type, IDENT_LIT);
 
