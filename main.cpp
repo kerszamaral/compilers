@@ -29,10 +29,14 @@ static constexpr auto NO_FILE_ERROR = 2;
 static constexpr auto EXIT_SYNTAX_ERROR = 3;
 static constexpr auto SEMANTIC_ERROR = 4;
 
+// #define SHOW_AST
+#define ENABLE_OPTIMIZATIONS
+
 int main(int argc, char **argv)
 {
     std::vector<std::string> args(argv + 1, argv + argc);
 
+    #ifdef ENABLE_OPTIMIZATIONS
     // Find '-o' if the user provided it
     const auto OPTIMIZATION_FLAG = {"-O", "-o"};
     const auto optimizations_enabled = std::find_first_of(args.begin(), args.end(), OPTIMIZATION_FLAG.begin(), OPTIMIZATION_FLAG.end()) != args.end();
@@ -41,6 +45,9 @@ int main(int argc, char **argv)
         std::cerr << "Optimizations enabled." << std::endl;
         args.erase(std::find_first_of(args.begin(), args.end(), OPTIMIZATION_FLAG.begin(), OPTIMIZATION_FLAG.end()));
     }
+    #else
+    [[maybe_unused]] const auto optimizations_enabled = false;
+    #endif
 
     if (args.size() == 1)
     {
@@ -52,7 +59,12 @@ int main(int argc, char **argv)
     else if (args.size() != 2)
     {
         std::cerr << "No input or output file provided. ";
-        std::cerr << "Usage: " << argv[0] << " <input file> <output file>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <input file> <output file>";
+        #ifdef ENABLE_OPTIMIZATIONS
+        std::cerr << " [-O|-o]" << std::endl;
+        #else
+        std::cerr << std::endl;
+        #endif
         std::exit(WRONG_ARGS_ERROR);
     }
 
@@ -139,6 +151,7 @@ int main(int argc, char **argv)
 
     auto& symbol_table_to_use = g_symbolTable;
     auto tac_to_use = tac_list;
+    #ifdef ENABLE_OPTIMIZATIONS
     if (optimizations_enabled)
     {
         std::cerr << "Optimizing TAC..." << std::endl;
@@ -156,6 +169,7 @@ int main(int argc, char **argv)
         tac_to_use = optimized_tac_list;
         symbol_table_to_use = optimized_symbol_table;
     }
+    #endif
 
     std::cerr << "Generating assembly code..." << std::endl;
     std::cerr << "Using " << (optimizations_enabled ? "optimized" : "original") << " TAC for assembly generation." << std::endl;
