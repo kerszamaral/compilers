@@ -6,13 +6,9 @@
 #include <sstream>
 
 std::tuple<TACList, bool, size_t> constant_folding(TACList tac_list, SymbolTable &symbol_table);
-
 std::tuple<TACList, bool, size_t> constant_propagation(TACList tac_list, SymbolTable &symbol_table);
-
 std::tuple<TACList, bool, size_t> peephole_opt(const TACList &tac_list, SymbolTable &symbol_table);
-
 std::pair<SymbolTable, size_t> remove_unused_symbols(const TACList &final_tacs, const SymbolTable &symbol_table);
-
 std::pair<TACList, size_t> dead_instruction_elimination(const TACList &tac_list, const SymbolTable &symbol_table);
 
 std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const SymbolTable &original_symbol_table)
@@ -20,33 +16,34 @@ std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const S
     std::stringstream log_stream;
     auto optimized_symbol_table = original_symbol_table;
     auto optimized_tac_list = tac_list;
+  
+    using OptFunc = std::function<std::tuple<TACList, bool, size_t>(TACList, SymbolTable&)>;
+    using OptTuple = std::tuple<std::string, OptFunc, size_t>;
+    
+    std::vector<OptTuple> optimizations = {
+        {"Constant Folding", constant_folding, 0},
+        {"Constant Propagation", constant_propagation, 0},
+        {"Peephole Optimization", peephole_opt, 0},
+    };
 
     constexpr size_t MAX_ATTEMPTS = 100;
     constexpr size_t MIN_ATTEMPTS = 10;
     bool changed_in_pass = true;
     size_t iterations_with_change = 0;
     size_t attempts = 0;
-    size_t folding_opts = 0;
-    size_t prop_opts = 0;
-    size_t peep_opts = 0;
     while (attempts < MIN_ATTEMPTS || (changed_in_pass && attempts < MAX_ATTEMPTS))
     {
         changed_in_pass = false;
-
-        const auto [fold_result, fold_changed, fold_changes] = constant_folding(optimized_tac_list, optimized_symbol_table);
-        optimized_tac_list = fold_result;
-        if (fold_changed) changed_in_pass = true;
-        folding_opts += fold_changes;
-
-        const auto [prop_result, prop_changed, prop_changes] = constant_propagation(optimized_tac_list, optimized_symbol_table);
-        optimized_tac_list = prop_result;
-        if (prop_changed) changed_in_pass = true;
-        prop_opts += prop_changes;
-
-        const auto [peep_result, peep_changed, peep_changes] = peephole_opt(optimized_tac_list, optimized_symbol_table);
-        optimized_tac_list = peep_result;
-        if (peep_changed) changed_in_pass = true;
-        peep_opts += peep_changes;
+        for (auto &[_, optimization, changes] : optimizations)
+        {
+            auto [result_tac_list, changed, new_changes] = optimization(optimized_tac_list, optimized_symbol_table);
+            changes += new_changes;
+            optimized_tac_list = result_tac_list;
+            if (changed)
+            {
+                changed_in_pass = true;
+            }
+        }
         attempts++;
         if (changed_in_pass) iterations_with_change++;
     }
@@ -59,9 +56,10 @@ std::tuple<TACList, SymbolTable, std::string> optimize(TACList tac_list, const S
 
     log_stream << "Optimizer completed after " << attempts << " attempts." << std::endl;
     log_stream << "Iterations with changes: " << iterations_with_change << std::endl;
-    log_stream << "Folding optimizations applied: " << folding_opts << std::endl;
-    log_stream << "Propagation optimizations applied: " << prop_opts << std::endl;
-    log_stream << "Peephole optimizations applied: " << peep_opts << std::endl;
+    for (const auto &[name, _, changes] : optimizations)
+    {
+        log_stream << name << " optimizations applied: " << changes << std::endl;
+    }
     log_stream << "Unused symbols removed: " << unused_opts << std::endl;
     log_stream << "Dead instruction elimination optimizations applied: " << dead_opts << std::endl;
 
@@ -74,22 +72,62 @@ struct Fraction
     int den;
 
     // Simplify the fraction by dividing by the greatest common divisor
-    void simplify();
+    void simplify()
+    {
+        if (den == 0)
+            return;
+        int common = std::gcd(num, den);
+        num /= common;
+        den /= common;
+        if (den < 0)
+        {
+            den = -den;
+            num = -num;
+        }
+    }
 
     // Friend functions for operator overloading
-    friend Fraction operator+(const Fraction &a, const Fraction &b);
-    friend Fraction operator-(const Fraction &a, const Fraction &b);
-    friend Fraction operator*(const Fraction &a, const Fraction &b);
-    friend Fraction operator/(const Fraction &a, const Fraction &b);
+    friend Fraction operator+(const Fraction &a, const Fraction &b)
+    {
+        Fraction result = {a.num * b.den + b.num * a.den, a.den * b.den};
+        result.simplify();
+        return result;
+    }
 
-    friend bool operator<(const Fraction &a, const Fraction &b);
-    friend bool operator>(const Fraction &a, const Fraction &b);
-    friend bool operator<=(const Fraction &a, const Fraction &b);
-    friend bool operator>=(const Fraction &a, const Fraction &b);
-    friend bool operator==(const Fraction &a, const Fraction &b);
-    friend bool operator!=(const Fraction &a, const Fraction &b);
+    friend Fraction operator-(const Fraction &a, const Fraction &b)
+    {
+        Fraction result = {a.num * b.den - b.num * a.den, a.den * b.den};
+        result.simplify();
+        return result;
+    }
 
-    friend std::ostream &operator<<(std::ostream &os, const Fraction &f);
+    friend Fraction operator*(const Fraction &a, const Fraction &b)
+    {
+        Fraction result = {a.num * b.num, a.den * b.den};
+        result.simplify();
+        return result;
+    }
+
+    friend Fraction operator/(const Fraction &a, const Fraction &b)
+    {
+        Fraction result = {a.num * b.den, a.den * b.num};
+        result.simplify();
+        return result;
+    }
+
+    // For comparisons, we use cross-multiplication to avoid floating-point division
+    friend bool operator<(const Fraction &a, const Fraction &b) { return a.num * b.den < b.num * a.den; }
+    friend bool operator>(const Fraction &a, const Fraction &b) { return a.num * b.den > b.num * a.den; }
+    friend bool operator<=(const Fraction &a, const Fraction &b) { return a.num * b.den <= b.num * a.den; }
+    friend bool operator>=(const Fraction &a, const Fraction &b) { return a.num * b.den >= b.num * a.den; }
+    friend bool operator==(const Fraction &a, const Fraction &b) { return a.num * b.den == b.num * a.den; }
+    friend bool operator!=(const Fraction &a, const Fraction &b) { return a.num * b.den != b.num * a.den; }
+
+    friend std::ostream &operator<<(std::ostream &os, const Fraction &f)
+    {
+        os << f.num << '/' << f.den; // Fractional representation
+        return os;
+    }
 };
 
 using LiteralValue = std::variant<int, Fraction>;
@@ -567,61 +605,3 @@ std::pair<TACList, size_t> dead_instruction_elimination(const TACList& tac_list,
     return {new_tac_list, dead_count};
 }
 
-void Fraction::simplify()
-{
-    if (den == 0)
-        return;
-    int common = std::gcd(num, den);
-    num /= common;
-    den /= common;
-    if (den < 0)
-    {
-        den = -den;
-        num = -num;
-    }
-}
-
-Fraction operator+(const Fraction &a, const Fraction &b)
-{
-    Fraction result = {a.num * b.den + b.num * a.den, a.den * b.den};
-    result.simplify();
-    return result;
-}
-
-Fraction operator-(const Fraction &a, const Fraction &b)
-{
-    Fraction result = {a.num * b.den - b.num * a.den, a.den * b.den};
-    result.simplify();
-    return result;
-}
-
-Fraction operator*(const Fraction &a, const Fraction &b)
-{
-    Fraction result = {a.num * b.num, a.den * b.den};
-    result.simplify();
-    return result;
-}
-
-Fraction operator/(const Fraction &a, const Fraction &b)
-{
-    Fraction result = {a.num * b.den, a.den * b.num};
-    result.simplify();
-    return result;
-}
-
-// For comparisons, we use cross-multiplication to avoid floating-point division
-bool operator<(const Fraction &a, const Fraction &b) { return a.num * b.den < b.num * a.den; }
-bool operator>(const Fraction &a, const Fraction &b) { return a.num * b.den > b.num * a.den; }
-bool operator<=(const Fraction &a, const Fraction &b) { return a.num * b.den <= b.num * a.den; }
-bool operator>=(const Fraction &a, const Fraction &b) { return a.num * b.den >= b.num * a.den; }
-bool operator==(const Fraction &a, const Fraction &b) { return a.num * b.den == b.num * a.den; }
-bool operator!=(const Fraction &a, const Fraction &b) { return a.num * b.den != b.num * a.den; }
-
-std::ostream &operator<<(std::ostream &os, const Fraction &f)
-{
-    if (f.den == 1)
-        os << f.num; // Integer representation
-    else
-        os << f.num << '/' << f.den; // Fractional representation
-    return os;
-}
