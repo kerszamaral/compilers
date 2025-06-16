@@ -445,6 +445,10 @@ std::string functions_asm(const TACList tac_list)
                 case DataType::TYPE_CHAR:
                     asm_stream << "    " << mov_type_first << " eax, " << first_load_type <<" ptr [rip + " << first_op_text << "]\n";
                     asm_stream << "    " << mov_type_second << " ebx, " << second_load_type <<" ptr [rip + " << second_op_text << "]\n";
+                    if (tac->get_type() == TacType::TAC_MOD || tac->get_type() == TacType::TAC_DIV)
+                    {
+                        asm_stream << "    xor edx, edx\n"; // Clear edx for division
+                    }
                     asm_stream << "    " << operation << " eax, ebx\n";
                     asm_stream << "    mov " << result_load_type << " ptr [rip + " << result_text << "], ";
                     asm_stream << result_register << "\n";
