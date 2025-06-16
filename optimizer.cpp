@@ -1,5 +1,8 @@
 #include "optimizer.hpp"
 
+
+// optimizer.cpp file made by Ian Kersz Amaral - 2025/1
+
 #include <variant>
 #include <algorithm>
 #include <numeric>

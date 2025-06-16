@@ -1,5 +1,7 @@
 #pragma once
 
+// optimizer.hpp file made by Ian Kersz Amaral - 2025/1
+
 #include "tac.hpp"
 #include "symbol.hpp"
 #include <tuple>
