@@ -1,0 +1,14 @@
+int a = 0;
+int i = 0;
+
+int main()
+{
+    while (i < 0000000001) do
+    {
+        a = a + (((02 * 03) / 01) + 04 - 05 + 06 - 07 + 08 - 09 + 10);
+        i = i + 1;
+    }
+    print "Result of the loop: " a "\n";
+
+    return 0;
+}
